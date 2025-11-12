@@ -1,0 +1,168 @@
+<div class="row">
+  <div class="col">
+    <p>
+      <b>
+        {% if player.treatment == 'TRANSPARENT' %}
+          Here is the lottery that you can sell.
+        {% else %}
+          Below you find the presentation of the lottery that you chose to sell.
+        {% endif %}
+      </b>
+    </p>
+  </div>
+</div>
+
+<div class="row">
+  <div class="col">
+      {% if player.chosen_presentation_id == 'Transparent' %}
+        <!-- Transparent Presentation -->
+        <div class="presentation" data-presentation-id="Transparent">
+          <div style="border: 2px solid black; padding: 10px; margin-bottom: 20px; border-radius: 8px;">
+            <!-- Content for Transparent Presentation -->
+            <table class="table table-bordered" style="text-align: center">
+              <thead>
+                <tr class="table-primary">
+                  <th colspan="4">Lottery</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <th>Probability</th>
+                  <td>{{ prob_low }}%</td>
+                  <td>{{ prob_mid }}%</td>
+                  <td>{{ prob_high }}%</td>
+                </tr>
+                <tr>
+                  <th>Payoff</th>
+                  <td>{{ payoff_low }} coins</td>
+                  <td>{{ payoff_mid }} coins</td>
+                  <td>{{ payoff_high }} coins</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      {% elif player.chosen_presentation_id == 'Sample' %}
+        <!-- Sample Presentation -->
+        <div class="presentation" data-presentation-id="Sample">
+          <div style="border: 2px solid black; padding: 10px; margin-bottom: 20px; border-radius: 8px;">
+            <!-- Content for Sample Presentation -->
+            <table class="table table-bordered" style="text-align: center">
+              <thead>
+                <tr class="table-primary">
+                  <th colspan="4">Lottery</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <th>Probability</th>
+                  <td>{{ prob_low }}%</td>
+                  <td>{{ prob_mid }}%</td>
+                  <td>{{ prob_high }}%</td>
+                </tr>
+                <tr>
+                  <th>Payoff</th>
+                  <td>{{ payoff_low }} coins</td>
+                  <td>{{ payoff_mid }} coins</td>
+                  <td>{{ payoff_high }} coins</td>
+                </tr>
+              </tbody>
+            </table>
+            <!-- Lottery Draws Table -->
+            <table class="table table-bordered" style="text-align: center; width: 100%;">
+              <thead>
+                <tr class="table-primary">
+                  <th colspan="5">Lottery draws</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  {% for draw in subsample %}
+                    <td style="width: 20%;">Draw {{ forloop.counter }}</td>
+                  {% endfor %}
+                </tr>
+                <tr>
+                  {% for draw in subsample %}
+                    <td style="width: 20%;">{{ draw }} Coins</td>
+                  {% endfor %}
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      {% elif player.chosen_presentation_id == 'Censoring' %}
+        <!-- Censoring Presentation -->
+        <div class="presentation" data-presentation-id="Censoring">
+          <div style="border: 2px solid black; padding: 10px; margin-bottom: 20px; border-radius: 8px;">
+            <!-- Content for Censoring Presentation -->
+            <table class="table table-bordered" style="text-align: center">
+              <thead>
+                <tr class="table-primary">
+                  <th colspan="4">Lottery</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <th>Probability</th>
+                  <td>{{ prob_low }}%</td>
+                  <td>{{ prob_upper_joint }}%</td>
+                </tr>
+                <tr>
+                  <th>Payoff</th>
+                  <td>{{ payoff_low }} coins</td>
+                  <td>either {{ payoff_mid }} coins or {{ payoff_high }} coins</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      {% elif player.chosen_presentation_id == 'Sample_Censoring' %}
+        <!-- Sample_Censoring Presentation -->
+        <div class="presentation" data-presentation-id="Sample_Censoring">
+          <div style="border: 2px solid black; padding: 10px; margin-bottom: 20px; border-radius: 8px;">
+            <!-- Content for Sample_Censoring Presentation -->
+            <table class="table table-bordered" style="text-align: center">
+              <thead>
+                <tr class="table-primary">
+                  <th colspan="4">Lottery</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <th>Probability</th>
+                  <td>{{ prob_low }}%</td>
+                  <td>{{ prob_upper_joint }}%</td>
+                </tr>
+                <tr>
+                  <th>Payoff</th>
+                  <td>{{ payoff_low }} coins</td>
+                  <td>either {{ payoff_mid }} coins or {{ payoff_high }} coins</td>
+                </tr>
+              </tbody>
+            </table>
+            <!-- Lottery Draws Table -->
+            <table class="table table-bordered" style="text-align: center; width: 100%;">
+              <thead>
+                <tr class="table-primary">
+                  <th colspan="5">Lottery draws</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  {% for draw in subsample %}
+                    <td style="width: 20%;">Draw {{ forloop.counter }}</td>
+                  {% endfor %}
+                </tr>
+                <tr>
+                  {% for draw in subsample %}
+                    <td style="width: 20%;">{{ draw }} Coins</td>
+                  {% endfor %}
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      {% endif %}
+
+  </div>
+</div>

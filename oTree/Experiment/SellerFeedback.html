@@ -1,0 +1,70 @@
+{% extends "global/Page.html" %}
+{% load otree static %}
+
+{% block title %}
+    Round results
+{% endblock %}
+
+{% block content %}
+<br/><br/>
+
+<div style="display: flex; flex-direction: column; gap: 1rem; max-width: 600px; margin: auto;">
+
+    <div style="padding: 1rem; border: 1px solid #ccc; border-radius: 8px; background-color: #f9f9f9;">
+        <p>
+            Your role in this round: <strong>Seller</strong>
+        </p>
+    </div>
+
+    <div style="padding: 1rem; border: 1px solid #ccc; border-radius: 8px; background-color: #f2f2f2;">
+        <p>
+            Price you asked for your lottery: <strong>{{ price }}</strong>
+        </p>
+        <p>
+            Buyer's willingness to pay for your lottery: <strong>{{ buyer_wtp }}</strong>
+        </p>
+    </div>
+
+    {% if sold %}
+        <div style="padding: 1rem; border: 1px solid #ccc; border-radius: 8px; background-color: #e5ffe5;">
+            <p>
+                The buyer's willingness to pay was <strong>at least as high as your price</strong>,
+                so the buyer purchased your lottery in this round.
+            </p>
+            <p>
+                A random draw from your lottery generated an outcome of
+                <strong>{{ outcome }}</strong>.
+            </p>
+            <p>
+                In our payoff rule, your payoff for this round equals the selling price.
+                Therefore, your additional bonus in this round is
+                <strong>{{ price }}</strong>.
+            </p>
+        </div>
+    {% else %}
+        <div style="padding: 1rem; border: 1px solid #ccc; border-radius: 8px; background-color: #ffe5e5;">
+            <p>
+                The buyer's willingness to pay was <strong>lower than your price</strong>,
+                so the buyer did <strong>not</strong> purchase your lottery in this round.
+            </p>
+            <p>
+                As a result, your additional bonus in this round is
+                <strong>0</strong>.
+            </p>
+        </div>
+    {% endif %}
+
+    <div style="padding: 1rem; border: 1px solid #ccc; border-radius: 8px; background-color: #f9f9f9;">
+        <p>
+            Total payoff from this round (before conversion to real money):
+            <strong>{{ player.payoff }}</strong>
+        </p>
+    </div>
+
+    <div style="text-align: right;">
+        {{ next_button }}
+    </div>
+
+</div>
+{% endblock %}
+

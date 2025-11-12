@@ -1,0 +1,26 @@
+{% extends "global/Page.html" %}
+{% load otree static %}
+
+{% block title %}
+    Please answer the following questions
+{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header">
+      <h5>Loot boxes in video games </h5>
+    </div>
+    <div class="card-body">
+      In the following questions we will ask you about your experiences with loot boxes in video games. Loot boxes are digital items that contain a random reward.
+      In many games it is possible to buy such loot boxes for real world money. Examples include Packs in Fifa 22, Hextech Chests in League of Legends or Eggs in Pokémon Go.
+      Below you also see an exemplary picture of a loot box.
+
+
+       <img src="{% static 'Video_game_loot_box_mockup.png' %}" style="max-width:50%; max-height:50%; display:block; margin:auto;" />
+    </div>
+  </div>
+  {% formfields %}
+
+    {% next_button %}
+
+{% endblock %}

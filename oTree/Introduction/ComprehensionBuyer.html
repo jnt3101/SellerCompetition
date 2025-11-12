@@ -1,0 +1,128 @@
+{% extends "global/Page.html" %}
+{% load otree static %}
+
+{% block title %}
+    Comprehension questions
+{% endblock %}
+
+{% block content %}
+<hr>
+
+<p>
+    The questions below test your understanding of the instructions.
+</p>
+<p>
+    <b>Important:</b>  If you fail to answer the questions
+    correctly more than once, you will not be able to participate in the rest of the study,
+    and you will not be able to earn a bonus payment.
+
+    <p> <b> If you are not sure how to answer, you can check
+    the Instructions again on the bottom of the page!</b>
+    </p>
+</p>
+
+<div class="card">
+    <div class="card-header">
+        <b>1. Which payoffs are possible for the following lottery?  </b>
+    </div>
+
+    <div class="card-body">
+        <div class="text-center">
+            <table class="table table-bordered" style="text-align: center">
+                <thead>
+                    <tr class="table-primary" style="border-color: black">
+                        <th colspan="4">Lottery</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <th> Probability </th>
+                        <td> 20 % </td>
+                        <td> 40 % </td>
+                        <td> 40 % </td>
+                    </tr>
+                    <tr>
+                        <th> Payoff </th>
+                        <td> 0 coins </td>
+                        <td> 30 coins </td>
+                        <td> 80 coins </td>
+                    </tr>
+                <tbody>
+            </table>
+                </div><br>
+        {% formfield player.buyer_comp_1 label="Please select one of the statements:"%}
+
+    </div>
+</div>
+<br>
+<div class="card">
+    <div class="card-header">
+        <b>2. What is the probability to get a payoff of 30 coins for the following lottery?</b>
+    </div>
+
+    <div class="card-body">
+        <div class="text-center">
+            <table class="table table-bordered" style="text-align: center">
+                <thead>
+                    <tr class="table-primary" style="border-color: black">
+                        <th colspan="4">Lottery</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <th> Probability </th>
+                        <td> 50 % </td>
+                        <td> 40 % </td>
+                        <td> 10 % </td>
+                    </tr>
+                    <tr>
+                        <th> Payoff </th>
+                        <td> 0 coins </td>
+                        <td> 30 coins </td>
+                        <td> 200 coins </td>
+                    </tr>
+                <tbody>
+            </table>
+
+        </div><br>
+        {% formfield player.buyer_comp_2 label="Please select one of the statements:"%}
+
+    </div>
+
+</div>
+
+
+<br>
+<div class="card">
+    <div class="card-header">
+        <b>3. Who is offering lotteries for you to buy?</b>
+    </div>
+
+    <div class="card-body">
+        <div class="text-center">
+
+
+        </div>
+        {% formfield player.buyer_comp_3 label="Please select one of the statements:" %}
+
+    </div>
+
+</div>
+<br>
+
+ <div style="text-align: right;">
+    {% next_button %}
+</div>
+
+
+<button class="btn btn-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#instructionsCollapse">
+    Show instructions
+</button>
+
+<div class="collapse" id="instructionsCollapse">
+    <div class="card card-body">
+        {{ include_sibling 'InstructionsForBuyer.html' }}
+    </div>
+</div>
+
+{% endblock %}

@@ -1,0 +1,45 @@
+{% extends "global/Page.html" %}
+{% load otree static %}
+
+{% block title %}
+    Please answer the following questions
+{% endblock %}
+
+{% block content %}
+<p>
+
+    In this part, we are interested in your gambling behavior.<br><br>
+    Thinking about the last 12 months …
+</p>
+     <table class="table" style="
+        width: 100%;
+        border-collapse: collapse;
+        text-align: center;
+        table-layout: fixed;
+        margin-bottom: 30px;">
+        <thead style="background-color: #f5f5f5; border-bottom: 2px solid #ccc;">
+            <tr>
+                <th style="padding: 10px; width: 36%;"></th>
+                <th style="padding: 10px; width: 16%;">Never</th>
+                <th style="padding: 10px; width: 16%;">Sometimes</th>
+                <th style="padding: 10px; width: 16%;">Most of the time</th>
+                <th style="padding: 10px; width: 16%;">Always</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for field in form %}
+                <tr style="border-bottom: 1px solid #ddd;">
+                    <td style="padding: 10px; text-align: left; font-weight: bold;">{{ field.label }}</td>
+                    {% for choice in field %}
+                        <td style="padding: 10px;">{{ choice }}</td>
+                    {% endfor %}
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <div style="text-align: right;">
+          {{ next_button }}
+        </div>
+
+{% endblock %}

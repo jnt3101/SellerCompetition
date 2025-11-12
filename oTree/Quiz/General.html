@@ -1,0 +1,20 @@
+{% extends "global/Page.html" %}
+{% load otree static %}
+
+{% block title %}
+    Please answer the following questions
+{% endblock %}
+
+{% block content %}
+<p>
+<b>Thank you for participating. Please answer the following questions. The survey will last approximately for another 10 minutes.
+   Afterwards, you will receive your payment.
+</b>
+</p>
+    {% formfields %}
+
+
+
+    {% next_button %}
+
+{% endblock %}

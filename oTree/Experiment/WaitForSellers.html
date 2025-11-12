@@ -1,0 +1,44 @@
+{% extends "global/Page.html" %}
+{% load otree static %}
+
+{% block title %}
+    Please wait
+{% endblock %}
+
+{% block content %}
+
+<div class="card" style="max-width: 700px; margin: 0 auto;">
+    <div class="card-body">
+        {% if player.player_role == 'seller' %}
+            <!-- Message for sellers -->
+            <h3>Waiting for the buyer</h3>
+            <p>
+                You have submitted your decision for this round.
+                Please wait until the buyer in your group has entered
+                their willingness to pay for the lotteries.
+            </p>
+        {% elif player.player_role == 'buyer' %}
+            <!-- Message for buyer -->
+            <h3>Waiting for the sellers</h3>
+            <p>
+                Please wait until both sellers in your group have finished
+                choosing how to present their lottery and have submitted
+                their price and belief.
+            </p>
+        {% else %}
+            <!-- Fallback (should not normally happen) -->
+            <h3>Please wait</h3>
+            <p>
+                Please wait until all participants in your group have entered
+                their decisions.
+            </p>
+        {% endif %}
+
+        <p style="margin-top: 15px;">
+            This page will automatically continue as soon as all participants
+            in your group are ready.
+        </p>
+    </div>
+</div>
+
+{% endblock %}

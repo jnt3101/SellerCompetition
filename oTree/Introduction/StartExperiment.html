@@ -1,0 +1,15 @@
+{% extends "global/Page.html" %}
+{% load otree static %}
+
+
+
+{% block content %}
+<p>You have correctly answered the comprehension questions. We will now start with the study.</p>
+
+<p>The first decision begins on the next page.</p>
+<div style="text-align: right;">
+    {% next_button %}
+</div>
+{% endblock %}
+
+

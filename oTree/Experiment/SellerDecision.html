@@ -1,0 +1,165 @@
+{% extends "global/Page.html" %}
+{% load otree static %}
+
+{% block title %}
+Please take a decision
+{% endblock %}
+
+{% block content %}
+
+
+{% include "Experiment/lottery_presentation_price.html" %}
+<br>
+
+
+<div class="row" id="id_decision_area">
+  <div class="col">
+    <div class="row">
+      <div class="col">
+        <div class="card" tabindex="0" data-bs-trigger="hover focus" id="card_belief"
+          data-bs-content="Please carefully think about the lottery above. You can answer the question after 5 seconds have passed">
+          <div class="card-body" style="background-color:#e0e0e0;" id="card_belief_body">
+            {% include "Experiment/belief_elicitation.html" %}
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <br>
+
+    <div class="row">
+      <div class="col">
+        <div class="card" tabindex="0" data-bs-trigger="hover focus" id="card_selling_price"
+          data-bs-content="Please answer the question above first.">
+          <div class="card-body" style="background-color:#e0e0e0;" id="card_selling_price_body">
+            {% include "Experiment/selling_price_elicitation.html" %}
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="row">
+      <div class="col">
+        <table class="table borderless" style="text-align: center">
+          <tr>
+            <td colspan="2">
+              <button type="submit" class="btn btn-primary" id="confirm" disabled>Next</button>
+            </td>
+          </tr>
+        </table>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col">
+        {% include "Experiment/dropdown_instructions.html" %}
+      </div>
+    </div>
+  </div>
+</div>
+<input type="hidden" name="belief_sequence" id="belief_sequence" />
+
+{% if form.belief_sequence.errors %}{{ form.belief_sequence.errors.0 }}{% endif %}
+{% if form.belief.errors %}{{ form.belief.errors.0 }}{% endif %}
+{% if form.selling_price_lottery.errors %}{{ form.selling_price_lottery.errors.0 }}{% endif %}
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"
+  integrity="sha384-ka7Sk0Gln4gmtz2MlQnikT1wXgYsOg+OMhuP+IlRH9sENBO0LRn5q+8nbTov4+1p" crossorigin="anonymous"></script>
+
+
+<style>
+
+
+
+</style>
+<script>
+
+  var treatment = "{{player.treatment}}"
+  // hide inputs if we nudge first
+  if (treatment == "BEST_NUDGE"){
+    document.getElementById('id_decision_area').style.display = 'none';
+  } else {
+    // If we are not in the nudge treatment, we start the timer right away
+    start_decision_timeout()
+  }
+
+  // Slider Stuff
+  var range_input = document.getElementById('id_belief_slider');
+  console.log(range_input.value)
+  var all_numbers = "";
+
+  range_input.addEventListener('input', function () { updateValues('range') });
+
+  function updateValues(i) {
+
+    // If we have not activated the selling price field, we do it now
+    var selling_price_field = document.getElementById("id_selling_price_lottery");
+    if (selling_price_field.disabled == true) {
+
+      // Enable selling price elicitation
+      selling_price_field.disabled = false;
+
+      // Change color on the body of the card
+      var card_selling_price_body = document.getElementById("card_selling_price_body");
+      card_selling_price_body.style.backgroundColor = "#FFFFFF";
+
+      // Turn off popover for the entire card
+      $('#card_selling_price').popover('disable');
+
+      //Enable button
+      document.getElementById("confirm").disabled = false;
+
+
+    }
+
+    //card_wtp_body
+
+
+    // Show decision text and hide the placeholder
+    document.getElementById("click_slider").style.display = "none";
+    document.getElementById("slider_clicked").style.display = "block";
+
+
+
+    // Storing all numbers that the participant considered as a belief
+    all_numbers = all_numbers + ";" + range_input.value.toString()
+    document.getElementById("belief_sequence").value = all_numbers
+
+    // If the participant does not report any value for the moment
+    // we hide the thumb of the slider to avoid any anchoring.
+    // Note that ranges default to the middle point between min and max (50 here) as a default value
+    // As the participant has to click on the slider to activate the button,
+    // this default value will always be overwritten!
+    // Also, once the participant clicked on the slider, we will then show him/her only
+    // this value that was insert by the intial click!
+    document.getElementById("id_belief_slider").className = "slider"
+    document.getElementById("text_belief").textContent = range_input.value.toString() + " times"
+  }
+
+
+  // Turn on popover for elements
+  var div_selling_price = document.getElementById("card_selling_price");
+  var popover_selling_price = new bootstrap.Popover(div_selling_price)
+
+  var div_belief = document.getElementById("card_belief");
+  var popover_belief = new bootstrap.Popover(div_belief)
+
+  // Enable slider after 5 seconds and change color
+function start_decision_timeout (){
+
+    setTimeout(function () {
+    // Enable slider
+    document.getElementById("id_belief_slider").disabled = false;
+
+    // Change color of belief card
+    var card_belief_body = document.getElementById("card_belief_body");
+    card_belief_body.style.backgroundColor = "#FFFFFF";
+
+    // Turn off popover for the entire card
+    $('#card_belief').popover('disable');
+  }, 5000);
+}
+</script>
+
+
+{% endblock %}

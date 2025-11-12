@@ -1,0 +1,95 @@
+{% extends "global/Page.html" %}
+{% load otree static %}
+
+{% block title %}
+Welcome
+{% endblock %}
+
+{% block scripts %}
+    <!-- Load the Google reCAPTCHA API -->
+    <script src="https://www.google.com/recaptcha/api.js" async defer></script>
+
+    <script>
+        // Enable the "Next" button when reCAPTCHA is successfully solved
+        function enableSubmit() {
+            document.getElementById("next-button").disabled = false;
+        }
+
+        // Disable the "Next" button if reCAPTCHA expires or is not completed
+        function disableSubmit() {
+            document.getElementById("next-button").disabled = true;
+        }
+
+        // Callback function to set the reCAPTCHA token into the hidden input field
+        function setRecaptchaToken(token) {
+            document.getElementById('recaptcha_token_field').value = token;
+            enableSubmit();
+        }
+
+        // Clear the token when reCAPTCHA expires
+        function clearRecaptchaToken() {
+            document.getElementById('recaptcha_token_field').value = '';
+            disableSubmit();
+        }
+
+        // When the page loads, disable the "Next" button by default
+        window.onload = function() {
+            disableSubmit();
+        };
+    </script>
+{% endblock %}
+
+{% block content %}
+<hr>
+
+<div class="row">
+    <div class="col">
+        <p>
+            Thank you for participating in this study.
+        </p>
+
+        <p>
+            This study will take approximately {{ C.TIME_TO_FINISH }} minutes to complete.
+        </p>
+
+        <p>
+            You will earn a fixed reward of £{{ C.BASE_PAY }} for completing the study.
+            Please read all instructions carefully and answer the corresponding comprehension and attention questions correctly.
+        </p>
+
+        <p>
+            You also have a chance to win an <b><i>additional</i> bonus</b> based on your decisions during the study.
+        </p>
+
+        <p>
+            {% formfield player.prolific_id label="Please enter your Prolific ID below to ensure you will <b>receive your participant payment</b>." %}
+        </p>
+    </div>
+</div>
+
+<br>
+
+        <p>
+            Please complete this CAPTCHA to verify that you are human:
+        </p>
+
+<!-- reCAPTCHA widget -->
+<div class="g-recaptcha"
+     data-sitekey="6LfLHCcrAAAAAHQjh4hcQrvi_8wwt5UN81rMjHP5"
+     data-callback="setRecaptchaToken"
+     data-expired-callback="clearRecaptchaToken">
+</div>
+
+<!-- Hidden field to store the reCAPTCHA token -->
+<input type="hidden" name="recaptcha_token" id="recaptcha_token_field">
+
+<br>
+
+<!-- Next button, initially disabled until reCAPTCHA is solved -->
+<div style="text-align: right;">
+    <button id="next-button" class="otree-btn-next btn btn-primary" type="submit">
+        Next
+    </button>
+</div>
+
+{% endblock %}

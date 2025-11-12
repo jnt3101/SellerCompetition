@@ -1,0 +1,35 @@
+{% load otree static %}
+
+<table class="table borderless" style="text-align: center">
+    <tr>
+        <td class="w-50 align-middle"> <b>For what price</b> do you want to <b>offer</b> this lottery?</td>
+        <td class="w-50 float-right">
+
+            <div class="form-group required">
+                <div class="controls  field-selling_price_lottery">
+                    <div class="input-group input-group-narrow">
+                        <input type="number" name="selling_price_lottery" step="1" min="0" max="{{player.max_payoff}}"
+                            required="" id="id_selling_price_lottery" class="form-control" data-form-type="other" disabled>
+                        <div class="input-group-append">
+                            <span class="input-group-text">Coins</span>
+                        </div>
+                        {% if form.selling_price_lottery.errors %}
+                            {{ form.selling_price_lottery.errors.0 }}
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+        </td>
+    </tr>
+</table>
+
+
+<style>
+    .borderless tr,
+    .borderless td,
+    .borderless th {
+      border: none !important;
+    }
+
+</style>

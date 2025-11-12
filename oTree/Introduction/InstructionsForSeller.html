@@ -1,0 +1,118 @@
+<h5> The Lotteries </h5>
+<p>
+    In this study, you will be <b> selling lotteries to other study participants </b>.
+    You will be matched with a random buyer and if this buyer is willing to buy the lottery, you can earn additional money.
+    You can find an example of a lottery below:
+</p>
+<p>
+    <table class="table table-bordered" style="text-align: center">
+        <thead>
+            <tr class="table-primary" style="border-color: black">
+                <th colspan="4">Lottery</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <th> Probability </th>
+                <td> 40 % </td>
+                <td> 30 % </td>
+                <td> 30 % </td>
+            </tr>
+            <tr>
+                <th> Payoff </th>
+                <td> 20 coins </td>
+                <td> 40 coins </td>
+                <td> 60 coins </td>
+            </tr>
+        <tbody>
+    </table>
+</p>
+<p>
+    Here, the lottery pays either 20 coins with 40% probability or 40 coins with 30% probability or 60 coins with 30% probability.
+    Importantly, a lottery always only pays out one of the amounts; that is, it pays <b>either</b> 20 coins <b>or</b> 40 coins <b>or</b> 60 coins.
+</p>
+{{ if player.treatment == "SAMPLE" or player.treatment == "CENSORING" or player.treatment == "SAMPLE_CENSORING" }}
+<p>
+    <b>Note:</b>
+
+    You will have different options to present the lotteries you sell. In each round you have to decide which presentation
+    you want to sell. The buyer of your lottery will only see the presentation format you choose and will not be aware of the other options
+    you have available.
+</p>
+{{ endif }}
+<br>
+<h5> The Decisions and Bonus Payment </h5>
+<p>
+    You will see a total of {{C.N_LOTTERIES}} lotteries.
+    {{ if player.treatment == "SAMPLE" or player.treatment == "CENSORING" or player.treatment == "SAMPLE_CENSORING" }}
+    You can choose <b>how you want to present the lottery to the buyer. </b>
+    {{ endif }}
+For each lottery, we will ask you two questions.
+    First, we will ask you <b>how often do you think the buyer would expect to win the highest prize</b> in the lottery (e.g., 60 coins in the example above).
+    Then we will ask you for your <b>selling price</b> for each lottery;
+    that is, for the minimum amount of money that you would sell the lottery for.
+</p>
+
+<p>
+    Please indicate your selling price for each lottery. A payment mechanism will determine your potential bonus
+    payment based on your stated selling price and the buyer's willingness to buy the lottery.
+    <b> You can only earn additional money if the other participant is willing to
+    spend at least the price that you offered the lottery for. </b> If you are able to sell the lottery, the price of the lottery will
+    be your potential bonus.
+    If you are interested in the details, you can find a complete description of
+    the payment mechanism at the bottom of the page.
+</p>
+
+<p>
+    Your lotteries are offered to a single buyer. The buyer will indicate his willingness to pay for your lottery without knowing the price you have set for the lottery.
+    After the buyer has indicated their willingness to pay for each lottery, the computer
+    will randomly select one of the 5 lotteries for payment.
+    Your potential bonus is then determined based on your selling price and the buyer's willingness to buy the lottery.
+    One out of every 7 subjects will be randomly selected to receive this additional bonus.
+</p>
+
+<p>
+    During the experiment, we use a fictitious currency called coins.
+    For the bonus payment coins will be converted into British pound at a rate of {{ C.EXCHANGE_RATE }} coins = 1 British pound.
+</p>
+
+
+<p>
+    <table width="100%">
+    <tr>
+      <td class="align-top">
+        <button class="btn btn-secondary" type="button" data-toggle="collapse" data-target="#paymentMechanism" aria-expanded="false" aria-controls="paymentMechanism">
+          Details on the payment mechanism
+        </button>
+      </td>
+
+    </tr>
+  </table>
+  <div class="collapse-content" id="paymentMechanism" style="display: none;">
+    <div class="card card-body">
+      {% include "Experiment/PaymentDetailsSeller.html" %}
+      {% include "Experiment/PaymentExampleSeller.html" %}
+    </div>
+  </div>
+
+</p>
+
+<style>
+    .card {
+        margin: 0 auto;
+        /* Added */
+        float: none;
+        /* Added */
+        margin-bottom: 10px;
+        /* Added */
+    }
+</style>
+
+  <script>
+    $(document).ready(function() {
+      $('[data-toggle="collapse"]').on('click', function() {
+        var target = $(this).data('target');
+        $(target).slideToggle();
+      });
+    });
+  </script>

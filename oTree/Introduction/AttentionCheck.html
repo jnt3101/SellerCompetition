@@ -1,0 +1,41 @@
+{{ block title }}
+Please read the following instructions carefully
+{{ endblock }}
+
+{{ block content }}
+
+{% comment %} <p class="text-center">
+    <b>:</b>
+</p> {% endcomment %}
+
+<p>
+    Welcome to the study. Before we begin, we will conduct a quick attention check to ensure you are fully engaged. These questions are not part of the main study but are important for verifying your attentiveness.
+</p>
+
+<p>
+    <b>For the first question, write <u>at least 10 words</u> in your response. It's not important what you write about the topic itself. We're simply checking to see that you read instructions and are attentive. Do not write the phrase "at least 10 words", we want you to write 10 or more words on the topic of daylight savings time.</b>
+</p>
+
+<p>
+    1. Describe your opinion about daylight savings time using at least 10 words.
+</p>
+
+<div class="justify-content-center text-center">
+    <textarea name="attention_check_daylight" cols="80" rows="4" required="required"></textarea>
+</div>
+<br/>
+
+<p>
+    <b>For the second question, please select the color 'Green' from the dropdown list to indicate that you are paying attention.</b>
+</p>
+
+<div class="justify-content-center ">
+    {{formfield 'attention_check_color' label="2. Choose the color 'Green' from the list below."}}
+</div>
+<br/>
+
+<input type="hidden" id="attention_check_daylight"></p>
+
+{{ next_button }}
+
+{{ endblock }}

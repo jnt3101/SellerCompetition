@@ -1,0 +1,28 @@
+{{ block title }}
+
+{{ endblock }}
+
+{{ block content }}
+<p>
+    Your answer to the previous attention check indicates that you did not follow
+    the instructions. We are not able to let you proceed.
+    </p>
+<p>
+    Please click "Return to Prolific" to return your submission.
+</p>
+
+Otherwise, you will be automatically forwarded to return your submission in 3 seconds.
+
+<a href="{{prolific_attention_link}}" class="btn btn-primary">Return to Prolific</a>
+
+
+<script type="text/javascript">
+    window.onload = function() {
+        setTimeout(function() {
+            window.location.href = "{{prolific_attention_link}}";
+        }, 3000);  // Redirect after 1 seconds
+    };
+</script>
+
+
+{{ endblock }}

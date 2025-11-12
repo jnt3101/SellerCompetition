@@ -1,0 +1,151 @@
+{% load otree static %}
+
+<div class="container mt-4">
+  <h4 class="text-center mb-4">Please indicate your willingness to pay for each lottery</h4>
+
+  <!-- LOTTERY 1 -->
+  <div class="card mb-4 shadow-sm">
+    <div class="card-header bg-primary text-white">
+      Lottery 1 (offered by Seller 1)
+    </div>
+    <div class="card-body" style="background-color:#f8f9fa;">
+      <p class="text-muted">
+        Below you find the lottery offered by <b>Seller 1</b>.
+        Please enter how many coins you would be willing to pay for this lottery.
+      </p>
+
+      <table class="table table-bordered text-center">
+        <thead class="table-light">
+          <tr>
+            <th>Probability</th>
+            <th>Payoff</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>{{ s1_prob_low }} %</td>
+            <td>{{ s1_payoff_low }} coins</td>
+          </tr>
+          <tr>
+            <td>{{ s1_prob_mid }} %</td>
+            <td>{{ s1_payoff_mid }} coins</td>
+          </tr>
+          <tr>
+            <td>{{ s1_prob_high }} %</td>
+            <td>{{ s1_payoff_high }} coins</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <table class="table borderless text-center">
+        <tr>
+          <td class="w-50 align-middle">
+            <b>How much are you willing to pay for this lottery?</b>
+          </td>
+          <td class="w-50">
+            <div class="form-group required">
+              <div class="controls field-wtp_seller1">
+                <div class="input-group input-group-narrow">
+                  <input type="number"
+                         name="wtp_seller1"
+                         step="1"
+                         min="0"
+                         max="{{ s1_payoff_high }}"
+                         required
+                         id="id_wtp_seller1"
+                         class="form-control"
+                         data-form-type="other">
+                  <div class="input-group-append">
+                    <span class="input-group-text">Coins</span>
+                  </div>
+                </div>
+                {% if form.wtp_seller1.errors %}
+                  <div class="text-danger small mt-1">{{ form.wtp_seller1.errors.0 }}</div>
+                {% endif %}
+              </div>
+            </div>
+          </td>
+        </tr>
+      </table>
+    </div>
+  </div>
+
+  <!-- LOTTERY 2 -->
+  <div class="card mb-4 shadow-sm">
+    <div class="card-header bg-success text-white">
+      Lottery 2 (offered by Seller 2)
+    </div>
+    <div class="card-body" style="background-color:#f8f9fa;">
+      <p class="text-muted">
+        Below you find the lottery offered by <b>Seller 2</b>.
+        Please enter how many coins you would be willing to pay for this lottery.
+      </p>
+
+      <table class="table table-bordered text-center">
+        <thead class="table-light">
+          <tr>
+            <th>Probability</th>
+            <th>Payoff</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>{{ s2_prob_low }} %</td>
+            <td>{{ s2_payoff_low }} coins</td>
+          </tr>
+          <tr>
+            <td>{{ s2_prob_mid }} %</td>
+            <td>{{ s2_payoff_mid }} coins</td>
+          </tr>
+          <tr>
+            <td>{{ s2_prob_high }} %</td>
+            <td>{{ s2_payoff_high }} coins</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <table class="table borderless text-center">
+        <tr>
+          <td class="w-50 align-middle">
+            <b>How much are you willing to pay for this lottery?</b>
+          </td>
+          <td class="w-50">
+            <div class="form-group required">
+              <div class="controls field-wtp_seller2">
+                <div class="input-group input-group-narrow">
+                  <input type="number"
+                         name="wtp_seller2"
+                         step="1"
+                         min="0"
+                         max="{{ s2_payoff_high }}"
+                         required
+                         id="id_wtp_seller2"
+                         class="form-control"
+                         data-form-type="other">
+                  <div class="input-group-append">
+                    <span class="input-group-text">Coins</span>
+                  </div>
+                </div>
+                {% if form.wtp_seller2.errors %}
+                  <div class="text-danger small mt-1">{{ form.wtp_seller2.errors.0 }}</div>
+                {% endif %}
+              </div>
+            </div>
+          </td>
+        </tr>
+      </table>
+    </div>
+  </div>
+
+  <div class="text-end mt-4">
+    {{ next_button }}
+  </div>
+</div>
+
+<style>
+  .borderless tr,
+  .borderless td,
+  .borderless th {
+    border: none !important;
+  }
+</style>

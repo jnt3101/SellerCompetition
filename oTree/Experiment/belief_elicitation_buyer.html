@@ -1,0 +1,105 @@
+<table class="w3-table w3-white" style="border-spacing: 0; width: 100%" cellpadding="5">
+  <tr>
+    <td colspan="3">
+      Imagine you would play the lottery <b>100 times</b>. How often do you think would you win
+      <b>{{ player.max_payoff }} coins</b>?
+    </td>
+  </tr>
+  <tr>
+    <td style="width: 10%; text-align: center;">
+      <strong>0 times</strong>
+    </td>
+    <td style="width: 80%; text-align: center;">
+      <div class="form-group required">
+        <div class="controls field-belief">
+          <input
+            type="range"
+            name="belief"
+            id="id_belief_slider"
+            class="slider2"
+            style="width: 100%;"
+            min="0"
+            max="100"
+            value="100"
+            disabled
+          />
+        </div>
+      </div>
+    </td>
+    <td style="width: 10%; text-align: center;">
+      <strong>100 times</strong>
+    </td>
+  </tr>
+
+  <tr>
+    <td colspan="3">
+      <span id="click_slider">
+        <h5 style="color: red">
+          Please click on the slider to indicate your belief. You can still change your decision afterwards.
+        </h5>
+      </span>
+      <span id="slider_clicked" style="display: none;">
+        <h5>
+          I believe that I would win {{ player.max_payoff }} coins exactly
+          <b style="color: red"><span id="text_belief">XX times</span></b>
+          if I would play the lottery 100 times.
+        </h5>
+      </span>
+    </td>
+  </tr>
+</table>
+
+<style>
+  /* The slider itself */
+  .slider {
+    -webkit-appearance: none; /* Override default CSS styles */
+    appearance: none;
+    width: 25%; /* Full-width */
+    height: 10px; /* Specified height */
+    background: #d3d3d3; /* Grey background */
+    outline: none; /* Remove outline */
+    -webkit-transition: 0.2s; /* 0.2 seconds transition on hover */
+  }
+
+  /* The slider handle (Webkit) */
+  .slider::-webkit-slider-thumb {
+    -webkit-appearance: none; /* Override default look */
+    appearance: none;
+    width: 10px; /* Set a specific slider handle width */
+    height: 25px; /* Slider handle height */
+    background: #000000;
+  }
+
+  /* The slider handle (Firefox) */
+  .slider::-moz-range-thumb {
+    width: 10px; /* Set a specific slider handle width */
+    height: 25px; /* Slider handle height */
+    background: #000000;
+  }
+
+  /* Second class to make the thumb of the slider invisible (initial state) */
+  .slider2 {
+    -webkit-appearance: none; /* Override default CSS styles */
+    appearance: none;
+    width: 25%; /* Full-width */
+    height: 10px; /* Specified height */
+    background: #d3d3d3; /* Grey background */
+    outline: none; /* Remove outline */
+  }
+
+  .slider2::-webkit-slider-thumb {
+    -webkit-appearance: none; /* Override default look */
+    appearance: none;
+    width: 25px; /* Set a specific slider handle width */
+    height: 25px; /* Slider handle height */
+    background: #000000;
+    visibility: hidden;
+  }
+
+  .slider2::-moz-range-thumb {
+    width: 25px; /* Set a specific slider handle width */
+    height: 25px; /* Slider handle height */
+    background: #000000;
+    visibility: hidden;
+  }
+</style>

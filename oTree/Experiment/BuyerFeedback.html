@@ -1,0 +1,88 @@
+{% extends "global/Page.html" %}
+{% load otree static %}
+
+{% block title %}
+    Round results
+{% endblock %}
+
+{% block content %}
+<br/><br/>
+
+<div style="display: flex; flex-direction: column; gap: 1rem; max-width: 700px; margin: auto;">
+
+    <div style="padding: 1rem; border: 1px solid #ccc; border-radius: 8px; background-color: #f9f9f9;">
+        <p>
+            Your role in this round: <strong>Buyer</strong>
+        </p>
+    </div>
+
+    {# --- Lottery 1 feedback --- #}
+    <div style="padding: 1rem; border: 1px solid #ccc; border-radius: 8px; background-color: #f2f2f2;">
+        <h5>Lottery 1</h5>
+        <p>
+            Your willingness to pay: <strong>{{ s1_wtp }}</strong><br>
+            Seller's price: <strong>{{ s1_price }}</strong>
+        </p>
+
+        {% if s1_traded %}
+            <p style="margin-top: 0.5rem;">
+                Because your willingness to pay was <strong>at least as high as the price</strong>,
+                you purchased Lottery 1 in this round.
+            </p>
+            <p>
+                A random draw from Lottery 1 generated an outcome of
+                <strong>{{ s1_outcome }}</strong>.
+            </p>
+        {% else %}
+            <p style="margin-top: 0.5rem;">
+                Because your willingness to pay was <strong>lower than the price</strong>,
+                you did <strong>not</strong> purchase Lottery 1 in this round.
+            </p>
+            <p>
+                As a result, your payoff from Lottery 1 in this round is <strong>0</strong>.
+            </p>
+        {% endif %}
+    </div>
+
+    {# --- Lottery 2 feedback --- #}
+    <div style="padding: 1rem; border: 1px solid #ccc; border-radius: 8px; background-color: #f2f2f2;">
+        <h5>Lottery 2</h5>
+        <p>
+            Your willingness to pay: <strong>{{ s2_wtp }}</strong><br>
+            Seller's price: <strong>{{ s2_price }}</strong>
+        </p>
+
+        {% if s2_traded %}
+            <p style="margin-top: 0.5rem;">
+                Because your willingness to pay was <strong>at least as high as the price</strong>,
+                you purchased Lottery 2 in this round.
+            </p>
+            <p>
+                A random draw from Lottery 2 generated an outcome of
+                <strong>{{ s2_outcome }}</strong>.
+            </p>
+        {% else %}
+            <p style="margin-top: 0.5rem;">
+                Because your willingness to pay was <strong>lower than the price</strong>,
+                you did <strong>not</strong> purchase Lottery 2 in this round.
+            </p>
+            <p>
+                As a result, your payoff from Lottery 2 in this round is <strong>0</strong>.
+            </p>
+        {% endif %}
+    </div>
+
+    {# --- total round payoff --- #}
+    <div style="padding: 1rem; border: 1px solid #ccc; border-radius: 8px; background-color: #e5ffe5;">
+        <p>
+            Your total payoff from this round (sum of all purchased lottery outcomes) is:
+            <strong>{{ player.payoff }}</strong>
+        </p>
+    </div>
+
+    <div style="text-align: right;">
+        {{ next_button }}
+    </div>
+
+</div>
+{% endblock %}
