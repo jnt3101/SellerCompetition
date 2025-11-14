@@ -20,23 +20,19 @@
         <p>
             Price you asked for your lottery: <strong>{{ price }}</strong>
         </p>
-        <p>
-            Buyer's willingness to pay for your lottery: <strong>{{ buyer_wtp }}</strong>
-        </p>
     </div>
 
     {% if sold %}
         <div style="padding: 1rem; border: 1px solid #ccc; border-radius: 8px; background-color: #e5ffe5;">
             <p>
-                The buyer's willingness to pay was <strong>at least as high as your price</strong>,
-                so the buyer purchased your lottery in this round.
+                At least one buyer in your group decided to <strong>buy your lottery</strong> at the price you set.
             </p>
             <p>
-                A random draw from your lottery generated an outcome of
+                For a buyer who purchased your lottery, a random draw from your lottery generated an outcome of
                 <strong>{{ outcome }}</strong>.
             </p>
             <p>
-                In our payoff rule, your payoff for this round equals the selling price.
+                According to the payoff rule, your bonus in this round equals the <strong>price</strong> of your lottery.
                 Therefore, your additional bonus in this round is
                 <strong>{{ price }}</strong>.
             </p>
@@ -44,8 +40,7 @@
     {% else %}
         <div style="padding: 1rem; border: 1px solid #ccc; border-radius: 8px; background-color: #ffe5e5;">
             <p>
-                The buyer's willingness to pay was <strong>lower than your price</strong>,
-                so the buyer did <strong>not</strong> purchase your lottery in this round.
+                In this round, <strong>no buyer</strong> decided to buy your lottery.
             </p>
             <p>
                 As a result, your additional bonus in this round is
@@ -67,4 +62,5 @@
 
 </div>
 {% endblock %}
+
 

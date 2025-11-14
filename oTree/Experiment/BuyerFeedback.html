@@ -16,66 +16,51 @@
         </p>
     </div>
 
-    {# --- Lottery 1 feedback --- #}
-    <div style="padding: 1rem; border: 1px solid #ccc; border-radius: 8px; background-color: #f2f2f2;">
-        <h5>Lottery 1</h5>
-        <p>
-            Your willingness to pay: <strong>{{ s1_wtp }}</strong><br>
-            Seller's price: <strong>{{ s1_price }}</strong>
-        </p>
+    {% if bought_lottery %}
+        <div style="padding: 1rem; border: 1px solid #ccc; border-radius: 8px; background-color: #e5ffe5;">
+            <h5>Your purchase decision</h5>
+            {% if chosen_seller_index == 1 %}
+                <p>
+                    In this round, you decided to <strong>buy Lottery 1</strong> (offered by seller 1).
+                </p>
+            {% elif chosen_seller_index == 2 %}
+                <p>
+                    In this round, you decided to <strong>buy Lottery 2</strong> (offered by seller 2).
+                </p>
+            {% else %}
+                <p>
+                    In this round, you decided to <strong>buy a lottery</strong>.
+                </p>
+            {% endif %}
 
-        {% if s1_traded %}
-            <p style="margin-top: 0.5rem;">
-                Because your willingness to pay was <strong>at least as high as the price</strong>,
-                you purchased Lottery 1 in this round.
+            <p>
+                A random draw from the lottery you bought generated an outcome of
+                <strong>{{ lottery_outcome }}</strong>.
             </p>
             <p>
-                A random draw from Lottery 1 generated an outcome of
-                <strong>{{ s1_outcome }}</strong>.
+                According to the payoff rule, this outcome determines your bonus for this round.
             </p>
-        {% else %}
-            <p style="margin-top: 0.5rem;">
-                Because your willingness to pay was <strong>lower than the price</strong>,
-                you did <strong>not</strong> purchase Lottery 1 in this round.
+        </div>
+    {% else %}
+        <div style="padding: 1rem; border: 1px solid #ccc; border-radius: 8px; background-color: #f2f2f2;">
+            <h5>Your decision</h5>
+            <p>
+                In this round, you decided to <strong>not buy any lottery</strong> (outside option).
             </p>
             <p>
-                As a result, your payoff from Lottery 1 in this round is <strong>0</strong>.
-            </p>
-        {% endif %}
-    </div>
-
-    {# --- Lottery 2 feedback --- #}
-    <div style="padding: 1rem; border: 1px solid #ccc; border-radius: 8px; background-color: #f2f2f2;">
-        <h5>Lottery 2</h5>
-        <p>
-            Your willingness to pay: <strong>{{ s2_wtp }}</strong><br>
-            Seller's price: <strong>{{ s2_price }}</strong>
-        </p>
-
-        {% if s2_traded %}
-            <p style="margin-top: 0.5rem;">
-                Because your willingness to pay was <strong>at least as high as the price</strong>,
-                you purchased Lottery 2 in this round.
+                In this case, your bonus for the round equals the <strong>lowest price</strong> among all lotteries
+                offered by the sellers in your group.
             </p>
             <p>
-                A random draw from Lottery 2 generated an outcome of
-                <strong>{{ s2_outcome }}</strong>.
+                The lowest price offered in your group was:
+                <strong>{{ outside_option_value }}</strong>.
             </p>
-        {% else %}
-            <p style="margin-top: 0.5rem;">
-                Because your willingness to pay was <strong>lower than the price</strong>,
-                you did <strong>not</strong> purchase Lottery 2 in this round.
-            </p>
-            <p>
-                As a result, your payoff from Lottery 2 in this round is <strong>0</strong>.
-            </p>
-        {% endif %}
-    </div>
+        </div>
+    {% endif %}
 
-    {# --- total round payoff --- #}
     <div style="padding: 1rem; border: 1px solid #ccc; border-radius: 8px; background-color: #e5ffe5;">
         <p>
-            Your total payoff from this round (sum of all purchased lottery outcomes) is:
+            Your total payoff from this round (before conversion to real money) is:
             <strong>{{ player.payoff }}</strong>
         </p>
     </div>
@@ -86,3 +71,4 @@
 
 </div>
 {% endblock %}
+

@@ -1,9 +1,9 @@
 <h5> The Lotteries </h5>
 <p>
-    In this study, you will state your willingness to pay for lotteries that are offered by other participants of the study.
-    You can earn an additional bonus. Your potential bonus depends on your willingness to pay, the price of the lottery,
-    and possibly the outcome of a random draw. The other participants can also earn an additional bonus, depending on their decisions
-    in the study and your stated willingness to pay.
+    In this study, participants make decisions about lotteries that are offered by other participants in the study.
+    Everyone can earn an additional bonus. The potential bonus depends on the decisions made in the study,
+    such as prices for lotteries, willingness to pay for lotteries, and possibly the outcome of a random draw.
+    The bonus of each participant can therefore depend both on their own decisions and on the decisions of others.
 </p>
 <p>
     You can find an example of a lottery below:
@@ -39,27 +39,24 @@
 <br>
 <h5> The Decisions and Bonus Payment </h5>
 <p>
-    In total, you will see <b>{{C.N_LOTTERIES}} lotteries</b>. For each lottery, we will ask you two questions.
-    First, we will ask you <b>how often you think you would win the highest prize</b> of the lottery (i.e., 60 coins in the example above).
-    After that, we will ask you for your <b>willingness to pay</b> for each lottery;
-    that is, for the maximum amount of money that you would pay to buy this lottery.
+    In total, there will be <b>{{ C.N_LOTTERIES }} lotteries</b> in the study.
+    For each lottery, participants will be asked questions about the lottery.
+    Depending on the role that you are assigned later in the experiment,
+    you may be asked <b>how to present</b> the lottery, <b>how often you think you would win the highest prize</b> of the lottery
+    (i.e., 60 coins in the example above), and/or if you <b>want to buy</b> this lottery.
 </p>
 
-<p>
-    Please indicate your <b> true </b> willingness to pay for each lottery. A payment mechanism will determine your potential bonus
-    payment based on your stated willingness to pay. <b> The payment mechanism is designed in a way that gives you an incentive to indicate your true willingness to pay.</b>
-    If you are interested in the details, you can find a complete description of the payment mechanism at the bottom of the page.
-</p>
 
 <p>
-    At the end of the experiment, the computer will randomly select one of the 5 lotteries for payment.
-    The computer will then determine, based on your stated willingness to pay, your potential bonus payment.
-    One out of every 7 subjects will be randomly selected to receive this additional bonus.
+    At the end of the experiment, the computer will randomly select one of the {{ C.N_LOTTERIES }} lotteries for payment.
+    The computer will then determine, based on the relevant decisions for this lottery (for example stated prices),
+    the potential bonus payment. One out of every 7 participants will be randomly selected to receive this additional bonus. If you are interested in the details, you can find a complete description of
+    the payment mechanism at the bottom of the page.
 </p>
 
 <p>
     During the experiment, we use a fictitious currency called coins.
-    For the bonus payment coins will be converted into British pound at a rate of {{ C.EXCHANGE_RATE }} coins = 1 British pound.
+    For the bonus payment, coins will be converted into British pound at a rate of {{ C.EXCHANGE_RATE }} coins = 1 British pound.
 </p>
 
 
@@ -80,8 +77,8 @@
   </table>
   <div class="collapse-content" id="paymentMechanism" style="display: none;">
     <div class="card card-body">
-      {% include "Experiment/PaymentDetailsBuyer.html" %}
-      {% include "Experiment/PaymentExampleBuyer.html" %}
+      {% include "Experiment/PaymentDetailsGeneral.html" %}
+      {% include "Experiment/PaymentExampleGeneral.html" %}
     </div>
   </div>
 
@@ -98,11 +95,11 @@
     }
 </style>
 
-  <script>
+<script>
     $(document).ready(function() {
       $('[data-toggle="collapse"]').on('click', function() {
         var target = $(this).data('target');
         $(target).slideToggle();
       });
     });
-  </script>
+</script>

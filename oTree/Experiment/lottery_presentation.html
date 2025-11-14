@@ -1,185 +1,21 @@
 <div class="row">
   <div class="col">
     <p>
-      We have generated a lottery that you can sell. <b>You can decide how to present the lottery to the buyer.</b> The lottery will be offered to another
-      participant in the experiment. Remember: You can only earn the bonus payment if you successfully sell the lottery.
-      A sale occurs only if the buyer decides to purchases it. The higher the price at which the buyer purchases the lottery, the higher your potential bonus payment.
-      {% if player.treatment == 'SAMPLE' %}
-        You can include <b> the {{ C.DRAWS }} highest values </b> of in total
-        {{ C.SAMPLE_SIZE }} random lottery draws.
-      {% endif %}
-      {% if player.treatment == 'SAMPLE_CENSORING' %}
-        You can include <b> the {{ C.DRAWS }} highest values </b> of in total
-        {{ C.SAMPLE_SIZE }} random lottery draws.
-      {% endif %}
+      We have generated a lottery that you can sell. <b>You can decide how to present the lottery to the buyer(s).</b>
+      The lottery will be offered to one or more other participants in your group.
+      Remember: You can only earn the bonus payment if you successfully sell the lottery.
+      A sale occurs if at least one buyer decides to purchase it. If your lottery is sold, your bonus equals the price
+      that you set for the lottery.
+    </p>
+    <p>
+      When presenting the lottery, you can also include <b>the {{ C.DRAWS }} highest values</b> out of in total
+      {{ C.SAMPLE_SIZE }} random lottery draws.
     </p>
   </div>
 </div>
 
 <b>You can choose the following formats to present the lottery:</b>
 <br/><br/>
-
-{% if player.treatment == 'SAMPLE' %}
-
-<div id="presentations2">
-  <!-- Transparent Presentation -->
-  <div class="presentation2" data-presentation-id="Transparent">
-    <p align="center" style="font-size: 1.5em;"><b>Presentation 1</b></p>
-    <div class="row">
-      <div class="col">
-        <div style="border: 2px solid black; padding: 10px; margin-bottom: 20px; border-radius: 8px;">
-          <!-- Content for Transparent Presentation -->
-          <table class="table table-bordered" style="text-align: center">
-            <thead>
-              <tr class="table-primary" style="border-color: black">
-                <th colspan="4">Lottery</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <th>Probability</th>
-                <td>{{ prob_low }} %</td>
-                <td>{{ prob_mid }} %</td>
-                <td>{{ prob_high }} %</td>
-              </tr>
-              <tr>
-                <th>Payoff</th>
-                <td>{{ payoff_low }} coins</td>
-                <td>{{ payoff_mid }} coins</td>
-                <td>{{ payoff_high }} coins</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Sample Presentation -->
-  <div class="presentation2" data-presentation-id="Sample">
-    <p align="center" style="font-size: 1.5em;"><b>Presentation 2</b></p>
-    <div class="row">
-      <div class="col">
-        <div style="border: 2px solid black; padding: 10px; margin-bottom: 20px; border-radius: 8px;">
-          <!-- Content for Sample Presentation -->
-          <table class="table table-bordered" style="text-align: center">
-            <thead>
-              <tr class="table-primary" style="border-color: black">
-                <th colspan="4">Lottery</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <th>Probability</th>
-                <td>{{ prob_low }} %</td>
-                <td>{{ prob_mid }} %</td>
-                <td>{{ prob_high }} %</td>
-              </tr>
-              <tr>
-                <th>Payoff</th>
-                <td>{{ payoff_low }} coins</td>
-                <td>{{ payoff_mid }} coins</td>
-                <td>{{ payoff_high }} coins</td>
-              </tr>
-            </tbody>
-          </table>
-          <!-- Lottery Draws Table -->
-          <table class="table table-bordered" style="text-align: center; width: 100%;">
-            <thead>
-              <tr class="table-primary" style="border-color: black">
-                <th colspan="5">Lottery draws</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                {% for draw in subsample %}
-                  <td style="width: 20%">Draw {{ forloop.counter }}</td>
-                {% endfor %}
-              </tr>
-              <tr>
-                {% for draw in subsample %}
-                  <td style="width: 20%">{{ draw }} Coins</td>
-                {% endfor %}
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
-{% endif %}
-
-{% if player.treatment == 'CENSORING' %}
-
-<div id="presentations3">
-  <!-- Transparent Presentation -->
-  <div class="presentation3" data-presentation-id="Transparent">
-    <p align="center" style="font-size: 1.5em;"><b>Presentation 1</b></p>
-    <div class="row">
-      <div class="col">
-        <div style="border: 2px solid black; padding: 10px; margin-bottom: 20px; border-radius: 8px;">
-          <!-- Content for Transparent Presentation -->
-          <table class="table table-bordered" style="text-align: center">
-            <thead>
-              <tr class="table-primary" style="border-color: black">
-                <th colspan="4">Lottery</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <th>Probability</th>
-                <td>{{ prob_low }} %</td>
-                <td>{{ prob_mid }} %</td>
-                <td>{{ prob_high }} %</td>
-              </tr>
-              <tr>
-                <th>Payoff</th>
-                <td>{{ payoff_low }} coins</td>
-                <td>{{ payoff_mid }} coins</td>
-                <td>{{ payoff_high }} coins</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Censoring Presentation -->
-  <div class="presentation3" data-presentation-id="Censoring">
-    <p align="center" style="font-size: 1.5em;"><b>Presentation 2</b></p>
-    <div class="row">
-      <div class="col">
-        <div style="border: 2px solid black; padding: 10px; margin-bottom: 20px; border-radius: 8px;">
-          <!-- Content for Censoring Presentation -->
-          <table class="table table-bordered" style="text-align: center">
-            <thead>
-              <tr class="table-primary" style="border-color: black">
-                <th colspan="4">Lottery</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <th>Probability</th>
-                <td>{{ prob_low }} %</td>
-                <td>{{ prob_upper_joint }} %</td>
-              </tr>
-              <tr>
-                <th>Payoff</th>
-                <td>{{ payoff_low }} coins</td>
-                <td>either {{ payoff_mid }} coins or {{ payoff_high }} coins</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
-{% endif %}
-
-{% if player.treatment == 'SAMPLE_CENSORING' %}
 
 <div id="presentations">
   <!-- Transparent Presentation -->
@@ -258,7 +94,7 @@
               </tr>
               <tr>
                 {% for draw in subsample %}
-                  <td style="width: 20%">{{ draw }} Coins</td>
+                  <td style="width: 20%">{{ draw }} coins</td>
                 {% endfor %}
               </tr>
             </tbody>
@@ -340,7 +176,7 @@
               </tr>
               <tr>
                 {% for draw in subsample %}
-                  <td style="width: 20%">{{ draw }} Coins</td>
+                  <td style="width: 20%">{{ draw }} coins</td>
                 {% endfor %}
               </tr>
             </tbody>
@@ -350,9 +186,8 @@
     </div>
   </div>
 </div>
-{% endif %}
 
-<!-- Added hidden input field to store the order of presentations after shuffling -->
+<!-- Hidden input field to store the order of presentations after shuffling -->
 <input type="hidden" name="presentation_order" id="presentation_order">
 
 <script>
@@ -362,7 +197,7 @@
     if (container) {
       // Filter only the presentation divs
       const presentations = Array.from(container.children).filter(child =>
-        child.classList.contains('presentation') || child.classList.contains('presentation2') || child.classList.contains('presentation3')
+        child.classList.contains('presentation')
       );
 
       // Shuffle presentations
@@ -399,16 +234,8 @@
     }
   }
 
-  // Combined window.onload function to shuffle based on the treatment
+  // On load: shuffle the SAMPLE_CENSORING-style presentations
   window.onload = function() {
-    const treatment = "{{ player.treatment }}"; // This is your current treatment
-
-    if (treatment === 'SAMPLE') {
-      shufflePresentations("presentations2");
-    } else if (treatment === 'CENSORING') {
-      shufflePresentations("presentations3");
-    } else if (treatment === 'SAMPLE_CENSORING') {
-      shufflePresentations("presentations");
-    }
+    shufflePresentations("presentations");
   };
 </script>

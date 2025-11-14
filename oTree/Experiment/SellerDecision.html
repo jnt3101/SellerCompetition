@@ -74,19 +74,13 @@ Please take a decision
 </style>
 <script>
 
-  var treatment = "{{player.treatment}}"
-  // hide inputs if we nudge first
-  if (treatment == "BEST_NUDGE"){
-    document.getElementById('id_decision_area').style.display = 'none';
-  } else {
-    // If we are not in the nudge treatment, we start the timer right away
-    start_decision_timeout()
-  }
-
   // Slider Stuff
   var range_input = document.getElementById('id_belief_slider');
   console.log(range_input.value)
   var all_numbers = "";
+
+  // Start timer direkt, da es keine speziellen Nudge-Treatments mehr gibt
+  start_decision_timeout();
 
   range_input.addEventListener('input', function () { updateValues('range') });
 
@@ -108,34 +102,19 @@ Please take a decision
 
       //Enable button
       document.getElementById("confirm").disabled = false;
-
-
     }
-
-    //card_wtp_body
-
 
     // Show decision text and hide the placeholder
     document.getElementById("click_slider").style.display = "none";
     document.getElementById("slider_clicked").style.display = "block";
 
-
-
     // Storing all numbers that the participant considered as a belief
     all_numbers = all_numbers + ";" + range_input.value.toString()
     document.getElementById("belief_sequence").value = all_numbers
 
-    // If the participant does not report any value for the moment
-    // we hide the thumb of the slider to avoid any anchoring.
-    // Note that ranges default to the middle point between min and max (50 here) as a default value
-    // As the participant has to click on the slider to activate the button,
-    // this default value will always be overwritten!
-    // Also, once the participant clicked on the slider, we will then show him/her only
-    // this value that was insert by the intial click!
     document.getElementById("id_belief_slider").className = "slider"
     document.getElementById("text_belief").textContent = range_input.value.toString() + " times"
   }
-
 
   // Turn on popover for elements
   var div_selling_price = document.getElementById("card_selling_price");
@@ -145,20 +124,20 @@ Please take a decision
   var popover_belief = new bootstrap.Popover(div_belief)
 
   // Enable slider after 5 seconds and change color
-function start_decision_timeout (){
+  function start_decision_timeout (){
 
     setTimeout(function () {
-    // Enable slider
-    document.getElementById("id_belief_slider").disabled = false;
+      // Enable slider
+      document.getElementById("id_belief_slider").disabled = false;
 
-    // Change color of belief card
-    var card_belief_body = document.getElementById("card_belief_body");
-    card_belief_body.style.backgroundColor = "#FFFFFF";
+      // Change color of belief card
+      var card_belief_body = document.getElementById("card_belief_body");
+      card_belief_body.style.backgroundColor = "#FFFFFF";
 
-    // Turn off popover for the entire card
-    $('#card_belief').popover('disable');
-  }, 5000);
-}
+      // Turn off popover for the entire card
+      $('#card_belief').popover('disable');
+    }, 5000);
+  }
 </script>
 
 

@@ -1,321 +1,198 @@
 <div class="row">
   <div class="col">
-    <p>
-      Below you find information about the <b>two lotteries</b> that you can buy in this round.
-      Each lottery is offered by <b>another participant</b> in the study.
-      <br>
-      If a lottery includes sample information, you will also see the
-      <b>{{ C.DRAWS }} highest values</b> from a total of {{ C.SAMPLE_SIZE }} random lottery draws.
-    </p>
-  </div>
-</div>
-
-{# ------------------ LOTTERY 1 (Seller 1) ------------------ #}
-<div class="row">
-  <div class="col">
-    <h4>Lottery 1</h4>
-
-    {% if s1_presentation_id == 'Transparent' %}
-      <!-- Transparent Presentation (Lottery 1) -->
-      <div style="border: 2px solid black; padding: 10px; margin-bottom: 20px; border-radius: 8px;">
-        <table class="table table-bordered" style="text-align: center">
-          <thead>
-          <tr class="table-primary">
-            <th colspan="4">Lottery 1</th>
-          </tr>
-          </thead>
-          <tbody>
-          <tr>
-            <th>Probability</th>
-            <td>{{ s1_prob_low }} %</td>
-            <td>{{ s1_prob_mid }} %</td>
-            <td>{{ s1_prob_high }} %</td>
-          </tr>
-          <tr>
-            <th>Payoff</th>
-            <td>{{ s1_payoff_low }} coins</td>
-            <td>{{ s1_payoff_mid }} coins</td>
-            <td>{{ s1_payoff_high }} coins</td>
-          </tr>
-          </tbody>
-        </table>
-      </div>
-
-    {% elif s1_presentation_id == 'Sample' %}
-      <!-- Sample Presentation (Lottery 1) -->
-      <div style="border: 2px solid black; padding: 10px; margin-bottom: 20px; border-radius: 8px;">
-        <table class="table table-bordered" style="text-align: center">
-          <thead>
-          <tr class="table-primary">
-            <th colspan="4">Lottery 1</th>
-          </tr>
-          </thead>
-          <tbody>
-          <tr>
-            <th>Probability</th>
-            <td>{{ s1_prob_low }} %</td>
-            <td>{{ s1_prob_mid }} %</td>
-            <td>{{ s1_prob_high }} %</td>
-          </tr>
-          <tr>
-            <th>Payoff</th>
-            <td>{{ s1_payoff_low }} coins</td>
-            <td>{{ s1_payoff_mid }} coins</td>
-            <td>{{ s1_payoff_high }} coins</td>
-          </tr>
-          </tbody>
-        </table>
-
-        {% if s1_subsample %}
-          <!-- Lottery Draws Table for Lottery 1 -->
-          <table class="table table-bordered" style="text-align: center; width: 100%;">
-            <thead>
-            <tr class="table-primary" style="border-color: black">
-              <th colspan="{{ s1_subsample|length }}">Lottery draws</th>
-            </tr>
-            </thead>
-            <tbody>
-            <tr>
-              {% for draw in s1_subsample %}
-                <td>Draw {{ forloop.counter }}</td>
-              {% endfor %}
-            </tr>
-            <tr>
-              {% for draw in s1_subsample %}
-                <td>{{ draw }} Coins</td>
-              {% endfor %}
-            </tr>
-            </tbody>
-          </table>
-        {% endif %}
-      </div>
-
-    {% elif s1_presentation_id == 'Censoring' %}
-      <!-- Censoring Presentation (Lottery 1) -->
-      <div style="border: 2px solid black; padding: 10px; margin-bottom: 20px; border-radius: 8px;">
-        <table class="table table-bordered" style="text-align: center">
-          <thead>
-          <tr class="table-primary">
-            <th colspan="3">Lottery 1</th>
-          </tr>
-          </thead>
-          <tbody>
-          <tr>
-            <th>Probability</th>
-            <td>{{ s1_prob_low }} %</td>
-            <td>{{ s1_prob_upper_joint }} %</td>
-          </tr>
-          <tr>
-            <th>Payoff</th>
-            <td>{{ s1_payoff_low }} coins</td>
-            <td>either {{ s1_payoff_mid }} coins or {{ s1_payoff_high }} coins</td>
-          </tr>
-          </tbody>
-        </table>
-      </div>
-
-    {% elif s1_presentation_id == 'Sample_Censoring' %}
-      <!-- Sample_Censoring Presentation (Lottery 1) -->
-      <div style="border: 2px solid black; padding: 10px; margin-bottom: 20px; border-radius: 8px;">
-        <table class="table table-bordered" style="text-align: center">
-          <thead>
-          <tr class="table-primary">
-            <th colspan="3">Lottery 1</th>
-          </tr>
-          </thead>
-          <tbody>
-          <tr>
-            <th>Probability</th>
-            <td>{{ s1_prob_low }} %</td>
-            <td>{{ s1_prob_upper_joint }} %</td>
-          </tr>
-          <tr>
-            <th>Payoff</th>
-            <td>{{ s1_payoff_low }} coins</td>
-            <td>either {{ s1_payoff_mid }} coins or {{ s1_payoff_high }} coins</td>
-          </tr>
-          </tbody>
-        </table>
-
-        {% if s1_subsample %}
-          <!-- Lottery Draws Table for Lottery 1 -->
-          <table class="table table-bordered" style="text-align: center; width: 100%;">
-            <thead>
-            <tr class="table-primary" style="border-color: black">
-              <th colspan="{{ s1_subsample|length }}">Lottery draws</th>
-            </tr>
-            </thead>
-            <tbody>
-            <tr>
-              {% for draw in s1_subsample %}
-                <td>Draw {{ forloop.counter }}</td>
-              {% endfor %}
-            </tr>
-            <tr>
-              {% for draw in s1_subsample %}
-                <td>{{ draw }} Coins</td>
-              {% endfor %}
-            </tr>
-            </tbody>
-          </table>
-        {% endif %}
-      </div>
+    {% if n_sellers == 1 %}
+      <p>
+        Below you find information about the <b>lottery</b> that you can buy in this round.
+        This lottery is offered by <b>another participant</b> in the study.
+        <br>
+        If the lottery includes sample information, you will also see the
+        <b>{{ C.DRAWS }} highest values</b> from a total of {{ C.SAMPLE_SIZE }} random lottery draws.
+      </p>
+    {% else %}
+      <p>
+        Below you find information about the <b>two lotteries</b> that you can buy in this round.
+        Each lottery is offered by <b>another participant</b> in the study.
+        <br>
+        If a lottery includes sample information, you will also see the
+        <b>{{ C.DRAWS }} highest values</b> from a total of {{ C.SAMPLE_SIZE }} random lottery draws.
+      </p>
     {% endif %}
   </div>
 </div>
 
-<hr>
+{% for lot in sellers %}
+  <div class="row">
+    <div class="col">
+      <h4>Lottery {{ forloop.counter }}</h4>
 
-{# ------------------ LOTTERY 2 (Seller 2) ------------------ #}
-<div class="row">
-  <div class="col">
-    <h4>Lottery 2</h4>
-
-    {% if s2_presentation_id == 'Transparent' %}
-      <!-- Transparent Presentation (Lottery 2) -->
-      <div style="border: 2px solid black; padding: 10px; margin-bottom: 20px; border-radius: 8px;">
-        <table class="table table-bordered" style="text-align: center">
-          <thead>
-          <tr class="table-primary">
-            <th colspan="4">Lottery 2</th>
-          </tr>
-          </thead>
-          <tbody>
-          <tr>
-            <th>Probability</th>
-            <td>{{ s2_prob_low }} %</td>
-            <td>{{ s2_prob_mid }} %</td>
-            <td>{{ s2_prob_high }} %</td>
-          </tr>
-          <tr>
-            <th>Payoff</th>
-            <td>{{ s2_payoff_low }} coins</td>
-            <td>{{ s2_payoff_mid }} coins</td>
-            <td>{{ s2_payoff_high }} coins</td>
-          </tr>
-          </tbody>
-        </table>
-      </div>
-
-    {% elif s2_presentation_id == 'Sample' %}
-      <!-- Sample Presentation (Lottery 2) -->
-      <div style="border: 2px solid black; padding: 10px; margin-bottom: 20px; border-radius: 8px;">
-        <table class="table table-bordered" style="text-align: center">
-          <thead>
-          <tr class="table-primary">
-            <th colspan="4">Lottery 2</th>
-          </tr>
-          </thead>
-          <tbody>
-          <tr>
-            <th>Probability</th>
-            <td>{{ s2_prob_low }} %</td>
-            <td>{{ s2_prob_mid }} %</td>
-            <td>{{ s2_prob_high }} %</td>
-          </tr>
-          <tr>
-            <th>Payoff</th>
-            <td>{{ s2_payoff_low }} coins</td>
-            <td>{{ s2_payoff_mid }} coins</td>
-            <td>{{ s2_payoff_high }} coins</td>
-          </tr>
-          </tbody>
-        </table>
-
-        {% if s2_subsample %}
-          <!-- Lottery Draws Table for Lottery 2 -->
-          <table class="table table-bordered" style="text-align: center; width: 100%;">
+      {# ---------- Transparent Presentation ---------- #}
+      {% if lot.presentation_id == 'Transparent' %}
+        <div style="border:2px solid black; padding:10px; margin-bottom:20px; border-radius:8px;">
+          <table class="table table-bordered" style="text-align:center">
             <thead>
-            <tr class="table-primary" style="border-color: black">
-              <th colspan="{{ s2_subsample|length }}">Lottery draws</th>
-            </tr>
+              <tr class="table-primary">
+                <th colspan="4">Lottery {{ forloop.counter }}</th>
+              </tr>
             </thead>
             <tbody>
-            <tr>
-              {% for draw in s2_subsample %}
-                <td>Draw {{ forloop.counter }}</td>
-              {% endfor %}
-            </tr>
-            <tr>
-              {% for draw in s2_subsample %}
-                <td>{{ draw }} Coins</td>
-              {% endfor %}
-            </tr>
+              <tr>
+                <th>Probability</th>
+                <td>{{ lot.prob_low }} %</td>
+                <td>{{ lot.prob_mid }} %</td>
+                <td>{{ lot.prob_high }} %</td>
+              </tr>
+              <tr>
+                <th>Payoff</th>
+                <td>{{ lot.payoff_low }} coins</td>
+                <td>{{ lot.payoff_mid }} coins</td>
+                <td>{{ lot.payoff_high }} coins</td>
+              </tr>
             </tbody>
           </table>
-        {% endif %}
-      </div>
+          <p>
+            Price of this lottery: <b>{{ lot.price }}</b>
+          </p>
+        </div>
+      {% endif %}
 
-    {% elif s2_presentation_id == 'Censoring' %}
-      <!-- Censoring Presentation (Lottery 2) -->
-      <div style="border: 2px solid black; padding: 10px; margin-bottom: 20px; border-radius: 8px;">
-        <table class="table table-bordered" style="text-align: center">
-          <thead>
-          <tr class="table-primary">
-            <th colspan="3">Lottery 2</th>
-          </tr>
-          </thead>
-          <tbody>
-          <tr>
-            <th>Probability</th>
-            <td>{{ s2_prob_low }} %</td>
-            <td>{{ s2_prob_upper_joint }} %</td>
-          </tr>
-          <tr>
-            <th>Payoff</th>
-            <td>{{ s2_payoff_low }} coins</td>
-            <td>either {{ s2_payoff_mid }} coins or {{ s2_payoff_high }} coins</td>
-          </tr>
-          </tbody>
-        </table>
-      </div>
+      {# ---------- Sample Presentation ---------- #}
+      {% if lot.presentation_id == 'Sample' %}
+        <div style="border:2px solid black; padding:10px; margin-bottom:20px; border-radius:8px;">
 
-    {% elif s2_presentation_id == 'Sample_Censoring' %}
-      <!-- Sample_Censoring Presentation (Lottery 2) -->
-      <div style="border: 2px solid black; padding: 10px; margin-bottom: 20px; border-radius: 8px;">
-        <table class="table table-bordered" style="text-align: center">
-          <thead>
-          <tr class="table-primary">
-            <th colspan="3">Lottery 2</th>
-          </tr>
-          </thead>
-          <tbody>
-          <tr>
-            <th>Probability</th>
-            <td>{{ s2_prob_low }} %</td>
-            <td>{{ s2_prob_upper_joint }} %</td>
-          </tr>
-          <tr>
-            <th>Payoff</th>
-            <td>{{ s2_payoff_low }} coins</td>
-            <td>either {{ s2_payoff_mid }} coins or {{ s2_payoff_high }} coins</td>
-          </tr>
-          </tbody>
-        </table>
-
-        {% if s2_subsample %}
-          <!-- Lottery Draws Table for Lottery 2 -->
-          <table class="table table-bordered" style="text-align: center; width: 100%;">
+          <table class="table table-bordered" style="text-align:center">
             <thead>
-            <tr class="table-primary" style="border-color: black">
-              <th colspan="{{ s2_subsample|length }}">Lottery draws</th>
-            </tr>
+              <tr class="table-primary">
+                <th colspan="4">Lottery {{ forloop.counter }}</th>
+              </tr>
             </thead>
             <tbody>
-            <tr>
-              {% for draw in s2_subsample %}
-                <td>Draw {{ forloop.counter }}</td>
-              {% endfor %}
-            </tr>
-            <tr>
-              {% for draw in s2_subsample %}
-                <td>{{ draw }} Coins</td>
-              {% endfor %}
-            </tr>
+              <tr>
+                <th>Probability</th>
+                <td>{{ lot.prob_low }} %</td>
+                <td>{{ lot.prob_mid }} %</td>
+                <td>{{ lot.prob_high }} %</td>
+              </tr>
+              <tr>
+                <th>Payoff</th>
+                <td>{{ lot.payoff_low }} coins</td>
+                <td>{{ lot.payoff_mid }} coins</td>
+                <td>{{ lot.payoff_high }} coins</td>
+              </tr>
             </tbody>
           </table>
-        {% endif %}
-      </div>
-    {% endif %}
+
+          {% if lot.subsample %}
+            <table class="table table-bordered" style="text-align:center; width:100%;">
+              <thead>
+                <tr class="table-primary" style="border-color:black">
+                  <th colspan="{{ lot.subsample|length }}">Lottery draws</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  {% for draw in lot.subsample %}
+                    <td>Draw {{ forloop.counter }}</td>
+                  {% endfor %}
+                </tr>
+                <tr>
+                  {% for draw in lot.subsample %}
+                    <td>{{ draw }} coins</td>
+                  {% endfor %}
+                </tr>
+              </tbody>
+            </table>
+          {% endif %}
+
+          <p>
+            Price of this lottery: <b>{{ lot.price }}</b>
+          </p>
+        </div>
+      {% endif %}
+
+      {# ---------- Censoring Presentation ---------- #}
+      {% if lot.presentation_id == 'Censoring' %}
+        <div style="border:2px solid black; padding:10px; margin-bottom:20px; border-radius:8px;">
+          <table class="table table-bordered" style="text-align:center">
+            <thead>
+              <tr class="table-primary">
+                <th colspan="3">Lottery {{ forloop.counter }}</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <th>Probability</th>
+                <td>{{ lot.prob_low }} %</td>
+                <td>{{ lot.prob_upper_joint }} %</td>
+              </tr>
+              <tr>
+                <th>Payoff</th>
+                <td>{{ lot.payoff_low }} coins</td>
+                <td>either {{ lot.payoff_mid }} coins or {{ lot.payoff_high }} coins</td>
+              </tr>
+            </tbody>
+          </table>
+          <p>
+            Price of this lottery: <b>{{ lot.price }}</b>
+          </p>
+        </div>
+      {% endif %}
+
+      {# ---------- Sample_Censoring Presentation ---------- #}
+      {% if lot.presentation_id == 'Sample_Censoring' %}
+        <div style="border:2px solid black; padding:10px; margin-bottom:20px; border-radius:8px;">
+          <table class="table table-bordered" style="text-align:center">
+            <thead>
+              <tr class="table-primary">
+                <th colspan="3">Lottery {{ forloop.counter }}</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <th>Probability</th>
+                <td>{{ lot.prob_low }} %</td>
+                <td>{{ lot.prob_upper_joint }} %</td>
+              </tr>
+              <tr>
+                <th>Payoff</th>
+                <td>{{ lot.payoff_low }} coins</td>
+                <td>either {{ lot.payoff_mid }} coins or {{ lot.payoff_high }} coins</td>
+              </tr>
+            </tbody>
+          </table>
+
+          {% if lot.subsample %}
+            <table class="table table-bordered" style="text-align:center; width:100%;">
+              <thead>
+                <tr class="table-primary" style="border-color:black">
+                  <th colspan="{{ lot.subsample|length }}">Lottery draws</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  {% for draw in lot.subsample %}
+                    <td>Draw {{ forloop.counter }}</td>
+                  {% endfor %}
+                </tr>
+                <tr>
+                  {% for draw in lot.subsample %}
+                    <td>{{ draw }} coins</td>
+                  {% endfor %}
+                </tr>
+              </tbody>
+            </table>
+          {% endif %}
+
+          <p>
+            Price of this lottery: <b>{{ lot.price }}</b>
+          </p>
+        </div>
+      {% endif %}
+    </div>
   </div>
-</div>
+
+  {# Einfach immer trennen, wenn es mehrere Seller gibt #}
+  {% if n_sellers > 1 %}
+    <hr>
+  {% endif %}
+
+{% endfor %}

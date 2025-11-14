@@ -12,7 +12,7 @@
     The questions below test your understanding of the instructions.
 </p>
 <p>
-    <b>Important:</b>  If you fail to answer the questions
+    <b>Important:</b>  If you fail to answer any one of these questions
     correctly more than once, you will not be able to participate in the rest of the study,
     and you will not be able to earn a bonus payment.
 
@@ -50,7 +50,7 @@
                 <tbody>
             </table>
                 </div><br>
-        {% formfield player.buyer_comp_1 label="Please select one of the statements:"%}
+        {% formfield player.comp_1 label="Please select one of the statements:"%}
 
     </div>
 </div>
@@ -85,17 +85,18 @@
             </table>
 
         </div><br>
-        {% formfield player.buyer_comp_2 label="Please select one of the statements:"%}
+        {% formfield player.comp_2 label="Please select one of the statements:"%}
 
     </div>
 
 </div>
 
 
+
 <br>
 <div class="card">
     <div class="card-header">
-        <b>3. Who is offering lotteries for you to buy?</b>
+        <b>3. What bonus payment would a seller obtain if he/she is able to sell their lottery?</b>
     </div>
 
     <div class="card-body">
@@ -103,16 +104,29 @@
 
 
         </div>
-        {% formfield player.buyer_comp_3 label="Please select one of the statements:" %}
+        {% formfield player.comp_3 label="Please select one of the statements:" %}
+
+    </div>
+
+</div>
+<br>
+<div class="card">
+    <div class="card-header">
+        <b>4. What bonus payment would a seller obtain if he/she is <b> not </b> able to sell their lottery??</b>
+    </div>
+
+    <div class="card-body">
+        <div class="text-center">
+
+
+        </div>
+        {% formfield player.comp_4 label="Please select one of the statements:" %}
 
     </div>
 
 </div>
 <br>
 
- <div style="text-align: right;">
-    {% next_button %}
-</div>
 
 
 <button class="btn btn-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#instructionsCollapse">
@@ -121,8 +135,12 @@
 
 <div class="collapse" id="instructionsCollapse">
     <div class="card card-body">
-        {{ include_sibling 'InstructionsForBuyer.html' }}
+        {{ include_sibling 'InstructionsForGeneral.html' }}
     </div>
+</div>
+
+<div style="text-align: right;">
+    {% next_button %}
 </div>
 
 {% endblock %}

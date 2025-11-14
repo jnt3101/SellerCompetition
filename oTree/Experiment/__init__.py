@@ -5,31 +5,39 @@ import random
 
 """
 Main interaction app:
-- groups of 3: 2 sellers + 1 buyer
-- sellers choose lottery presentation, price, and belief
-- buyer states willingness to pay (WTP) for both sellers' lotteries
-- trades if WTP >= price
-- feedback each round for both sides
+- groups formed only here (introduction app has no roles/groups)
+- possible group types, used in alternating order:
+    * 1 seller + 1 buyer      -> '1S1B'
+    * 2 sellers + 1 buyer     -> '2S1B'
+    * 2 sellers + 2 buyers    -> '2S2B'
+- sellers always have SAMPLE_CENSORING-style options (4 presentations)
+- buyers see sellers' lotteries including prices and choose:
+    * buy lottery from seller 1
+    * buy lottery from seller 2 (if exists)
+    * buy no lottery (outside option)
+- each buyer can buy at most one lottery
+- seller payoff: price of the lottery if (at least) one buyer buys, 0 otherwise
+- buyer payoff:
+    * if they buy a lottery: outcome of that lottery
+    * if they do not buy: lowest price offered by any seller in the group
 """
 
 
 class C(BaseConstants):
     NAME_IN_URL = 'main_experiment'
-    PLAYERS_PER_GROUP = 3
+    PLAYERS_PER_GROUP = None  # variable group sizes (1S1B, 2S1B, 2S2B)
     NUM_ROUNDS = 5
 
-    # Lottery structure as in your seller example
+    # Lottery structure
     MAX_PAYOFF_STATES = [100, 120, 140, 160, 180]
     MID_PROBABILITIES = [0.09, 0.19, 0.29, 0.39, 0.49]
 
     SAMPLE_SIZE = 400
     DRAWS = 5
-    ALL_TREATMENTS = ['TRANSPARENT', 'CENSORING', 'SAMPLE', 'SAMPLE_CENSORING']
 
     BELIEF_BONUS = 13
 
     LOTTERY_CHOICES = ['Presentation 1', 'Presentation 2', 'Presentation 3', 'Presentation 4']
-    LOTTERY_CHOICES2 = ['Presentation 1', 'Presentation 2']
 
 
 # --- lottery helpers --------------------------------------------------------
@@ -89,29 +97,19 @@ class Subsession(BaseSubsession):
 
 class Group(BaseGroup):
     """
-    Group-level fields mainly for storing trade & outcome info.
+    Group-level fields mainly for storing meta information.
     """
-
-    # For seller 1
-    s1_traded = models.BooleanField(initial=False)
-    s1_price = models.CurrencyField()
-    s1_wtp = models.CurrencyField()
-    s1_outcome = models.CurrencyField()
-
-    # For seller 2
-    s2_traded = models.BooleanField(initial=False)
-    s2_price = models.CurrencyField()
-    s2_wtp = models.CurrencyField()
-    s2_outcome = models.CurrencyField()
+    group_type = models.StringField()  # e.g. '1S1B', '2S1B', '2S2B'
 
 
 class Player(BasePlayer):
-    # --- role & treatment ----------------------------------------------------
+    # --- role & indices ------------------------------------------------------
 
-    # 'seller' or 'buyer'; taken from participant.vars in creating_session
+    # 'seller' or 'buyer'; assigned in creating_session of this app
     player_role = models.StringField()
-    # treatment: 'TRANSPARENT', 'CENSORING', 'SAMPLE', 'SAMPLE_CENSORING'
-    treatment = models.StringField()
+    # index within role in the group (1 or 2)
+    seller_index = models.IntegerField(initial=0)
+    buyer_index = models.IntegerField(initial=0)
 
     # --- lottery parameters (per round, for everyone's "own" lottery) -------
 
@@ -123,38 +121,54 @@ class Player(BasePlayer):
     # price for the seller's lottery
     selling_price_lottery = models.CurrencyField(label="", min=0)
 
-    # belief about highest payoff state (can be interpreted as probability in %)
+    # belief about highest payoff state (second-order belief about buyers)
     belief = models.IntegerField(label="")
     belief_sequence = models.LongStringField(blank=True)
 
-    # raw sample and displayed subsample for SAMPLE treatments
+    # raw sample and displayed subsample (always used, SAMPLE_CENSORING-style)
     all_draws = models.LongStringField()
     subsample = models.LongStringField()
 
     # lottery presentation choice
-    presentation_order = models.StringField()     # encoding order of presentations
-    chosen_presentation_id = models.StringField()  # actual presentation ID used
+    presentation_order = models.StringField()        # encoding order of presentations
+    chosen_presentation_id = models.StringField()    # actual presentation ID used
 
     chosen_lottery = models.StringField(
         choices=C.LOTTERY_CHOICES,
-        label="",
-    )
-    chosen_lottery2 = models.StringField(
-        choices=C.LOTTERY_CHOICES2,
         label="",
     )
     justified_lottery = models.LongStringField(label="")
 
     # feedback for sellers
     sold = models.BooleanField(initial=False)
-    buyer_wtp = models.CurrencyField()
     lottery_outcome = models.CurrencyField()
 
     # --- buyer-specific fields ----------------------------------------------
 
-    # WTP of buyer for seller 1 and seller 2
-    wtp_seller1 = models.CurrencyField(label="", min=0)
-    wtp_seller2 = models.CurrencyField(label="", min=0)
+    # beliefs about the lotteries (if available)
+    # belief about lottery from seller 1 (0–100 out of 100 plays)
+    buyer_belief_seller1 = models.IntegerField(label="", initial=0)
+    buyer_belief_sequence_seller1 = models.LongStringField(blank=True)
+
+    # belief about lottery from seller 2 (only used if there is a second seller)
+    buyer_belief_seller2 = models.IntegerField(label="", initial=0)
+    buyer_belief_sequence_seller2 = models.LongStringField(blank=True)
+
+    # choice: 'seller1', 'seller2', or 'none'
+    chosen_lottery_from_seller = models.StringField(
+        choices=[
+            ['seller1', 'Buy lottery from seller 1'],
+            ['seller2', 'Buy lottery from seller 2'],
+            ['none', 'Do not buy a lottery (outside option)'],
+        ],
+        label="",
+    )
+
+    # feedback for buyers
+    bought_lottery = models.BooleanField(initial=False)
+    chosen_seller_index = models.IntegerField(initial=0)
+    buyer_lottery_outcome = models.CurrencyField()
+    outside_option_value = models.CurrencyField()
 
     # --- general helper methods ---------------------------------------------
 
@@ -181,7 +195,7 @@ class Player(BasePlayer):
         """
         Draw a random sample from the lottery of which a subsample
         will be displayed to the participant (seller).
-        Only used in SAMPLE and SAMPLE_CENSORING treatments.
+        SAMPLE_CENSORING-style: always draw a sample and show the top DRAWS outcomes.
         """
         current_lottery_dist = create_lottery(
             q=player.mid_probability,
@@ -193,10 +207,7 @@ class Player(BasePlayer):
             k=C.SAMPLE_SIZE,
         )
 
-        if player.treatment in ['SAMPLE', 'SAMPLE_CENSORING']:
-            subsample = sorted(total_sample, reverse=True)[:C.DRAWS]
-        else:
-            raise Exception(f'There is no sampling in the treatment {player.treatment}.')
+        subsample = sorted(total_sample, reverse=True)[:C.DRAWS]
 
         player.set_all_draws(total_sample)
         player.set_subsample(subsample)
@@ -217,83 +228,113 @@ class Player(BasePlayer):
 
 def creating_session(subsession: Subsession):
     """
-    - read player_role and treatment from participant.vars (set in introduction app)
+    - assign roles and groups only in this app (not in introduction)
+    - group pattern alternates across participants:
+        1S1B -> 2S1B -> 2S2B -> 1S1B -> ...
     - initialize sequence of lotteries for each participant (in round 1)
     - assign per-round lottery parameters
-    - draw samples for SAMPLE treatments
+    - draw samples for all sellers (SAMPLE_CENSORING-style)
+    - keep groups fixed across all rounds
     """
     players = subsession.get_players()
 
     if subsession.round_number == 1:
-        for p in players:
-            # --- role: taken from introduction app if available ---------------
-            role = p.participant.vars.get('player_role')
-            if role in ['seller', 'buyer']:
+        # --- determine alternating group structure ---------------------------
+        players_sorted = sorted(players, key=lambda p: p.id_in_subsession)
+
+        # patterns in the desired order:
+        patterns = [
+            ['seller', 'buyer'],                        # 1S1B
+            ['seller', 'seller', 'buyer'],              # 2S1B
+            ['seller', 'seller', 'buyer', 'buyer'],     # 2S2B
+        ]
+
+        group_matrix = []
+        idx_global = 0
+        pattern_idx = 0
+        n_players = len(players_sorted)
+
+        while idx_global < n_players:
+            pattern = patterns[pattern_idx]
+            size = len(pattern)
+
+            if idx_global + size > n_players:
+                raise Exception(
+                    "Number of participants is not compatible with the alternating "
+                    "pattern [1S1B, 2S1B, 2S2B]. Please adjust the number of "
+                    "participants or implement a custom grouping rule."
+                )
+
+            group_players = players_sorted[idx_global: idx_global + size]
+            idx_global += size
+
+            seller_counter = 0
+            buyer_counter = 0
+            for role, p in zip(pattern, group_players):
                 p.player_role = role
-            else:
-                # Fallback: first two in group are sellers, last one is buyer
-                if p.id_in_group in [1, 2]:
-                    p.player_role = 'seller'
+                if role == 'seller':
+                    seller_counter += 1
+                    p.seller_index = seller_counter
+                elif role == 'buyer':
+                    buyer_counter += 1
+                    p.buyer_index = buyer_counter
                 else:
-                    p.player_role = 'buyer'
+                    raise Exception(f"Unknown role '{role}' in grouping pattern.")
 
-            # --- treatment: taken from introduction if available --------------
-            if 'treatment' not in p.participant.vars:
-                # If not set yet, randomly assign (but note: no group-balancing here)
-                p.participant.vars['treatment'] = random.choice(C.ALL_TREATMENTS)
-            p.treatment = p.participant.vars['treatment']
+                # store role info for later rounds
+                p.participant.vars['player_role'] = p.player_role
+                p.participant.vars['seller_index'] = p.seller_index
+                p.participant.vars['buyer_index'] = p.buyer_index
 
-            # Create random shuffles of payoff states...
+            group_matrix.append(group_players)
+
+            # move to next pattern in cycle
+            pattern_idx = (pattern_idx + 1) % len(patterns)
+
+        subsession.set_group_matrix(group_matrix)
+
+        # initialize random sequences of lotteries and paid round
+        for p in subsession.get_players():
             max_payoff_states_shuffled = C.MAX_PAYOFF_STATES.copy()
             random.shuffle(max_payoff_states_shuffled)
 
-            # ...and probabilities.
             mid_probabilities_shuffled = C.MID_PROBABILITIES.copy()
             random.shuffle(mid_probabilities_shuffled)
 
-            # Store zipped combinations across rounds
             p.participant.vars['payoff_probability_combinations'] = list(
                 zip(max_payoff_states_shuffled, mid_probabilities_shuffled)
             )
 
-            # Optionally, you can also pick a paid round for final payoff
             if 'paid_round' not in p.participant.vars:
                 p.participant.vars['paid_round'] = random.randint(1, C.NUM_ROUNDS)
+    else:
+        # keep the same groups in all later rounds
+        subsession.group_like_round(1)
 
-    # --- IMPORTANT: for every round, reload role & treatment from participant.vars
-    for p in players:
-        # Ensure we have role and treatment in every round
-        role = p.participant.vars.get('player_role')
-        if role in ['seller', 'buyer']:
-            p.player_role = role
-        else:
-            # Fallback again, just in case someone runs this app ohne Introduction
-            if p.id_in_group in [1, 2]:
-                p.player_role = 'seller'
-            else:
-                p.player_role = 'buyer'
-
-        # Treatment from participant.vars (or random fallback)
-        treatment = p.participant.vars.get('treatment')
-        if treatment not in C.ALL_TREATMENTS:
-            treatment = random.choice(C.ALL_TREATMENTS)
-            p.participant.vars['treatment'] = treatment
-        p.treatment = treatment
+    # --- for every round, reload role info and lottery parameters -------------
+    for p in subsession.get_players():
+        # ensure role & indices are available in every round
+        p.player_role = p.participant.vars.get('player_role')
+        p.seller_index = p.participant.vars.get('seller_index', 0)
+        p.buyer_index = p.participant.vars.get('buyer_index', 0)
 
         # Lottery parameters for this round
         payoff_prob_combos = p.participant.vars['payoff_probability_combinations']
         p.max_payoff, p.mid_probability = payoff_prob_combos[subsession.round_number - 1]
 
-        # For SAMPLE treatments, draw sample (only relevant for sellers)
-        if p.player_role == 'seller' and p.treatment in ['SAMPLE', 'SAMPLE_CENSORING']:
+        # For sellers, draw sample each round (SAMPLE_CENSORING-style)
+        if p.player_role == 'seller':
             p.draw_sample()
 
-        # For TRANSPARENT treatment, the presentation is fixed
-        if p.player_role == 'seller' and p.treatment == 'TRANSPARENT':
-            p.chosen_presentation_id = 'Transparent'
+    # set group_type on each group (e.g. 1S1B, 2S1B, 2S2B)
+    for g in subsession.get_groups():
+        players_in_group = g.get_players()
+        n_sellers = sum(1 for pl in players_in_group if pl.player_role == 'seller')
+        n_buyers = sum(1 for pl in players_in_group if pl.player_role == 'buyer')
+        g.group_type = f"{n_sellers}S{n_buyers}B"
 
 
-# --- context helper for templates ------------------------------------------
+# --- context helpers for templates -----------------------------------------
 
 
 def generate_context_for_seller(player: Player):
@@ -303,7 +344,7 @@ def generate_context_for_seller(player: Player):
     - payoff states
     - probabilities
     - joint upper probability
-    - subsample if available
+    - subsample (list of observed outcomes)
     - general instruction variables
     """
     context = dict()
@@ -332,11 +373,8 @@ def generate_context_for_seller(player: Player):
     context['prob_high'] = int(round(prob_high * 100))
     context['prob_upper_joint'] = int(round(prob_upper_joint * 100))
 
-    if player.treatment in ['SAMPLE', 'SAMPLE_CENSORING']:
-        extend_dict = {
-            'subsample': player.get_subsample(),
-        }
-        context.update(extend_dict)
+    # SAMPLE_CENSORING-style subsample
+    context['subsample'] = player.get_subsample()
 
     context.update(player.get_general_instruction_vars())
     return context
@@ -344,64 +382,50 @@ def generate_context_for_seller(player: Player):
 
 def generate_context_for_buyer(player: Player):
     """
-    Build context dict for the buyer showing both sellers' lotteries.
+    Build context dict for the buyer showing all sellers' lotteries in the group.
+    Works for both:
+    - 1 seller + 1 buyer
+    - 2 sellers + 1 buyer
+    - 2 sellers + 2 buyers
     """
     group = player.group
     sellers = [p for p in group.get_players() if p.player_role == 'seller']
-    sellers.sort(key=lambda p: p.id_in_group)  # ensure consistent order
+    sellers.sort(key=lambda p: p.seller_index)
 
-    if len(sellers) != 2:
-        raise Exception("Each group must contain exactly 2 sellers.")
+    if len(sellers) not in [1, 2]:
+        raise Exception("Each group must contain 1 or 2 sellers.")
 
-    s1, s2 = sellers
+    sellers_context = []
 
-    # build context for seller 1
-    s1_lottery_sorted = sort_lottery(
-        create_lottery(q=s1.mid_probability, x=s1.max_payoff)
-    )
-    s1_payoffs, s1_probs = zip(*s1_lottery_sorted)
-    s1_prob_low, s1_prob_mid, s1_prob_high = s1_probs
-    s1_prob_upper_joint = s1_prob_mid + s1_prob_high
+    for s in sellers:
+        lottery_sorted = sort_lottery(
+            create_lottery(q=s.mid_probability, x=s.max_payoff)
+        )
+        payoffs, probs = zip(*lottery_sorted)
+        prob_low, prob_mid, prob_high = probs
+        prob_upper_joint = prob_mid + prob_high
 
-    # build context for seller 2
-    s2_lottery_sorted = sort_lottery(
-        create_lottery(q=s2.mid_probability, x=s2.max_payoff)
-    )
-    s2_payoffs, s2_probs = zip(*s2_lottery_sorted)
-    s2_prob_low, s2_prob_mid, s2_prob_high = s2_probs
-    s2_prob_upper_joint = s2_prob_mid + s2_prob_high
+        sellers_context.append(
+            dict(
+                seller_index=s.seller_index,
+                payoff_low=payoffs[0],
+                payoff_mid=payoffs[1],
+                payoff_high=payoffs[2],
+                prob_low=int(round(prob_low * 100)),
+                prob_mid=int(round(prob_mid * 100)),
+                prob_high=int(round(prob_high * 100)),
+                prob_upper_joint=int(round(prob_upper_joint * 100)),
+                presentation_id=s.chosen_presentation_id,
+                subsample=s.get_subsample(),
+                price=s.selling_price_lottery,
+            )
+        )
 
     context = dict(
-        # seller 1 lottery
-        s1_payoff_low=s1_payoffs[0],
-        s1_payoff_mid=s1_payoffs[1],
-        s1_payoff_high=s1_payoffs[2],
-        s1_prob_low=int(round(s1_prob_low * 100)),
-        s1_prob_mid=int(round(s1_prob_mid * 100)),
-        s1_prob_high=int(round(s1_prob_high * 100)),
-        s1_prob_upper_joint=int(round(s1_prob_upper_joint * 100)),
-        s1_presentation_id=s1.chosen_presentation_id,
-        # seller 2 lottery
-        s2_payoff_low=s2_payoffs[0],
-        s2_payoff_mid=s2_payoffs[1],
-        s2_payoff_high=s2_payoffs[2],
-        s2_prob_low=int(round(s2_prob_low * 100)),
-        s2_prob_mid=int(round(s2_prob_mid * 100)),
-        s2_prob_high=int(round(s2_prob_high * 100)),
-        s2_prob_upper_joint=int(round(s2_prob_upper_joint * 100)),
-        s2_presentation_id=s2.chosen_presentation_id,
+        n_sellers=len(sellers),
+        sellers=sellers_context,
+        group_type=group.group_type,
     )
-
-    # include subsamples if the chosen presentation is sample-based
-    if s1.chosen_presentation_id in ['Sample', 'Sample_Censoring'] and s1.subsample:
-        context['s1_subsample'] = s1.get_subsample()
-    else:
-        context['s1_subsample'] = []
-
-    if s2.chosen_presentation_id in ['Sample', 'Sample_Censoring'] and s2.subsample:
-        context['s2_subsample'] = s2.get_subsample()
-    else:
-        context['s2_subsample'] = []
 
     context.update(player.get_general_instruction_vars())
     return context
@@ -413,64 +437,79 @@ def generate_context_for_buyer(player: Player):
 def set_trade_and_outcomes(group: Group):
     """
     For each group:
-    - read sellers and buyer data
-    - determine for each seller if trade occurs (WTP >= price)
-    - if trade: draw lottery outcome
-    - store all info in Group and Player models
+    - read sellers and buyers
+    - each buyer chooses at most one seller (or none)
+    - if buyer buys from seller i: draw lottery outcome for that buyer
+    - seller payoff: price if at least one buyer buys from them, 0 otherwise
+    - buyer payoff:
+        * lottery outcome if a lottery is bought
+        * otherwise: lowest price offered by any seller in the group
     """
     players = group.get_players()
     sellers = [p for p in players if p.player_role == 'seller']
-    sellers.sort(key=lambda p: p.id_in_group)
+    sellers.sort(key=lambda p: p.seller_index)
     buyers = [p for p in players if p.player_role == 'buyer']
+    buyers.sort(key=lambda p: p.buyer_index)
 
-    if len(sellers) != 2 or len(buyers) != 1:
-        raise Exception("Group must consist of exactly 2 sellers and 1 buyer.")
+    if len(sellers) not in [1, 2]:
+        raise Exception("Each group must contain 1 or 2 sellers.")
 
-    s1, s2 = sellers
-    buyer = buyers[0]
+    if len(buyers) not in [1, 2]:
+        raise Exception("Each group must contain 1 or 2 buyers.")
 
-    # prices
-    price1 = s1.selling_price_lottery
-    price2 = s2.selling_price_lottery
+    # lowest price across all sellers (outside option for buyers who do not buy)
+    lowest_price = min(s.selling_price_lottery for s in sellers)
 
-    # buyer's WTP for each seller
-    wtp1 = buyer.wtp_seller1
-    wtp2 = buyer.wtp_seller2
+    # reset seller fields
+    for s in sellers:
+        s.sold = False
+        s.lottery_outcome = Currency(0)
 
-    # trade conditions: WTP >= price (independent for each lottery)
-    traded1 = wtp1 >= price1
-    traded2 = wtp2 >= price2
+    # handle each buyer
+    for b in buyers:
+        choice = b.chosen_lottery_from_seller
 
-    # draw outcomes if traded, else 0
-    outcome1 = draw_lottery_outcome(s1.mid_probability, s1.max_payoff) if traded1 else Currency(0)
-    outcome2 = draw_lottery_outcome(s2.mid_probability, s2.max_payoff) if traded2 else Currency(0)
+        b.outside_option_value = lowest_price
+        b.bought_lottery = False
+        b.chosen_seller_index = 0
+        b.buyer_lottery_outcome = Currency(0)
 
-    # store in group
-    group.s1_traded = traded1
-    group.s1_price = price1
-    group.s1_wtp = wtp1
-    group.s1_outcome = outcome1
+        if choice == 'none' or choice is None:
+            # outside option
+            b.payoff = lowest_price
+        else:
+            if choice == 'seller1':
+                if len(sellers) < 1:
+                    raise Exception("Buyer chose seller1 but there is no seller 1 in this group.")
+                chosen_seller = sellers[0]
+            elif choice == 'seller2':
+                if len(sellers) < 2:
+                    raise Exception("Buyer chose seller2 but there is no seller 2 in this group.")
+                chosen_seller = sellers[1]
+            else:
+                raise Exception(f"Unexpected choice value: {choice}")
 
-    group.s2_traded = traded2
-    group.s2_price = price2
-    group.s2_wtp = wtp2
-    group.s2_outcome = outcome2
+            outcome = draw_lottery_outcome(
+                chosen_seller.mid_probability,
+                chosen_seller.max_payoff,
+            )
 
-    # store in sellers for per-player feedback
-    s1.sold = traded1
-    s1.buyer_wtp = wtp1
-    s1.lottery_outcome = outcome1
-    s2.sold = traded2
-    s2.buyer_wtp = wtp2
-    s2.lottery_outcome = outcome2
+            b.bought_lottery = True
+            b.chosen_seller_index = chosen_seller.seller_index
+            b.buyer_lottery_outcome = outcome
+            b.payoff = outcome
 
-    # simple payoff rule:
-    # sellers earn the price if sold, 0 otherwise
-    s1.payoff = price1 if traded1 else Currency(0)
-    s2.payoff = price2 if traded2 else Currency(0)
+            # mark seller as having sold (at least once)
+            chosen_seller.sold = True
+            # store last observed outcome on seller level (for feedback)
+            chosen_seller.lottery_outcome = outcome
 
-    # buyer's payoff is sum of outcomes of all lotteries he actually bought
-    buyer.payoff = outcome1 + outcome2
+    # set seller payoffs: price if sold at least once, 0 otherwise
+    for s in sellers:
+        if s.sold:
+            s.payoff = s.selling_price_lottery
+        else:
+            s.payoff = Currency(0)
 
 
 # --- PAGES ------------------------------------------------------------------
@@ -489,14 +528,14 @@ class LotteryDecisionBase(Page):
 
 class Lottery_decision(LotteryDecisionBase):
     """
-    Seller chooses a presentation among 4 options.
-    Only used in SAMPLE_CENSORING treatment.
+    Seller chooses a presentation among 4 options (SAMPLE_CENSORING-style).
+    All sellers use this page independent of group type.
     """
     form_fields = ['chosen_lottery', 'justified_lottery', 'presentation_order']
 
     @staticmethod
     def is_displayed(player: Player):
-        return player.player_role == 'seller' and player.treatment == 'SAMPLE_CENSORING'
+        return player.player_role == 'seller'
 
     @staticmethod
     def before_next_page(player: Player, timeout_happened):
@@ -508,29 +547,10 @@ class Lottery_decision(LotteryDecisionBase):
         player.chosen_presentation_id = chosen_presentation_id
 
 
-class Lottery_decision2(LotteryDecisionBase):
-    """
-    Seller chooses a presentation among 2 options.
-    Used in SAMPLE and CENSORING treatments.
-    """
-    form_fields = ['chosen_lottery2', 'justified_lottery', 'presentation_order']
-
-    @staticmethod
-    def is_displayed(player: Player):
-        return player.player_role == 'seller' and player.treatment in ['SAMPLE', 'CENSORING']
-
-    @staticmethod
-    def before_next_page(player: Player, timeout_happened):
-        order_list = player.presentation_order.split(',')
-        choice_number = int(player.chosen_lottery2.split(' ')[1]) - 1
-        chosen_presentation_id = order_list[choice_number]
-        player.chosen_presentation_id = chosen_presentation_id
-
-
 class SellerDecision(LotteryDecisionBase):
     """
     Seller states price and belief for her lottery.
-    Shown to all sellers, independent of treatment.
+    Shown to all sellers, independent of group type.
     """
     form_fields = ['selling_price_lottery', 'belief_sequence', 'belief']
 
@@ -541,22 +561,42 @@ class SellerDecision(LotteryDecisionBase):
 
 class WaitForSellers(WaitPage):
     """
-    Wait until both sellers have chosen their presentations
-    and set price + belief, before showing the buyer's page.
+    Wait until all sellers have chosen their presentations
+    and set price + belief, before showing the buyers' page.
     """
     wait_for_all_groups = False  # group-wise is enough
 
 
 class BuyerDecision(Page):
     """
-    Buyer states WTP for the lotteries of both sellers.
+    Buyer chooses beliefs about one or two lotteries and
+    then chooses whether to buy from seller 1, seller 2 (if exists),
+    or not to buy a lottery (outside option).
     """
     form_model = 'player'
-    form_fields = ['wtp_seller1', 'wtp_seller2']
 
     @staticmethod
     def is_displayed(player: Player):
         return player.player_role == 'buyer'
+
+    @staticmethod
+    def get_form_fields(player: Player):
+        group = player.group
+        sellers = [p for p in group.get_players() if p.player_role == 'seller']
+        sellers.sort(key=lambda p: p.seller_index)
+        n_sellers = len(sellers)
+
+        fields = [
+            'buyer_belief_sequence_seller1',
+            'buyer_belief_seller1',
+        ]
+        if n_sellers == 2:
+            fields += [
+                'buyer_belief_sequence_seller2',
+                'buyer_belief_seller2',
+            ]
+        fields.append('chosen_lottery_from_seller')
+        return fields
 
     @staticmethod
     def vars_for_template(player: Player):
@@ -565,7 +605,7 @@ class BuyerDecision(Page):
 
 class WaitForBuyerAndSetResults(WaitPage):
     """
-    After buyer submitted WTPs, compute trades & outcomes for this group.
+    After all buyers submitted their choices, compute trades & outcomes.
     """
     wait_for_all_groups = False
 
@@ -577,10 +617,9 @@ class WaitForBuyerAndSetResults(WaitPage):
 class SellerFeedback(Page):
     """
     Feedback for sellers:
-    - whether lottery was bought
-    - buyer's WTP
+    - whether lottery was bought by at least one buyer
     - own price
-    - outcome (if sold)
+    - (last) outcome drawn among buyers who purchased
     """
     @staticmethod
     def is_displayed(player: Player):
@@ -590,7 +629,6 @@ class SellerFeedback(Page):
     def vars_for_template(player: Player):
         return dict(
             sold=player.sold,
-            buyer_wtp=player.buyer_wtp,
             price=player.selling_price_lottery,
             outcome=player.lottery_outcome,
         )
@@ -598,11 +636,10 @@ class SellerFeedback(Page):
 
 class BuyerFeedback(Page):
     """
-    Feedback for buyer:
-    - own WTPs for both lotteries
-    - seller prices
-    - trade decisions
-    - lottery outcomes (for traded lotteries)
+    Feedback for buyers:
+    - whether they bought a lottery
+    - if yes: index of seller and outcome
+    - if no: outside option (lowest price)
     """
     @staticmethod
     def is_displayed(player: Player):
@@ -610,32 +647,59 @@ class BuyerFeedback(Page):
 
     @staticmethod
     def vars_for_template(player: Player):
-        group = player.group
         return dict(
-            s1_traded=group.s1_traded,
-            s1_price=group.s1_price,
-            s1_wtp=group.s1_wtp,
-            s1_outcome=group.s1_outcome,
-            s2_traded=group.s2_traded,
-            s2_price=group.s2_price,
-            s2_wtp=group.s2_wtp,
-            s2_outcome=group.s2_outcome,
+            bought_lottery=player.bought_lottery,
+            chosen_seller_index=player.chosen_seller_index,
+            lottery_outcome=player.buyer_lottery_outcome,
+            outside_option_value=player.outside_option_value,
         )
 
 
+class InstructionsSellerExp(Page):
+    """
+    Role-specific instructions for sellers in the experiment app.
+    Shown only in round 1.
+    """
+    @staticmethod
+    def is_displayed(player: Player):
+        return player.round_number == 1 and player.player_role == 'seller'
+
+    @staticmethod
+    def vars_for_template(player: Player):
+        return player.get_general_instruction_vars()
+
+
+class InstructionsBuyerExp(Page):
+    """
+    Role-specific instructions for buyers in the experiment app.
+    Shown only in round 1.
+    """
+    @staticmethod
+    def is_displayed(player: Player):
+        return player.round_number == 1 and player.player_role == 'buyer'
+
+    @staticmethod
+    def vars_for_template(player: Player):
+        return player.get_general_instruction_vars()
+
+
 page_sequence = [
-    # sellers choose how to present the lottery (depending on treatment)
+    # role-specific instructions (only in round 1)
+    InstructionsSellerExp,
+    InstructionsBuyerExp,
+    # sellers choose how to present the lottery (SAMPLE_CENSORING-style)
     Lottery_decision,
-    Lottery_decision2,
     # sellers set price & belief
     SellerDecision,
-    # wait until both sellers are done
+    # wait until all sellers are done
     WaitForSellers,
-    # buyer states WTP for both lotteries
+    # buyers: beliefs + choice of lottery / outside option
     BuyerDecision,
     # compute trades & lottery outcomes
     WaitForBuyerAndSetResults,
-    # feedback for sellers and buyer
+    # feedback for sellers and buyers
     SellerFeedback,
     BuyerFeedback,
 ]
+
+

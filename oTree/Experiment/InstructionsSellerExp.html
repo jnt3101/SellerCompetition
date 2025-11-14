@@ -1,0 +1,136 @@
+{% extends "global/Page.html" %}
+{% load otree static %}
+
+{% block title %}
+    Instructions
+{% endblock %}
+
+{% block content %}
+
+<h5>Your Role</h5>
+<p>
+    You have been assigned the role of a <b>seller</b>.
+    In this part of the study, you will create an offer for a lottery that will be shown to the buyer(s) in your group.
+    Your lottery may or may not be purchased, depending on the decisions of the buyer(s).
+</p>
+
+<br>
+
+<h5>Your Decisions</h5>
+<p>
+    Each seller in the study offers a lottery to the buyer(s).
+    Before setting your price, you will be shown information about the lottery you are selling, including a set of sample draws from it.
+</p>
+
+<p>
+    We will then ask you to make several decisions:
+</p>
+
+<ul>
+    <li>
+        <b>Choose how to present the lottery</b> from several available presentation formats.
+    </li>
+    <li>
+        <b>State your price</b> for the lottery. This is the amount at which you offer the lottery to the buyer(s).
+    </li>
+    <li>
+        <b>State a second-order belief</b>:
+        that is, how often you think the buyer(s) believe that the highest prize of the lottery would be won if the lottery were played <b>100 times</b>.
+        In other words, you indicate what you think the <i>buyers’</i> belief is about the frequency of the jackpot.
+    </li>
+</ul>
+
+<br>
+
+<h5>Market Environment</h5>
+
+{% if group.group_type == "1S1B" %}
+<p>
+    In your group, there is <b>one seller</b> and <b>one buyer</b>.
+    The buyer only sees <b>your</b> lottery offer.
+    The buyer will state their belief about the lottery and decide whether to buy it at your chosen price.
+</p>
+
+{% elif group.group_type == "2S1B" %}
+<p>
+    In your group, there are <b>two sellers</b> and <b>one buyer</b>.
+    This means the buyer will be shown <b>two different lotteries</b>: yours and the one offered by the other seller.
+</p>
+
+<p>
+    The buyer can purchase <b>at most one lottery</b>.
+    They may choose:
+</p>
+
+<ul>
+    <li>Your lottery,</li>
+    <li>The lottery of the other seller,</li>
+    <li>Or to not buy any lottery.</li>
+</ul>
+
+<p>
+    Your lottery therefore competes with the lottery offered by the other seller.
+</p>
+
+{% else %}
+<p>
+    In your group, there are <b>two sellers</b> and <b>two buyers</b>.
+    Each buyer will see both sellers’ lotteries.
+</p>
+
+<p>
+    Each buyer can buy <b>at most one lottery</b>, but <b>both buyers may buy the same lottery</b>.
+    There is <b>no competition between buyers</b>.
+</p>
+
+<p>
+    This means:
+</p>
+
+<ul>
+    <li>Both buyers may buy your lottery,</li>
+    <li>Both may buy the other seller’s lottery,</li>
+    <li>Each may choose a different seller,</li>
+    <li>Or either buyer may decide not to buy at all.</li>
+</ul>
+
+<p>
+    As a seller, you therefore compete with the other seller for the purchase decisions of <b>two independent buyers</b>.
+</p>
+{% endif %}
+
+<br>
+
+<h5>Your Bonus Payment</h5>
+<p>
+    Your bonus depends on whether your lottery is purchased.
+</p>
+
+<ul>
+    <li>
+        If <b>at least one buyer</b> buys your lottery, your bonus equals the <b>price</b> that you set for the lottery.
+    </li>
+    <li>
+        If <b>no buyer</b> buys your lottery, your bonus is <b>0</b>.
+    </li>
+</ul>
+
+<p>
+    All coins earned in the study will be converted into British pounds at the rate of
+    <b>{{ exchange_rate }} coins = 1 British pound</b>.
+</p>
+
+<br>
+
+<h5>Important</h5>
+<p>
+    Please make all decisions carefully.
+    Your bonus depends on your pricing decision, your chosen presentation of the lottery,
+    and on how attractive the buyers perceive your lottery to be—both in terms of their own beliefs and in comparison to competing lotteries in your group.
+</p>
+
+<div style="text-align: right;">
+    {{ next_button }}
+</div>
+
+{% endblock %}
