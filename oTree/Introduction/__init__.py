@@ -6,25 +6,31 @@ import requests
 
 doc = """
 Introduction app:
-- general instructions and checks (no roles yet)
-- roles & group types are only set in the main_experiment app
+- General instructions, attention checks, comprehension checks
+- No roles or grouping here
+- Roles and groups are only created in the main_experiment app
 """
 
 
 class C(BaseConstants):
     NAME_IN_URL = 'introduction'
-    PLAYERS_PER_GROUP = None  # no grouping logic needed here
+    PLAYERS_PER_GROUP = None
     NUM_ROUNDS = 1
 
-    # You can still use these constants later in other apps
+    # General intro parameters (not used in grouping)
     N_LOTTERIES = 5
-    TIME_TO_FINISH = 15  # Minutes
+    TIME_TO_FINISH = 15  # minutes
     BASE_PAY = 2.0  # in Pound
     EXCHANGE_RATE = 13
 
+    # These constants MUST match the ones in Experiment.C
+    EXP_NUM_ROUNDS = 5
+    EXP_MAX_PAYOFF_STATES = [100, 120, 140, 160, 180]
+    EXP_MID_PROBABILITIES = [0.09, 0.19, 0.29, 0.39, 0.49]
+
 
 class Subsession(BaseSubsession):
-    # These links must be set in settings.py / SESSION_CONFIGS
+    # These links must be provided in SESSION_CONFIGS
     prolific_completion_link = models.StringField()
     prolific_attention_link = models.StringField()
     prolific_no_consent_link = models.StringField()
@@ -35,12 +41,13 @@ class Group(BaseGroup):
 
 
 class Player(BasePlayer):
-    # --- general fields (no roles yet) ---
+
+    # --- General fields (no roles yet) ---
 
     prolific_id = models.StringField(label="Your Prolific-ID:")
     recaptcha_token = models.StringField(blank=True)
 
-    # Attention check
+    # Attention checks
     attention_check_daylight = models.StringField(label="")
     attention_check_color = models.StringField(
         choices=['Red', 'Green', 'Blue', 'Yellow'],
@@ -48,13 +55,13 @@ class Player(BasePlayer):
     )
     failed_both_attention_checks = models.BooleanField(initial=False)
 
-    # --- general comprehension questions (shown to everyone) ---
+    # --- Comprehension checks ---
 
     comp_1 = models.IntegerField(
         label="",
         choices=[
-            [1, "It is possible that I get paid both 30 coins and 80 coins, i.e., I may receive a total amount of 110 coins from this lottery."],
-            [2, "I receive EITHER 30 coins OR 80 coins OR 0 coins from this lottery."],
+            [1, "It is possible that I get paid both 30 coins and 80 coins."],
+            [2, "I receive either 30 coins OR 80 coins OR 0 coins."],
             [3, "I will receive at least some coins with certainty."],
         ],
         widget=widgets.RadioSelect,
@@ -63,9 +70,9 @@ class Player(BasePlayer):
     comp_2 = models.IntegerField(
         label="",
         choices=[
-            [1, "The probability to receive 30 coins is 60 %."],
-            [2, "The probability to receive 30 coins is 40 %."],
-            [3, "The probability to receive 30 coins is 0 %."],
+            [1, "The probability to receive 30 coins is 60%."],
+            [2, "The probability to receive 30 coins is 40%."],
+            [3, "The probability to receive 30 coins is 0%."],
         ],
         widget=widgets.RadioSelect,
     )
@@ -84,42 +91,38 @@ class Player(BasePlayer):
         label="",
         choices=[
             [1, "The seller will not get a bonus"],
-            [2, "The sellers' bonus will match the amount the other participant is willing to pay"],
-            [3, "The sellers' bonus will be 25 coins"],
+            [2, "The seller's bonus will match the amount the other participant is willing to pay"],
+            [3, "The seller's bonus will be 25 coins"],
         ],
         widget=widgets.RadioSelect,
     )
 
     comp_tries = models.IntegerField(initial=0)
 
-    @staticmethod
-    def get_general_instruction_vars(player):
-        """
-        Helper to pass common variables to templates, e.g. exchange rate.
-        """
+    # Helper to pass exchange rate to templates
+    def get_general_instruction_vars(self):
         return {
-            'exchange_rate': int(1 / player.session.config['real_world_currency_per_point']),
+            'exchange_rate': int(1 / self.session.config['real_world_currency_per_point']),
         }
 
 
-# --- session creation ---
+# --- SESSION CREATION ---
 
 
 def creating_session(subsession: Subsession):
     """
-    - Set Prolific links from session config
-    - No grouping and no roles/treatments are assigned here.
-      Grouping & roles are set in the main_experiment app.
+    Load Prolific return links from SESSION_CONFIGS.
+    No grouping or role assignment happens here.
     """
     if subsession.round_number == 1:
-        expected_fields = [
+        required_fields = [
             "prolific_completion_link",
             "prolific_attention_link",
             "prolific_no_consent_link",
         ]
-        for field in expected_fields:
+        for field in required_fields:
             if field not in subsession.session.config:
-                raise Exception(f"You must set a {field} in settings.py / SESSION_CONFIGS")
+                raise Exception(f"You must set {field} in SESSION_CONFIGS")
             setattr(subsession, field, subsession.session.config[field])
 
 
@@ -128,8 +131,8 @@ def creating_session(subsession: Subsession):
 
 class Welcome(Page):
     """
-    Simple welcome page with Prolific ID and reCAPTCHA.
-    Shown to all participants.
+    Welcome page where participants enter their Prolific ID
+    and complete a reCAPTCHA check.
     """
     form_model = 'player'
     form_fields = ['prolific_id', 'recaptcha_token']
@@ -140,12 +143,12 @@ class Welcome(Page):
         if not token:
             return "Please verify that you are not a robot."
 
-        # TODO: Replace this with your own secret key
+        # IMPORTANT: Replace with your own secret key
         secret_key = '6LfLHCcrAAAAAHR2ZraFCkA-II8Ll0z95DQQ3beT'
 
         payload = {
             'secret': secret_key,
-            'response': token
+            'response': token,
         }
         r = requests.post('https://www.google.com/recaptcha/api/siteverify', data=payload)
         result = r.json()
@@ -156,31 +159,30 @@ class Welcome(Page):
 
 class AttentionCheck(Page):
     """
-    Same attention check for everybody.
+    Neutral attention check for all participants.
     """
     form_model = 'player'
     form_fields = ['attention_check_daylight', 'attention_check_color']
 
     @staticmethod
     def before_next_page(player, timeout_happened):
-        # Check if text answer is at least 10 words and color is 'Green'
-        len_att_check_daylight = len(player.attention_check_daylight.split())
-        if len_att_check_daylight >= 10 and player.attention_check_color == 'Green':
-            player.failed_both_attention_checks = False
-        else:
-            player.failed_both_attention_checks = True
+        # Must write at least 10 words AND choose "Green"
+        enough_words = len(player.attention_check_daylight.split()) >= 10
+        correct_color = player.attention_check_color == 'Green'
+
+        player.failed_both_attention_checks = not (enough_words and correct_color)
 
 
 class AttentionCheckFail(Page):
     """
-    Shown if participant failed the attention check.
+    Shown only to participants who fail the attention check.
     """
     @staticmethod
-    def is_displayed(player: Player):
+    def is_displayed(player):
         return player.failed_both_attention_checks
 
     @staticmethod
-    def vars_for_template(player: Player):
+    def vars_for_template(player):
         return {
             "prolific_attention_link": player.subsession.prolific_attention_link
         }
@@ -188,45 +190,47 @@ class AttentionCheckFail(Page):
 
 class InstructionsGeneral(Page):
     """
-    General instructions page (no role-specific information yet).
+    General instructions (not role-specific).
     """
     @staticmethod
-    def vars_for_template(player: Player):
-        return player.get_general_instruction_vars(player)
+    def vars_for_template(player):
+        return player.get_general_instruction_vars()
 
 
 class ComprehensionGeneral(Page):
     """
-    General control questions, shown to everybody.
+    Comprehension questions shown to all participants.
     """
     form_model = 'player'
     form_fields = ['comp_1', 'comp_2', 'comp_3', 'comp_4']
 
     @staticmethod
-    def error_message(player: Player, values):
+    def error_message(player, values):
         correct = (
-            values['comp_1'] == 2
-            and values['comp_2'] == 2
-            and values['comp_3'] == 3
-            and values['comp_4'] == 1
+            values['comp_1'] == 2 and
+            values['comp_2'] == 2 and
+            values['comp_3'] == 3 and
+            values['comp_4'] == 1
         )
+
         if not correct:
             player.comp_tries += 1
+
             if player.comp_tries < 2:
-                return 'You have answered one or more of the control questions incorrectly. Please try again.'
-            # If tries >= 2, they will be redirected to ComprehensionFailGeneral
+                return "Some answers were incorrect. Please try again."
+            # After 2 attempts -> fail page will be shown.
 
 
 class ComprehensionFailGeneral(Page):
     """
-    Shown if participant answered comprehension questions incorrectly twice.
+    Shown only if comprehension questions were failed twice.
     """
     @staticmethod
-    def is_displayed(player: Player):
+    def is_displayed(player):
         return player.comp_tries >= 2
 
     @staticmethod
-    def vars_for_template(player: Player):
+    def vars_for_template(player):
         return {
             "prolific_attention_link": player.subsession.prolific_attention_link
         }
@@ -234,10 +238,30 @@ class ComprehensionFailGeneral(Page):
 
 class StartExperiment(Page):
     """
-    Last page of the introduction.
-    From here you can jump to the main experimental app.
+    Final page of the introduction.
+    Only here do we generate the participant's lottery sequences
+    and the paid round for the main experiment.
     """
-    pass
+
+    @staticmethod
+    def before_next_page(player, timeout_happened):
+        participant = player.participant
+
+        # Assign randomized sequence of lottery parameters
+        if 'payoff_probability_combinations' not in participant.vars:
+            max_states = C.EXP_MAX_PAYOFF_STATES.copy()
+            mid_probs = C.EXP_MID_PROBABILITIES.copy()
+
+            random.shuffle(max_states)
+            random.shuffle(mid_probs)
+
+            participant.vars['payoff_probability_combinations'] = list(
+                zip(max_states, mid_probs)
+            )
+
+        # Assign randomly selected round for payment
+        if 'paid_round' not in participant.vars:
+            participant.vars['paid_round'] = random.randint(1, C.EXP_NUM_ROUNDS)
 
 
 page_sequence = [

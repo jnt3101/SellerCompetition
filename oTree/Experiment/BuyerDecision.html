@@ -188,13 +188,17 @@
       </div>
     </div>
 
-    {# ---------- BELIEF SLIDER FÜR DIESE LOTTERIE ---------- #}
+    {# ---------- BELIEF SLIDER FOR THIS LOTTERY (MATCHING SELLER STYLE) ---------- #}
     {% if forloop.counter == 1 %}
-      <div class="card mb-4 shadow-sm">
+      <div class="card mb-4 shadow-sm"
+           tabindex="0"
+           data-bs-trigger="hover focus"
+           id="card_belief_s1"
+           data-bs-content="Please carefully think about Lottery 1 above. You can answer the question after 5 seconds have passed.">
         <div class="card-header bg-secondary text-white">
           Your belief about Lottery 1
         </div>
-        <div class="card-body" style="background-color:#f8f9fa;">
+        <div class="card-body" style="background-color:#e0e0e0;" id="card_belief_body_s1">
 
           <p>
             Imagine you would play <b>Lottery 1</b> <b>100 times</b>.<br>
@@ -249,12 +253,17 @@
           {% endif %}
         </div>
       </div>
+
     {% elif forloop.counter == 2 %}
-      <div class="card mb-4 shadow-sm">
+      <div class="card mb-4 shadow-sm"
+           tabindex="0"
+           data-bs-trigger="hover focus"
+           id="card_belief_s2"
+           data-bs-content="Please carefully think about Lottery 2 above. You can answer the question after 5 seconds have passed.">
         <div class="card-header bg-secondary text-white">
           Your belief about Lottery 2
         </div>
-        <div class="card-body" style="background-color:#f8f9fa;">
+        <div class="card-body" style="background-color:#e0e0e0;" id="card_belief_body_s2">
 
           <p>
             Imagine you would play <b>Lottery 2</b> <b>100 times</b>.<br>
@@ -286,7 +295,7 @@
               <td colspan="3">
                 <span id="click_slider_s2">
                   <h5 style="color: red">
-                    This slider will be activated a bit later. Once it is active, please move the slider to indicate your belief.
+                    The slider will be activated in a few seconds. Once it is active, please move the slider to indicate your belief.
                   </h5>
                 </span>
                 <span id="slider_clicked_s2" style="display:none;">
@@ -313,7 +322,7 @@
 
   {% endfor %}
 
-  {# --------- Kaufentscheidung --------- #}
+  {# --------- Purchase decision --------- #}
 
   <div class="card mb-4 shadow-sm">
     <div class="card-header bg-primary text-white">
@@ -431,14 +440,14 @@
     </div>
   </div>
 
-  {# Dropdown instructions, wie bisher #}
+  {# Dropdown instructions as in other pages #}
   <div class="row">
     <div class="col">
       {% include "Experiment/dropdown_instructions.html" %}
     </div>
   </div>
 
-  {# Next button zentriert #}
+  {# Next button centered #}
   <div class="row mt-3">
     <div class="col">
       <table class="table borderless" style="text-align: center">
@@ -460,7 +469,7 @@
     border: none !important;
   }
 
-  /* Slider mit verstecktem Thumb (kein sichtbarer Default) */
+  /* Initial slider style (like seller before moving) */
   .slider2 {
     -webkit-appearance: none;
     appearance: none;
@@ -486,7 +495,7 @@
     visibility: hidden;
   }
 
-  /* Sobald bewegt -> sichtbarer Thumb */
+  /* After interaction: visible thumb, same as seller using class "slider" */
   .slider {
     -webkit-appearance: none;
     appearance: none;
@@ -513,67 +522,96 @@
   }
 </style>
 
+{# Bootstrap bundle for Popovers (like on seller page) #}
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-ka7Sk0Gln4gmtz2MlQnikT1wXgYsOg+OMhuP+IlRH9sENBO0LRn5q+8nbTov4+1p"
+        crossorigin="anonymous"></script>
+
 <script>
-  // Slider 1: nach 5 Sekunden aktiv, Sequenz und Text aktualisieren
+  // Slider for Lottery 1 (same behavior as seller slider, minus price logic)
   (function () {
     var slider = document.getElementById('id_belief_slider_s1');
     if (!slider) { return; }
 
+    var all_numbers = "";
     var clickText = document.getElementById('click_slider_s1');
     var clickedText = document.getElementById('slider_clicked_s1');
     var textBelief = document.getElementById('text_belief_s1');
     var seqInput = document.getElementById('belief_sequence_s1');
-    var seq = "";
 
-    // Slider nach 5 Sekunden aktivieren
+    var card_belief = document.getElementById("card_belief_s1");
+    var card_belief_body = document.getElementById("card_belief_body_s1");
+
+    // Activate Bootstrap popover (like seller page)
+    var popover_belief = new bootstrap.Popover(card_belief);
+
+    // Enable slider after 5 seconds and change card color
     setTimeout(function () {
       slider.disabled = false;
+
+      // Change background color of belief card body
+      card_belief_body.style.backgroundColor = "#FFFFFF";
+
+      // Disable popover (same as seller: jQuery syntax)
+      $('#card_belief_s1').popover('disable');
     }, 5000);
 
     slider.addEventListener('input', function () {
-      // Thumb sichtbar machen
-      slider.className = 'slider';
+      // Show belief text and hide placeholder
+      clickText.style.display = "none";
+      clickedText.style.display = "block";
 
-      clickText.style.display = 'none';
-      clickedText.style.display = 'block';
-
-      textBelief.textContent = slider.value.toString() + " times";
-      seq = seq + ";" + slider.value.toString();
+      // Track all numbers the participant considered
+      all_numbers = all_numbers + ";" + slider.value.toString();
       if (seqInput) {
-        seqInput.value = seq;
+        seqInput.value = all_numbers;
       }
+
+      // Switch slider class so the thumb becomes visible (like seller)
+      slider.className = "slider";
+      textBelief.textContent = slider.value.toString() + " times";
     });
   })();
 
-  // Slider 2: nach 10 Sekunden aktiv (falls vorhanden)
+  // Slider for Lottery 2 (if exists)
   (function () {
     var slider = document.getElementById('id_belief_slider_s2');
     if (!slider) { return; }
 
+    var all_numbers = "";
     var clickText = document.getElementById('click_slider_s2');
     var clickedText = document.getElementById('slider_clicked_s2');
     var textBelief = document.getElementById('text_belief_s2');
     var seqInput = document.getElementById('belief_sequence_s2');
-    var seq = "";
 
+    var card_belief = document.getElementById("card_belief_s2");
+    var card_belief_body = document.getElementById("card_belief_body_s2");
+
+    var popover_belief = new bootstrap.Popover(card_belief);
+
+    // You can also use 5 seconds here; if you want it later, increase the timeout.
     setTimeout(function () {
       slider.disabled = false;
-    }, 10000);
+
+      card_belief_body.style.backgroundColor = "#FFFFFF";
+      $('#card_belief_s2').popover('disable');
+    }, 5000);
 
     slider.addEventListener('input', function () {
-      slider.className = 'slider';
+      clickText.style.display = "none";
+      clickedText.style.display = "block";
 
-      clickText.style.display = 'none';
-      clickedText.style.display = 'block';
-
-      textBelief.textContent = slider.value.toString() + " times";
-      seq = seq + ";" + slider.value.toString();
+      all_numbers = all_numbers + ";" + slider.value.toString();
       if (seqInput) {
-        seqInput.value = seq;
+        seqInput.value = all_numbers;
       }
+
+      slider.className = "slider";
+      textBelief.textContent = slider.value.toString() + " times";
     });
   })();
 </script>
 
 {% endblock %}
+
 

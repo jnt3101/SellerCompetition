@@ -1,0 +1,36 @@
+{% extends "global/Page.html" %}
+{% load otree %}
+
+{% block title %}
+    Please wait
+{% endblock %}
+
+{% block content %}
+
+    <div class="card">
+        <div class="card-body text-center">
+
+            <h3 class="mb-3">Please wait a moment</h3>
+
+            <p class="mb-3">
+                We are currently forming groups for the main part of the experiment.
+            </p>
+
+            <p class="mb-3">
+                As soon as enough participants have reached this point, you will automatically be forwarded to the next page.
+                There is nothing you need to do.
+            </p>
+
+            <!-- Simple loading spinner (Bootstrap compatible) -->
+            <div class="d-flex justify-content-center my-4">
+                <div class="spinner-border" role="status" aria-hidden="true"></div>
+            </div>
+
+            <p class="text-muted">
+                Please do not close this window or refresh the page.
+            </p>
+
+        </div>
+    </div>
+
+{% endblock %}
