@@ -88,5 +88,43 @@
     {{ next_button }}
 </div>
 
+<!-- Last 10 seconds warning -->
+<div id="last10-box" style="display:none; margin-top: 1em; font-weight: bold; color: red;">
+    Please make your choice within
+    <span id="last10-seconds">10</span> seconds.
+</div>
+
+
+<!-- Countdown script: shows warning only during the last 10 seconds -->
+<script>
+    (function () {
+        // timeout_seconds is passed from the Page.js_vars in __init__.py
+        var total = (typeof js_vars !== 'undefined' && js_vars.timeout_seconds)
+            ? js_vars.timeout_seconds
+            : 0;
+
+        function tick() {
+            total -= 1;
+
+            if (total <= 10 && total >= 0) {
+                var box = document.getElementById('last10-box');
+                var span = document.getElementById('last10-seconds');
+                if (box && span) {
+                    box.style.display = 'block';
+                    span.textContent = total;
+                }
+            }
+
+            if (total > 0) {
+                setTimeout(tick, 1000);
+            }
+        }
+
+        if (total > 0) {
+            setTimeout(tick, 1000);
+        }
+    })();
+</script>
+
 {% endblock %}
 
