@@ -6,8 +6,9 @@ import random
 doc = """
 Introduction app:
 - General instructions, attention checks, comprehension checks
-- Groups and roles are created here (via group_by_arrival_time)
-- Roles and groups are then reused in the main_experiment app
+- Roles (seller / buyer) are created here (via group_by_arrival_time)
+- Only 2S1B groups are used in this app
+- Roles are then reused in the main_experiment app, but groups are NOT kept fixed
 """
 
 
@@ -29,19 +30,18 @@ class C(BaseConstants):
 
 
 class Subsession(BaseSubsession):
-    # These links must be provided in SESSION_CONFIGS
-    prolific_completion_link = models.StringField()
-    prolific_attention_link = models.StringField()
-    prolific_no_consent_link = models.StringField()
+    """
+    Keine Prolific-spezifischen Felder mehr.
+    """
+    pass
 
 
 class Group(BaseGroup):
-    # Group type, e.g. '1S1B', '2S1B', '2S2B'
+    # Group type, immer '2S1B' in diesem App (wenn Gruppe vollständig)
     group_type = models.StringField()
 
 
 class Player(BasePlayer):
-
 
     # Attention checks
     attention_check_daylight = models.StringField(label="")
@@ -57,7 +57,7 @@ class Player(BasePlayer):
 
     # 'seller' or 'buyer'; assigned via group_by_arrival_time
     player_role = models.StringField()
-    # index within role in the group (1 or 2)
+    # index within role in the (temporary) group (1 or 2 for sellers, 1 for buyers)
     seller_index = models.IntegerField(initial=0)
     buyer_index = models.IntegerField(initial=0)
 
@@ -153,89 +153,54 @@ class Player(BasePlayer):
 
 def creating_session(subsession: Subsession):
     """
-    Load Prolific return links from SESSION_CONFIGS.
-    Grouping and role assignment are handled by group_by_arrival_time_method
-    when players reach the GroupingWaitPage.
+    Keine Prolific-spezifische Logik mehr.
+    Grouping und Rollenzuweisung passieren über group_by_arrival_time_method.
     """
-    if subsession.round_number == 1:
-        required_fields = [
-            "prolific_completion_link",
-            "prolific_attention_link",
-            "prolific_no_consent_link",
-        ]
-        for field in required_fields:
-            if field not in subsession.session.config:
-                raise Exception(f"You must set {field} in SESSION_CONFIGS")
-            setattr(subsession, field, subsession.session.config[field])
+    pass
 
 
-# --- DYNAMIC GROUPING WITH group_by_arrival_time ---------------------------
+# --- DYNAMIC ROLE ASSIGNMENT & GROUPING (2S1B) ------------------------------
 
 
 def group_by_arrival_time_method(subsession: Subsession, waiting_players):
     """
     Called when a new player reaches the GroupingWaitPage.
-    We form groups in the pattern:
-        1S1B -> 2S1B -> 2S2B -> 1S1B -> ...
-    based on the arrival order.
 
-    Groups and roles are created already in this introduction app.
-    Role and index information are stored in participant.vars, so that
-    the main_experiment app can reconstruct the same groups.
+    In this app, we only form 2S1B groups (2 sellers, 1 buyer),
+    but these groups are *not* reused in the main experiment.
+
+    Roles are assigned here and stored in participant.vars['player_role'],
+    but no persistent group IDs are stored.
     """
-    patterns = [
-        ['seller', 'buyer'],                    # 1S1B
-        ['seller', 'seller', 'buyer'],          # 2S1B
-        ['seller', 'seller', 'buyer', 'buyer'], # 2S2B
-    ]
+    required_players = 3
 
-    session = subsession.session
-
-    if 'pattern_index' not in session.vars:
-        session.vars['pattern_index'] = 0
-    if 'intro_group_index' not in session.vars:
-        # Counter to assign a persistent group ID across apps
-        session.vars['intro_group_index'] = 1
-
-    pattern_index = session.vars['pattern_index']
-    current_pattern = patterns[pattern_index]
-    required_players = len(current_pattern)
-
-    # Not enough players yet to form the next group
+    # Not enough players yet to form the next 2S1B group
     if len(waiting_players) < required_players:
         return
 
-    # First N waiting players form the next group
+    # First 3 waiting players form the next temporary group
     group_players = waiting_players[:required_players]
 
     seller_counter = 0
     buyer_counter = 0
-    intro_group_id = session.vars['intro_group_index']
 
-    for role, p in zip(current_pattern, group_players):
-        p.player_role = role
-
-        if role == 'seller':
+    for i, p in enumerate(group_players):
+        # First two players in the group become sellers, third becomes buyer.
+        if i < 2:
+            role = 'seller'
             seller_counter += 1
             p.seller_index = seller_counter
-        elif role == 'buyer':
+        else:
+            role = 'buyer'
             buyer_counter += 1
             p.buyer_index = buyer_counter
-        else:
-            raise Exception(f"Unknown role '{role}' in grouping pattern.")
 
-        # Store roles & indices also in participant.vars (for later apps)
+        p.player_role = role
+
+        # Store role in participant.vars for use in the main experiment
         part = p.participant
-        part.vars['player_role'] = p.player_role
-        part.vars['seller_index'] = p.seller_index
-        part.vars['buyer_index'] = p.buyer_index
-        # Store a persistent group ID so that the experiment app
-        # can reconstruct the same groups in round 1.
-        part.vars['intro_group_id'] = intro_group_id
-
-    # Move to the next pattern for the next group
-    session.vars['pattern_index'] = (pattern_index + 1) % len(patterns)
-    session.vars['intro_group_index'] = intro_group_id + 1
+        part.vars['player_role'] = role
+        # Keine intro_group_id, keine persistente Gruppierung.
 
     return group_players
 
@@ -249,6 +214,7 @@ class Welcome(Page):
     No CAPTCHA is used anymore.
     """
     pass
+
 
 class AttentionCheck(Page):
     """
@@ -271,18 +237,20 @@ class AttentionCheck(Page):
             return "Einige Antworten waren falsch. Bitte versuchen Sie es nochmal."
 
 
-
 class GroupingWaitPage(WaitPage):
     """
-    In this app, groups and roles are formed via group_by_arrival_time.
+    Roles are assigned via group_by_arrival_time (2 sellers, 1 buyer).
+    The concrete groups in this app are temporary and NOT reused in the
+    main experiment (there is no intro_group_id anymore).
     """
     group_by_arrival_time = True
 
     @staticmethod
     def after_all_players_arrive(group: Group):
         """
-        Once a group is formed and everyone in that group arrived,
+        Once a temporary group is formed and everyone in that group arrived,
         set group_type based on the number of sellers and buyers.
+        (Should always be '2S1B' here.)
         """
         players_in_group = group.get_players()
         sellers = [p for p in players_in_group if p.player_role == 'seller']

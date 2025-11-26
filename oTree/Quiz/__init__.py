@@ -161,5 +161,7 @@ class Game(Page):
                    'q_gambling_5', 'q_gambling_6', 'q_gambling_7', 'q_gambling_8',
                    'q_gambling_9']
 
+class Debriefing(Page):
+    pass
 
-page_sequence = [General, Video_1, Video_2, Control, Game]
+page_sequence = [General, Video_1, Video_2, Control, Game, Debriefing]

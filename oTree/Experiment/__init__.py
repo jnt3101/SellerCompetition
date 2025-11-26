@@ -5,15 +5,17 @@ import random
 
 """
 Main interaction app:
-- Groups are formed already in the introduction app.
-- This app reconstructs the same groups in round 1 based on participant.vars,
-  and oTree keeps the groups fixed across rounds.
 - Roles ('seller' or 'buyer') are assigned in the introduction app and
   stay fixed for all 5 rounds.
+- In EACH round, new groups of type 2S1B (2 sellers, 1 buyer) are formed
+  dynamically from the pool of players via group_by_arrival_time.
+- There is no persistent grouping across rounds anymore.
+- At the end of each round, all players wait for each other before
+  proceeding to the next round, so that regrouping uses the entire pool.
 - Sellers always have SAMPLE_CENSORING-style options (4 presentations).
 - Buyers see the sellers' lotteries including prices and choose:
     * buy lottery from seller 1
-    * buy lottery from seller 2 (if exists)
+    * buy lottery from seller 2
     * buy no lottery (outside option)
 - Each buyer can buy at most one lottery.
 - Seller payoff: price of the lottery if (at least) one buyer buys, 0 otherwise.
@@ -25,7 +27,7 @@ Main interaction app:
 
 class C(BaseConstants):
     NAME_IN_URL = 'main_experiment'
-    PLAYERS_PER_GROUP = None  # variable group sizes (1S1B, 2S1B, 2S2B)
+    PLAYERS_PER_GROUP = None  # variable group sizes through dynamic grouping (2S1B)
     NUM_ROUNDS = 5
 
     # General intro parameters (not used in grouping logic)
@@ -99,9 +101,9 @@ def draw_lottery_outcome(mid_probability, max_payoff):
 
 class Subsession(BaseSubsession):
     """
-    No special logic in creating_session, because groups and roles
-    are formed in the introduction app and reconstructed here via
-    group_by_arrival_time in round 1.
+    No special logic in creating_session, because roles are formed in the
+    introduction app. In this app, groups of type 2S1B are formed dynamically
+    in each round via group_by_arrival_time.
     """
     pass
 
@@ -110,20 +112,20 @@ class Group(BaseGroup):
     """
     Group-level fields mainly for storing meta information.
     """
-    group_type = models.StringField()  # e.g. '1S1B', '2S1B', '2S2B'
+    group_type = models.StringField()  # e.g. '2S1B'
 
 
 class Player(BasePlayer):
     # --- role & indices ------------------------------------------------------
 
-    # 'seller' or 'buyer'; assigned in introduction via group_by_arrival_time
+    # 'seller' or 'buyer'; assigned in introduction and kept fixed over rounds
     player_role = models.StringField()
-    # index within role in the group (1 or 2)
+    # index within role in the *current group* (1 or 2 for sellers, 1 for buyers)
     seller_index = models.IntegerField(initial=0)
     buyer_index = models.IntegerField(initial=0)
 
     # --- lottery parameters (per round, for everyone's "own" lottery) -------
-
+    # Für Buyer werden hier nur Defaults gesetzt, die nicht verwendet werden.
     max_payoff = models.IntegerField()
     mid_probability = models.FloatField()
 
@@ -218,6 +220,8 @@ class Player(BasePlayer):
         Draw a random sample from the lottery of which a subsample
         will be displayed to the participant (seller).
         SAMPLE_CENSORING-style: always draw a sample and show the top DRAWS outcomes.
+
+        Wird ausschließlich für Seller aufgerufen.
         """
         current_lottery_dist = create_lottery(
             q=self.mid_probability,
@@ -237,25 +241,34 @@ class Player(BasePlayer):
     def initialize_round(self):
         """
         Ensure that in every round:
-        - role and indices are loaded from participant.vars (determined in introduction app)
-        - lottery parameters (max_payoff, mid_probability) are set
+        - role is loaded from participant.vars (determined in introduction app)
+        - lottery parameters are set ONLY for sellers
         - sellers draw their sample (once per round)
+
+        Buyers bekommen keine eigene Lotterie und keine Draws.
+        Die Felder max_payoff/mid_probability werden für Buyer nur mit
+        harmlosen Defaultwerten befüllt, damit das Modell konsistent bleibt.
         """
         if self.round_initialized:
             return
 
-        # Always load role & indices from participant.vars.
+        # Load role from participant.vars (role is fixed across all rounds)
         self.player_role = self.participant.vars.get('player_role')
-        self.seller_index = self.participant.vars.get('seller_index', 0)
-        self.buyer_index = self.participant.vars.get('buyer_index', 0)
 
-        # Lottery parameters for this round (sequence stored in introduction app)
+        # Lottery parameters for sellers only (sequence stored in introduction app)
         combos = self.participant.vars['payoff_probability_combinations']
-        self.max_payoff, self.mid_probability = combos[self.round_number - 1]
+        max_payoff, mid_prob = combos[self.round_number - 1]
 
-        # For sellers, draw sample each round (SAMPLE_CENSORING-style)
         if self.player_role == 'seller':
+            # Seller bekommt eine eigene Lotterie und einen Sample-Draw
+            self.max_payoff = max_payoff
+            self.mid_probability = mid_prob
             self.draw_sample()
+        else:
+            # Buyer: keine eigene Lotterie, keine Draws
+            # Nur Defaultwerte setzen, die nirgendwo verwendet werden.
+            self.max_payoff = 0
+            self.mid_probability = 0.0
 
         self.round_initialized = True
 
@@ -276,54 +289,70 @@ class Player(BasePlayer):
 def creating_session(subsession: Subsession):
     """
     Do not touch roles or groups here.
-    - In round 1, grouping is reconstructed via group_by_arrival_time
-      using intro_group_id from the introduction app.
-    - In later rounds, oTree automatically keeps the same groups as in round 1.
-      Roles are reloaded per round from participant.vars in Player.initialize_round().
+    - Roles are assigned in the introduction app and stored in participant.vars['player_role'].
+    - In every round, grouping is done dynamically via group_by_arrival_time
+      to form 2S1B groups from the pool of sellers and buyers.
     """
     pass
 
 
-# --- dynamic grouping using intro_group_id ----------------------------------
+# --- dynamic grouping: always 2S1B, every round -----------------------------
 
 
 def group_by_arrival_time_method(subsession: Subsession, waiting_players):
     """
-    Called when a new player reaches the GroupingWaitPage in round 1.
+    Called when a new player reaches the GroupingWaitPage in each round.
 
-    We reconstruct the groups that were formed in the introduction app
-    using participant.vars['intro_group_id'].
+    We dynamically form 2S1B groups (2 sellers, 1 buyer) based on roles
+    stored in participant.vars['player_role'].
 
     Logic:
-    - For each intro_group_id among waiting_players, check how many players
-      in the entire session have that intro_group_id.
-    - As soon as all players of one intro_group_id have arrived at this
-      GroupingWaitPage, we form that group.
+    - Among waiting_players, we check if there are at least 2 sellers
+      and at least 1 buyer.
+    - If yes, we form a group from the earliest-arrived players that can
+      make up exactly 2 sellers and 1 buyer.
+    - Roles are fixed across rounds; we do NOT change participant.vars here.
     """
-    if subsession.round_number != 1:
+    # Separate waiting players by role (from participant.vars, which is fixed)
+    sellers_waiting = [p for p in waiting_players if p.participant.vars.get('player_role') == 'seller']
+    buyers_waiting = [p for p in waiting_players if p.participant.vars.get('player_role') == 'buyer']
+
+    if len(sellers_waiting) < 2 or len(buyers_waiting) < 1:
+        # Not enough players yet to form a 2S1B group
         return
 
-    session = subsession.session
+    group_players = []
+    seller_needed = 2
+    buyer_needed = 1
 
-    # Group waiting players by their intro_group_id
-    by_gid = {}
+    # Go through waiting_players in arrival order and pick the first 2 sellers and 1 buyer
     for p in waiting_players:
-        gid = p.participant.vars.get('intro_group_id')
-        if gid is None:
-            continue
-        by_gid.setdefault(gid, []).append(p)
+        role = p.participant.vars.get('player_role')
+        if role == 'seller' and seller_needed > 0:
+            group_players.append(p)
+            seller_needed -= 1
+        elif role == 'buyer' and buyer_needed > 0:
+            group_players.append(p)
+            buyer_needed -= 1
 
-    # Check for each gid if all members of that intro group have arrived
-    for gid, plist in by_gid.items():
-        total_for_gid = sum(
-            1 for part in session.get_participants()
-            if part.vars.get('intro_group_id') == gid
-        )
-        if len(plist) == total_for_gid and total_for_gid > 0:
-            # All members of this intro group have arrived -> form this group
-            return plist
+        if seller_needed == 0 and buyer_needed == 0:
+            break
 
-    # Otherwise, wait until enough players with the same intro_group_id arrive
+    if seller_needed == 0 and buyer_needed == 0:
+        # Assign model-level roles and indices for THIS round's group
+        seller_index = 0
+        buyer_index = 0
+        for p in group_players:
+            p.player_role = p.participant.vars.get('player_role')
+            if p.player_role == 'seller':
+                seller_index += 1
+                p.seller_index = seller_index
+            else:
+                buyer_index += 1
+                p.buyer_index = buyer_index
+        return group_players
+
+    # Otherwise: wait for more players
     return
 
 
@@ -379,9 +408,7 @@ def generate_context_for_buyer(player: Player):
     """
     Build context dict for the buyer showing all sellers' lotteries in the group.
     Works for:
-    - 1 seller + 1 buyer
-    - 2 sellers + 1 buyer
-    - 2 sellers + 2 buyers
+    - 2 sellers + 1 buyer (only group type used here).
     """
     # Ensure all players in the group are initialized for this round
     for p in player.group.get_players():
@@ -391,8 +418,8 @@ def generate_context_for_buyer(player: Player):
     sellers = [p for p in group.get_players() if p.player_role == 'seller']
     sellers.sort(key=lambda p: p.seller_index)
 
-    if len(sellers) not in [1, 2]:
-        raise Exception("Each group must contain 1 or 2 sellers.")
+    if len(sellers) != 2:
+        raise Exception("Each group must contain exactly 2 sellers in this design.")
 
     # Compute and set group_type each time
     n_sellers = len(sellers)
@@ -459,11 +486,11 @@ def set_trade_and_outcomes(group: Group):
     buyers = [p for p in players if p.player_role == 'buyer']
     buyers.sort(key=lambda p: p.buyer_index)
 
-    if len(sellers) not in [1, 2]:
-        raise Exception("Each group must contain 1 or 2 sellers.")
+    if len(sellers) != 2:
+        raise Exception("Each group must contain exactly 2 sellers in this design.")
 
-    if len(buyers) not in [1, 2]:
-        raise Exception("Each group must contain 1 or 2 buyers.")
+    if len(buyers) != 1:
+        raise Exception("Each group must contain exactly 1 buyer in this design.")
 
     # Lowest price across all sellers (outside option for buyers who do not buy)
     lowest_price = min(s.selling_price_lottery for s in sellers)
@@ -473,7 +500,7 @@ def set_trade_and_outcomes(group: Group):
         s.sold = False
         s.lottery_outcome = Currency(0)
 
-    # Handle each buyer
+    # Handle each buyer (here exactly one)
     for b in buyers:
         choice = b.chosen_lottery_from_seller
 
@@ -487,12 +514,8 @@ def set_trade_and_outcomes(group: Group):
             b.payoff = lowest_price
         else:
             if choice == 'seller1':
-                if len(sellers) < 1:
-                    raise Exception("Buyer chose seller1 but there is no seller 1 in this group.")
                 chosen_seller = sellers[0]
             elif choice == 'seller2':
-                if len(sellers) < 2:
-                    raise Exception("Buyer chose seller2 but there is no seller 2 in this group.")
                 chosen_seller = sellers[1]
             else:
                 raise Exception(f"Unexpected choice value: {choice}")
@@ -525,24 +548,21 @@ def set_trade_and_outcomes(group: Group):
 
 class GroupingWaitPage(WaitPage):
     """
-    In round 1: reconstruct groups using intro_group_id from the Introduction app.
-    In later rounds: not displayed.
+    In every round: form new 2S1B groups dynamically from the pool
+    of sellers and buyers using group_by_arrival_time.
     """
     group_by_arrival_time = True
-
-    @staticmethod
-    def is_displayed(player: Player):
-        return player.round_number == 1
 
     @staticmethod
     def after_all_players_arrive(group: Group):
         """
         Once a group is formed and everyone in that group arrived at this page,
         set group_type based on the number of sellers and buyers.
+        (Should always be '2S1B' here.)
         """
         players_in_group = group.get_players()
-        sellers = [p for p in players_in_group if p.participant.vars.get('player_role') == 'seller']
-        buyers = [p for p in players_in_group if p.participant.vars.get('player_role') == 'buyer']
+        sellers = [p for p in players_in_group if p.player_role == 'seller']
+        buyers = [p for p in players_in_group if p.player_role == 'buyer']
         group.group_type = f"{len(sellers)}S{len(buyers)}B"
 
 
@@ -560,7 +580,7 @@ class LotteryDecisionBase(Page):
 class Lottery_decision(LotteryDecisionBase):
     """
     Seller chooses a presentation among 4 options (SAMPLE_CENSORING-style).
-    All sellers use this page, independent of group type.
+    All sellers use this page, independent of group type (always 2S1B here).
     No time limit and no automatic randomization on non-response.
     """
     form_fields = ['chosen_lottery', 'justified_lottery', 'presentation_order']
@@ -636,16 +656,15 @@ class WaitForSellers(WaitPage):
     Wait until all sellers in each group have chosen their presentations
     and set price + belief, before showing the buyers' page.
 
-    All players in the group pass through this page, as in the working version.
-    Buyers effectively "wait for the sellers", sellers typically pass quickly.
+    All players in the group pass through this page.
     """
     wait_for_all_groups = False  # group-wise is enough
 
 
 class BuyerDecision(Page):
     """
-    Buyer chooses beliefs about one or two lotteries and
-    then chooses whether to buy from seller 1, seller 2 (if exists),
+    Buyer chooses beliefs about the two lotteries and
+    then chooses whether to buy from seller 1, seller 2,
     or not to buy a lottery (outside option).
     No time limit and no automatic randomization on non-response.
     """
@@ -752,8 +771,22 @@ class BuyerFeedback(Page):
         )
 
 
+class RoundTransitionWaitPage(WaitPage):
+    """
+    At the end of each round, wait for ALL players in the session
+    before proceeding to the next round. This ensures that the dynamic
+    regrouping in the next round uses the full pool of participants.
+    """
+    wait_for_all_groups = True
+
+    @staticmethod
+    def is_displayed(player: Player):
+        # Can be shown in every round (also in the last round it just ends).
+        return True
+
+
 page_sequence = [
-    # Reconstruct groups in round 1 using intro_group_id
+    # In every round: form new 2S1B groups dynamically
     GroupingWaitPage,
     # sellers choose how to present the lottery (SAMPLE_CENSORING-style)
     Lottery_decision,
@@ -768,5 +801,8 @@ page_sequence = [
     # feedback for sellers and buyers
     SellerFeedback,
     BuyerFeedback,
+    # end-of-round global wait, so next round's grouping uses full pool
+    RoundTransitionWaitPage,
 ]
+
 
