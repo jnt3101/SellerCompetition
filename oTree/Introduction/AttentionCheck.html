@@ -1,41 +1,42 @@
-{{ block title }}
-Please read the following instructions carefully
-{{ endblock }}
+{{ extends "global/Page.html" }}
+{{ load otree static }}
 
-{{ block content }}
+{% block title %}
+Bitte lesen Sie die folgenden Anweisungen sorgfältig
+{% endblock %}
 
-{% comment %} <p class="text-center">
-    <b>:</b>
-</p> {% endcomment %}
+{% block content %}
 
 <p>
-    Welcome to the study. Before we begin, we will conduct a quick attention check to ensure you are fully engaged. These questions are not part of the main study but are important for verifying your attentiveness.
+    Willkommen zur Studie. Bevor wir beginnen, führen wir einen kurzen Aufmerksamkeitstest durch, um sicherzustellen, dass Sie aktiv teilnehmen.
+    Diese Fragen sind nicht Teil der eigentlichen Studie, aber wichtig, um Ihre Aufmerksamkeit zu überprüfen.
 </p>
 
 <p>
-    <b>For the first question, write <u>at least 10 words</u> in your response. It's not important what you write about the topic itself. We're simply checking to see that you read instructions and are attentive. Do not write the phrase "at least 10 words", we want you to write 10 or more words on the topic of daylight savings time.</b>
+    <b>Für die erste Frage schreiben Sie bitte <u>mindestens 10 Wörter</u> in Ihre Antwort.
+    Es ist nicht wichtig, was Sie inhaltlich über das Thema schreiben.
+    Wir möchten lediglich sicherstellen, dass Sie die Anweisungen lesen und aufmerksam arbeiten.
+    Schreiben Sie bitte NICHT den Satz „mindestens 10 Wörter“, sondern wirklich 10 oder mehr Wörter zum Thema Zeitumstellung.</b>
 </p>
 
 <p>
-    1. Describe your opinion about daylight savings time using at least 10 words.
+    1. Beschreiben Sie Ihre Meinung zur Zeitumstellung mit mindestens 10 Wörtern.
 </p>
 
 <div class="justify-content-center text-center">
-    <textarea name="attention_check_daylight" cols="80" rows="4" required="required"></textarea>
+    <textarea name="attention_check_daylight" cols="80" rows="4" required></textarea>
 </div>
 <br/>
 
 <p>
-    <b>For the second question, please select the color 'Green' from the dropdown list to indicate that you are paying attention.</b>
+    <b>Für die zweite Frage wählen Sie bitte die Farbe „Grün“ aus der Liste aus, um zu zeigen, dass Sie aufmerksam sind.</b>
 </p>
 
-<div class="justify-content-center ">
-    {{formfield 'attention_check_color' label="2. Choose the color 'Green' from the list below."}}
+<div class="justify-content-center">
+    {{ formfield 'attention_check_color' label="2. Wählen Sie die Farbe „Grün“ aus der folgenden Liste." }}
 </div>
 <br/>
 
-<input type="hidden" id="attention_check_daylight"></p>
-
 {{ next_button }}
 
-{{ endblock }}
+{% endblock %}

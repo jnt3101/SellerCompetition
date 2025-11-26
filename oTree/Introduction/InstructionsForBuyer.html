@@ -1,0 +1,191 @@
+{% load otree static %}
+
+<h5>Die Lotterien</h5>
+<p>
+    In dieser Studie treffen Teilnehmende Entscheidungen über Lotterien, die von anderen
+    Teilnehmenden in der Studie angeboten werden. Alle können einen zusätzlichen Bonus verdienen.
+    Die mögliche Bonushöhe hängt von den Entscheidungen in der Studie ab, zum Beispiel von den
+    gewählten Preisen für Lotterien, der Zahlungsbereitschaft für Lotterien und ggf. vom Ergebnis
+    einer zufälligen Ziehung. Der Bonus jeder Person kann daher sowohl von den eigenen
+    Entscheidungen als auch von den Entscheidungen anderer abhängen.
+</p>
+
+<p>
+    Unten sehen Sie ein Beispiel für eine Lotterie:
+</p>
+
+<p>
+    <table class="table table-bordered" style="text-align: center">
+        <thead>
+            <tr class="table-primary" style="border-color: black">
+                <th colspan="4">Lotterie</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <th>Wahrscheinlichkeit</th>
+                <td>40 %</td>
+                <td>30 %</td>
+                <td>30 %</td>
+            </tr>
+            <tr>
+                <th>Auszahlung</th>
+                <td>20 Münzen</td>
+                <td>40 Münzen</td>
+                <td>60 Münzen</td>
+            </tr>
+        <tbody>
+    </table>
+</p>
+
+<p>
+    In diesem Beispiel zahlt die Lotterie entweder 20 Münzen mit 40&nbsp;% Wahrscheinlichkeit,
+    oder 40 Münzen mit 30&nbsp;% Wahrscheinlichkeit, oder 60 Münzen mit 30&nbsp;% Wahrscheinlichkeit.
+    Wichtig ist: Eine Lotterie zahlt immer nur <b>einen</b> der Beträge aus; sie zahlt also
+    <b>entweder</b> 20 Münzen <b>oder</b> 40 Münzen <b>oder</b> 60 Münzen.
+</p>
+
+<br>
+
+<h5>Ihre Rolle</h5>
+<p>
+    Sie wurden der Rolle eines <b>Käufers</b> zugeordnet.
+    In diesem Teil der Studie werden Ihnen Lotterieangebote gezeigt, die von anderen
+    Teilnehmenden gemacht wurden. Ihre Aufgabe ist es, diese Lotterien zu beurteilen,
+    Ihre Einschätzungen zu ihnen abzugeben und zu entscheiden, ob Sie eine der Lotterien
+    kaufen möchten.
+</p>
+
+<br>
+
+<h5>Ihre Entscheidungen</h5>
+
+{% if group.group_type == "1S1B" %}
+<p>
+    In Ihrer Gruppe gibt es <b>einen Verkäufer</b> und <b>einen Käufer</b>.
+    Sie sehen daher <b>eine Lotterie</b>, die von einer anderen Person in der Studie angeboten wird.
+</p>
+
+<p>
+    Für diese Lotterie fragen wir Sie zunächst, <b>wie oft Sie glauben, dass Sie den höchsten Gewinn
+    dieser Lotterie erhalten würden</b>, wenn Sie die Lotterie <b>100&nbsp;Mal</b> spielen würden.
+    Dies ist einfach Ihre persönliche Einschätzung, wie häufig die höchste Auszahlung auftreten würde.
+</p>
+
+<p>
+    Nachdem Sie Ihre Einschätzung abgegeben haben, entscheiden Sie, ob Sie diese Lotterie
+    zu dem Preis kaufen möchten, den der Verkäufer festgelegt hat. Sie können entweder die
+    Lotterie kaufen oder sich entscheiden, sie <b>nicht</b> zu kaufen.
+</p>
+
+{% else %}
+<p>
+    In Ihrer Gruppe gibt es <b>mehrere Verkäufer</b>.
+    Das bedeutet, dass Sie <b>mehr als eine Lotterie</b> sehen werden, jeweils angeboten von
+    unterschiedlichen Teilnehmenden in der Studie.
+</p>
+
+<p>
+    Für jede dieser Lotterien fragen wir Sie zunächst, <b>wie oft Sie glauben, dass Sie den
+    höchsten Gewinn</b> erhalten würden, wenn Sie die jeweilige Lotterie <b>100&nbsp;Mal</b> spielen würden.
+    Diese Angaben sind einfach Ihre persönlichen Überzeugungen.
+</p>
+
+<p>
+    Nachdem Sie Ihre Einschätzungen abgegeben haben, entscheiden Sie, ob Sie eine Lotterie
+    <b>kaufen</b> möchten und, falls ja, <b>welche</b>.
+    Sie dürfen maximal <b>eine</b> Lotterie kaufen. Das bedeutet, Sie können:
+</p>
+
+<ul>
+    <li>die Lotterie von Verkäufer 1 kaufen,</li>
+    <li>die Lotterie von Verkäufer 2 kaufen,</li>
+    <li>oder sich dafür entscheiden, <b>keine</b> Lotterie zu kaufen.</li>
+</ul>
+
+{% endif %}
+
+<br>
+
+<h5>Die Entscheidungen und die Bonuszahlung</h5>
+<p>
+    Insgesamt wird es in der Studie <b>{{ C.N_LOTTERIES }} Lotterien</b> geben.
+    Zu jeder Lotterie werden den Teilnehmenden Fragen gestellt.
+    Je nach Rolle, die Ihnen zugewiesen wurde, können Sie gefragt werden,
+    <b>wie die Lotterie präsentiert werden soll</b>, <b>wie oft Sie glauben, den höchsten Gewinn
+    der Lotterie zu erhalten</b> (z.&nbsp;B. 60&nbsp;Münzen im obigen Beispiel) und/oder ob Sie
+    <b>diese Lotterie kaufen möchten</b>.
+</p>
+
+<p>
+    Am Ende des Experiments wählt der Computer zufällig eine der {{ C.N_LOTTERIES }} Lotterien für die Auszahlung aus.
+    Auf Basis der relevanten Entscheidungen zu dieser Lotterie (z.&nbsp;B. gewählte Preise)
+    wird dann die mögliche Bonuszahlung bestimmt. Eine zufällig ausgewählte Person von jeweils 7
+    Teilnehmenden erhält diesen zusätzlichen Bonus. Wenn Sie sich für die Details interessieren,
+    finden Sie unten auf der Seite eine ausführliche Beschreibung des Auszahlungsmechanismus.
+</p>
+
+<p>
+    Ihre konkrete Bonuszahlung hängt von Ihren Entscheidungen ab:
+</p>
+
+<ul>
+    <li>
+        Wenn Sie eine Lotterie kaufen, zieht der Computer das Ergebnis dieser Lotterie,
+        und dieses Ergebnis bestimmt Ihre Bonuszahlung.
+    </li>
+    <li>
+        Wenn Sie sich entscheiden, <b>keine</b> Lotterie zu kaufen, entspricht Ihre Bonuszahlung
+        stattdessen dem <b>niedrigsten Preis</b> unter allen Lotterien, die in Ihrer Gruppe angeboten wurden.
+    </li>
+</ul>
+
+<p>
+    Während des Experiments verwenden wir eine fiktive Währung, die wir „Münzen“ nennen.
+    Für die Bonuszahlung werden alle Münzen in Britische Pfund umgerechnet zum Kurs von
+    <b>{{ C.EXCHANGE_RATE }} Münzen = 1 Euro</b>.
+</p>
+
+<p>
+    <table width="100%">
+    <tr>
+      <td class="align-top">
+        <button class="btn btn-secondary" type="button" data-toggle="collapse" data-target="#paymentMechanism" aria-expanded="false" aria-controls="paymentMechanism">
+          Details zum Bonusmechanismus
+        </button>
+      </td>
+      <td>
+        <div style="text-align: right;">
+             {{ next_button }}
+        </div>
+      </td>
+    </tr>
+  </table>
+  <div class="collapse-content" id="paymentMechanism" style="display: none;">
+    <div class="card card-body">
+      {% include "Experiment/PaymentDetailsGeneral.html" %}
+      {% include "Experiment/PaymentExampleGeneral.html" %}
+    </div>
+  </div>
+
+</p>
+
+<style>
+    .card {
+        margin: 0 auto;
+        /* Added */
+        float: none;
+        /* Added */
+        margin-bottom: 10px;
+        /* Added */
+    }
+</style>
+
+<script>
+    $(document).ready(function() {
+      $('[data-toggle="collapse"]').on('click', function() {
+        var target = $(this).data('target');
+        $(target).slideToggle();
+      });
+    });
+</script>

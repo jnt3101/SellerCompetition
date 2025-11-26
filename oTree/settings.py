@@ -55,7 +55,7 @@ LANGUAGE_CODE = 'en'
 # e.g. EUR, GBP, CNY, JPY
 REAL_WORLD_CURRENCY_CODE = 'GBP'
 USE_POINTS = True
-POINTS_CUSTOM_NAME = 'coins'
+POINTS_CUSTOM_NAME = 'Münzen'
 
 ADMIN_USERNAME = 'admin'
 # for security, best to set admin password in an environment variable

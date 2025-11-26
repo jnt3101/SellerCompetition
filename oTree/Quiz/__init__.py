@@ -22,38 +22,38 @@ class Group(BaseGroup):
 
 class Player(BasePlayer):
     # General Questions
-    q_age = models.IntegerField(label='How old are you?', min=16, max=99)
+    q_age = models.IntegerField(label='Wie alt sind Sie?', min=16, max=99)
     q_gender = models.StringField(
-        label='What is your gender?',
-        choices=['Male', 'Female', 'Diverse', 'Prefer not to answer']
+        label='Was ist ihr Geschlecht?',
+        choices=['Männlich', 'Weiblich', 'Divers', 'Möchte ich nicht beantworten']
     )
 
     q_study_level = models.StringField(
         choices=[
-            "Secondary school not completed",
-            "High school graduation",
-            "Professional qualification",
-            "Bachelor's degree",
-            "Master's degree",
-            "PhD degree",
-            'Prefer not to answer'],
-        label='What is your highest level of education')
+            "Kein Schulabschluss",
+            "Abitur/Fachabitur",
+            "Abgeschlossene Berufsausbildung",
+            "Bachelorabschluss",
+            "Masterabschluss",
+            "Doktorabschluss",
+            'Möchte ich nicht beantworten'],
+        label='Was ist ihr höchster Bildungsabschluss?')
 
-    q_study_field = models.StringField(label='What do you study? / What is your occupation?')
+    q_study_field = models.StringField(label='Was studieren Sie? / Was ist ihr Berufsfeld?')
 
-    q_budget = models.IntegerField(label="How much money do you have available each month (after deducting fixed costs such as rent, insurance, etc., British pound)?",
+    q_budget = models.IntegerField(label="Wie viel Geld haben Sie monatlich (nach Abzug der Fixkosten wie Miete etc.) zur freien Verfügung?",
                                    min=0, max=1000000)
 
 
     ### Loot box questions ###
-    q_loot_box_what = models.BooleanField(label="Have you ever heard of loot boxes in videogames before?")
-    q_videogame_time = models.FloatField(label="How many hours do you spend playing videogames per day on average?",
+    q_loot_box_what = models.BooleanField(label="Haben Sie schon mal von Lootboxen in Videospielen gehört?")
+    q_videogame_time = models.FloatField(label="Wie viele Stunden verbringen Sie durchschnittlich pro Tag mit Videospielen?",
                                          min=0, max=24)
 
 
-    q_loot_box_spending = models.FloatField(label="How much did you spend on loot boxes per month during the last year on average? (in British pound)",  #Added time frame
+    q_loot_box_spending = models.FloatField(label="Wie viel haben Sie im letzten Jahr monatlich durchschnittlich für Lootboxen ausgegeben?",  #Added time frame
                                             min=0)
-    q_loot_box_more_than_planned = models.BooleanField(label="Have you ever spend more than you planned to on loot boxes?")
+    q_loot_box_more_than_planned = models.BooleanField(label="Haben Sie schon mal mehr Geld für Lootboxen ausgegeben, als sie eigentlich geplant hatten?")
 
     ### Self Control survey ###
     q_self_control_1 = models.IntegerField(label="I am good at resisting temptation.",

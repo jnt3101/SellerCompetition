@@ -2,7 +2,7 @@
 {% load otree static %}
 
 {% block title %}
-Please take a decision
+Bitte wählen Sie den Preis für die Lotterie
 {% endblock %}
 
 {% block content %}
@@ -17,7 +17,7 @@ Please take a decision
     <div class="row">
       <div class="col">
         <div class="card" tabindex="0" data-bs-trigger="hover focus" id="card_belief"
-          data-bs-content="Please carefully think about the lottery above. You can answer the question after 5 seconds have passed">
+          data-bs-content="Bitte denken Sie sorgfältig über die Lotterie oben nach. Sie können die Frage beantworten, nachdem 5 Sekunden vergangen sind.">
           <div class="card-body" style="background-color:#e0e0e0;" id="card_belief_body">
             {% include "Experiment/belief_elicitation.html" %}
           </div>
@@ -31,19 +31,20 @@ Please take a decision
     <div class="row">
       <div class="col">
         <div class="card" tabindex="0" data-bs-trigger="hover focus" id="card_selling_price"
-          data-bs-content="Please answer the question above first.">
+          data-bs-content="Bitte beantworten Sie zuerst die Frage oben.">
           <div class="card-body" style="background-color:#e0e0e0;" id="card_selling_price_body">
             {% include "Experiment/selling_price_elicitation.html" %}
           </div>
         </div>
       </div>
     </div>
+
     <div class="row">
       <div class="col">
         <table class="table borderless" style="text-align: center">
           <tr>
             <td colspan="2">
-              <button type="submit" class="btn btn-primary" id="confirm" disabled>Next</button>
+              <button type="submit" class="btn btn-primary" id="confirm" disabled>Weiter</button>
             </td>
           </tr>
         </table>
@@ -57,6 +58,7 @@ Please take a decision
     </div>
   </div>
 </div>
+
 <input type="hidden" name="belief_sequence" id="belief_sequence" />
 
 {% if form.belief_sequence.errors %}{{ form.belief_sequence.errors.0 }}{% endif %}
@@ -66,118 +68,73 @@ Please take a decision
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"
   integrity="sha384-ka7Sk0Gln4gmtz2MlQnikT1wXgYsOg+OMhuP+IlRH9sENBO0LRn5q+8nbTov4+1p" crossorigin="anonymous"></script>
 
-
 <style>
-
-
-
 </style>
+
 <script>
 
-  // Slider Stuff
+  // Slider-Logik
   var range_input = document.getElementById('id_belief_slider');
   console.log(range_input.value)
   var all_numbers = "";
 
-  // Start timer direkt, da es keine speziellen Nudge-Treatments mehr gibt
+  // Timer sofort starten
   start_decision_timeout();
 
   range_input.addEventListener('input', function () { updateValues('range') });
 
   function updateValues(i) {
 
-    // If we have not activated the selling price field, we do it now
+    // Falls das Eingabefeld für den Verkaufspreis noch gesperrt ist → aktivieren
     var selling_price_field = document.getElementById("id_selling_price_lottery");
     if (selling_price_field.disabled == true) {
 
-      // Enable selling price elicitation
       selling_price_field.disabled = false;
 
-      // Change color on the body of the card
+      // Hintergrundfarbe ändern
       var card_selling_price_body = document.getElementById("card_selling_price_body");
       card_selling_price_body.style.backgroundColor = "#FFFFFF";
 
-      // Turn off popover for the entire card
+      // Popover deaktivieren
       $('#card_selling_price').popover('disable');
 
-      //Enable button
+      // Weiter-Button aktivieren
       document.getElementById("confirm").disabled = false;
     }
 
-    // Show decision text and hide the placeholder
+    // Entscheidungstext anzeigen
     document.getElementById("click_slider").style.display = "none";
     document.getElementById("slider_clicked").style.display = "block";
 
-    // Storing all numbers that the participant considered as a belief
-    all_numbers = all_numbers + ";" + range_input.value.toString()
-    document.getElementById("belief_sequence").value = all_numbers
+    // Speichern aller gewählten Slider-Werte
+    all_numbers = all_numbers + ";" + range_input.value.toString();
+    document.getElementById("belief_sequence").value = all_numbers;
 
     document.getElementById("id_belief_slider").className = "slider"
-    document.getElementById("text_belief").textContent = range_input.value.toString() + " times"
+    document.getElementById("text_belief").textContent = range_input.value.toString() + " Mal";
   }
 
-  // Turn on popover for elements
+  // Popover aktivieren
   var div_selling_price = document.getElementById("card_selling_price");
   var popover_selling_price = new bootstrap.Popover(div_selling_price)
 
   var div_belief = document.getElementById("card_belief");
   var popover_belief = new bootstrap.Popover(div_belief)
 
-  // Enable slider after 5 seconds and change color
+  // Slider nach 5 Sekunden aktivieren
   function start_decision_timeout (){
 
     setTimeout(function () {
-      // Enable slider
+
       document.getElementById("id_belief_slider").disabled = false;
 
-      // Change color of belief card
       var card_belief_body = document.getElementById("card_belief_body");
       card_belief_body.style.backgroundColor = "#FFFFFF";
 
-      // Turn off popover for the entire card
       $('#card_belief').popover('disable');
+
     }, 5000);
   }
-</script>
-
-
-<!-- Last 10 seconds warning -->
-<div id="last10-box" style="display:none; margin-top: 1em; font-weight: bold; color: red;">
-    Please make your choice within
-    <span id="last10-seconds">10</span> seconds.
-</div>
-
-
-
-<!-- Countdown script: shows warning only during the last 10 seconds -->
-<script>
-    (function () {
-        // timeout_seconds is passed from the Page.js_vars in __init__.py
-        var total = (typeof js_vars !== 'undefined' && js_vars.timeout_seconds)
-            ? js_vars.timeout_seconds
-            : 0;
-
-        function tick() {
-            total -= 1;
-
-            if (total <= 10 && total >= 0) {
-                var box = document.getElementById('last10-box');
-                var span = document.getElementById('last10-seconds');
-                if (box && span) {
-                    box.style.display = 'block';
-                    span.textContent = total;
-                }
-            }
-
-            if (total > 0) {
-                setTimeout(tick, 1000);
-            }
-        }
-
-        if (total > 0) {
-            setTimeout(tick, 1000);
-        }
-    })();
 </script>
 
 

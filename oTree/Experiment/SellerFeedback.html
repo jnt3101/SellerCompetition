@@ -2,7 +2,7 @@
 {% load otree static %}
 
 {% block title %}
-    Round results
+    Rundenergebnis
 {% endblock %}
 
 {% block content %}
@@ -12,38 +12,39 @@
 
     <div style="padding: 1rem; border: 1px solid #ccc; border-radius: 8px; background-color: #f9f9f9;">
         <p>
-            Your role in this round: <strong>Seller</strong>
+            Ihre Rolle in dieser Runde: <strong>Verkäufer</strong>
         </p>
     </div>
 
     <div style="padding: 1rem; border: 1px solid #ccc; border-radius: 8px; background-color: #f2f2f2;">
         <p>
-            Price you asked for your lottery: <strong>{{ price }}</strong>
+            Preis, den Sie für Ihre Lotterie verlangt haben: <strong>{{ price }}</strong>
         </p>
     </div>
 
     {% if sold %}
         <div style="padding: 1rem; border: 1px solid #ccc; border-radius: 8px; background-color: #e5ffe5;">
             <p>
-                At least one buyer in your group decided to <strong>buy your lottery</strong> at the price you set.
+                Mindestens ein Käufer in Ihrer Gruppe hat sich entschieden, <strong>Ihre Lotterie</strong>
+                zu dem von Ihnen festgelegten Preis zu kaufen.
             </p>
             <p>
-                For a buyer who purchased your lottery, a random draw from your lottery generated an outcome of
-                <strong>{{ outcome }}</strong>.
+                Für einen Käufer, der Ihre Lotterie gekauft hat, ergab eine zufällige Ziehung aus Ihrer Lotterie
+                ein Ergebnis von <strong>{{ outcome }}</strong>.
             </p>
             <p>
-                According to the payoff rule, your bonus in this round equals the <strong>price</strong> of your lottery.
-                Therefore, your additional bonus in this round is
+                Gemäß der Auszahlungsregel entspricht Ihr Bonus in dieser Runde dem <strong>Preis</strong> Ihrer Lotterie.
+                Ihr zusätzlicher Bonus in dieser Runde beträgt daher
                 <strong>{{ price }}</strong>.
             </p>
         </div>
     {% else %}
         <div style="padding: 1rem; border: 1px solid #ccc; border-radius: 8px; background-color: #ffe5e5;">
             <p>
-                In this round, <strong>no buyer</strong> decided to buy your lottery.
+                In dieser Runde hat sich <strong>kein Käufer</strong> dazu entschieden, Ihre Lotterie zu kaufen.
             </p>
             <p>
-                As a result, your additional bonus in this round is
+                Deshalb beträgt Ihr zusätzlicher Bonus in dieser Runde
                 <strong>0</strong>.
             </p>
         </div>
@@ -51,7 +52,7 @@
 
     <div style="padding: 1rem; border: 1px solid #ccc; border-radius: 8px; background-color: #f9f9f9;">
         <p>
-            Total payoff from this round (before conversion to real money):
+            Gesamtauszahlung aus dieser Runde (vor Umrechnung in reale Währung):
             <strong>{{ player.payoff }}</strong>
         </p>
     </div>
@@ -62,46 +63,7 @@
 
 </div>
 
-
-<!-- Last 10 seconds warning -->
-<div id="last10-box" style="display:none; margin-top: 1em; font-weight: bold; color: red;">
-    Please make your choice within
-    <span id="last10-seconds">10</span> seconds.
-</div>
-
-
-
-<!-- Countdown script: shows warning only during the last 10 seconds -->
-<script>
-    (function () {
-        // timeout_seconds is passed from the Page.js_vars in __init__.py
-        var total = (typeof js_vars !== 'undefined' && js_vars.timeout_seconds)
-            ? js_vars.timeout_seconds
-            : 0;
-
-        function tick() {
-            total -= 1;
-
-            if (total <= 10 && total >= 0) {
-                var box = document.getElementById('last10-box');
-                var span = document.getElementById('last10-seconds');
-                if (box && span) {
-                    box.style.display = 'block';
-                    span.textContent = total;
-                }
-            }
-
-            if (total > 0) {
-                setTimeout(tick, 1000);
-            }
-        }
-
-        if (total > 0) {
-            setTimeout(tick, 1000);
-        }
-    })();
-</script>
-
 {% endblock %}
+
 
 

@@ -2,7 +2,7 @@
 {% load otree static %}
 
 {% block title %}
-    Round results
+    Rundenergebnis
 {% endblock %}
 
 {% block content %}
@@ -12,47 +12,47 @@
 
     <div style="padding: 1rem; border: 1px solid #ccc; border-radius: 8px; background-color: #f9f9f9;">
         <p>
-            Your role in this round: <strong>Buyer</strong>
+            Ihre Rolle in dieser Runde: <strong>Käufer</strong>
         </p>
     </div>
 
     {% if bought_lottery %}
         <div style="padding: 1rem; border: 1px solid #ccc; border-radius: 8px; background-color: #e5ffe5;">
-            <h5>Your purchase decision</h5>
+            <h5>Ihre Kaufentscheidung</h5>
             {% if chosen_seller_index == 1 %}
                 <p>
-                    In this round, you decided to <strong>buy Lottery 1</strong> (offered by seller 1).
+                    In dieser Runde haben Sie sich entschieden, <strong>Lotterie 1</strong> zu kaufen (angeboten von Verkäufer 1).
                 </p>
             {% elif chosen_seller_index == 2 %}
                 <p>
-                    In this round, you decided to <strong>buy Lottery 2</strong> (offered by seller 2).
+                    In dieser Runde haben Sie sich entschieden, <strong>Lotterie 2</strong> zu kaufen (angeboten von Verkäufer 2).
                 </p>
             {% else %}
                 <p>
-                    In this round, you decided to <strong>buy a lottery</strong>.
+                    In dieser Runde haben Sie sich entschieden, <strong>eine Lotterie zu kaufen</strong>.
                 </p>
             {% endif %}
 
             <p>
-                A random draw from the lottery you bought generated an outcome of
+                Eine zufällige Ziehung aus der von Ihnen gekauften Lotterie ergab ein Ergebnis von
                 <strong>{{ lottery_outcome }}</strong>.
             </p>
             <p>
-                According to the payoff rule, this outcome determines your bonus for this round.
+                Gemäß der Auszahlungsregel bestimmt dieses Ergebnis Ihren Bonus für diese Runde.
             </p>
         </div>
     {% else %}
         <div style="padding: 1rem; border: 1px solid #ccc; border-radius: 8px; background-color: #f2f2f2;">
-            <h5>Your decision</h5>
+            <h5>Ihre Entscheidung</h5>
             <p>
-                In this round, you decided to <strong>not buy any lottery</strong> (outside option).
+                In dieser Runde haben Sie sich entschieden, <strong>keine Lotterie zu kaufen</strong> (Außenoption).
             </p>
             <p>
-                In this case, your bonus for the round equals the <strong>lowest price</strong> among all lotteries
-                offered by the sellers in your group.
+                In diesem Fall entspricht Ihr Bonus für diese Runde dem <strong>niedrigsten Preis</strong> unter allen Lotterien,
+                die von den Verkäufern in Ihrer Gruppe angeboten wurden.
             </p>
             <p>
-                The lowest price offered in your group was:
+                Der niedrigste in Ihrer Gruppe angebotene Preis betrug:
                 <strong>{{ outside_option_value }}</strong>.
             </p>
         </div>
@@ -60,7 +60,7 @@
 
     <div style="padding: 1rem; border: 1px solid #ccc; border-radius: 8px; background-color: #e5ffe5;">
         <p>
-            Your total payoff from this round (before conversion to real money) is:
+            Ihre gesamte Auszahlung aus dieser Runde (vor Umrechnung in reale Währung) beträgt:
             <strong>{{ player.payoff }}</strong>
         </p>
     </div>
@@ -72,44 +72,4 @@
 </div>
 
 
-<!-- Last 10 seconds warning -->
-<div id="last10-box" style="display:none; margin-top: 1em; font-weight: bold; color: red;">
-    Please make your choice within
-    <span id="last10-seconds">10</span> seconds.
-</div>
-
-
-
-<!-- Countdown script: shows warning only during the last 10 seconds -->
-<script>
-    (function () {
-        // timeout_seconds is passed from the Page.js_vars in __init__.py
-        var total = (typeof js_vars !== 'undefined' && js_vars.timeout_seconds)
-            ? js_vars.timeout_seconds
-            : 0;
-
-        function tick() {
-            total -= 1;
-
-            if (total <= 10 && total >= 0) {
-                var box = document.getElementById('last10-box');
-                var span = document.getElementById('last10-seconds');
-                if (box && span) {
-                    box.style.display = 'block';
-                    span.textContent = total;
-                }
-            }
-
-            if (total > 0) {
-                setTimeout(tick, 1000);
-            }
-        }
-
-        if (total > 0) {
-            setTimeout(tick, 1000);
-        }
-    })();
-</script>
-
 {% endblock %}
-

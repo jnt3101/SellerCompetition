@@ -1,14 +1,13 @@
 from otree.api import *
 
 import random
-import requests
 
 
 doc = """
 Introduction app:
 - General instructions, attention checks, comprehension checks
-- No roles or grouping here
-- Roles and groups are only created in the main_experiment app
+- Groups and roles are created here (via group_by_arrival_time)
+- Roles and groups are then reused in the main_experiment app
 """
 
 
@@ -17,7 +16,7 @@ class C(BaseConstants):
     PLAYERS_PER_GROUP = None
     NUM_ROUNDS = 1
 
-    # General intro parameters (not used in grouping)
+    # General intro parameters (not used in grouping logic)
     N_LOTTERIES = 5
     TIME_TO_FINISH = 15  # minutes
     BASE_PAY = 2.0  # in Pound
@@ -37,67 +36,110 @@ class Subsession(BaseSubsession):
 
 
 class Group(BaseGroup):
-    pass
+    # Group type, e.g. '1S1B', '2S1B', '2S2B'
+    group_type = models.StringField()
 
 
 class Player(BasePlayer):
 
-    # --- General fields (no roles yet) ---
-
-    prolific_id = models.StringField(label="Your Prolific-ID:")
-    recaptcha_token = models.StringField(blank=True)
 
     # Attention checks
     attention_check_daylight = models.StringField(label="")
     attention_check_color = models.StringField(
-        choices=['Red', 'Green', 'Blue', 'Yellow'],
+        choices=['Rot', 'Grün', 'Blau', 'Gelb'],
         label=""
     )
-    failed_both_attention_checks = models.BooleanField(initial=False)
 
-    # --- Comprehension checks ---
+    # Count of attention check attempts
+    attention_tries = models.IntegerField(initial=0)
 
-    comp_1 = models.IntegerField(
+    # --- Role & indices (assigned when groups are formed in this app) ---
+
+    # 'seller' or 'buyer'; assigned via group_by_arrival_time
+    player_role = models.StringField()
+    # index within role in the group (1 or 2)
+    seller_index = models.IntegerField(initial=0)
+    buyer_index = models.IntegerField(initial=0)
+
+    # --- Role-specific comprehension checks (seller) ---
+
+    seller_comp_1 = models.IntegerField(
         label="",
         choices=[
-            [1, "It is possible that I get paid both 30 coins and 80 coins."],
-            [2, "I receive either 30 coins OR 80 coins OR 0 coins."],
-            [3, "I will receive at least some coins with certainty."],
+            [1, "Es ist möglich, dass ich sowohl 30 Münzen als auch 80 Münzen erhalte."],
+            [2, "Ich erhalte entweder 30 Münzen ODER 80 Münzen ODER 0 Münzen."],
+            [3, "Ich erhalte mit Sicherheit mindestens einige Münzen."],
         ],
         widget=widgets.RadioSelect,
+        blank=True,
     )
-
-    comp_2 = models.IntegerField(
+    seller_comp_2 = models.IntegerField(
         label="",
         choices=[
-            [1, "The probability to receive 30 coins is 60%."],
-            [2, "The probability to receive 30 coins is 40%."],
-            [3, "The probability to receive 30 coins is 0%."],
+            [1, "Die Wahrscheinlichkeit, 30 Münzen zu erhalten, beträgt 60 %."],
+            [2, "Die Wahrscheinlichkeit, 30 Münzen zu erhalten, beträgt 40 %."],
+            [3, "Die Wahrscheinlichkeit, 30 Münzen zu erhalten, beträgt 0 %."],
         ],
         widget=widgets.RadioSelect,
+        blank=True,
     )
-
-    comp_3 = models.IntegerField(
+    seller_comp_3 = models.IntegerField(
         label="",
         choices=[
-            [1, "The maximum payoff of the lottery"],
-            [2, "A randomly generated number"],
-            [3, "The price that the lottery is sold for"],
+            [1, "Die maximale Auszahlung der Lotterie, die Sie anbieten."],
+            [2, "Eine zufällig generierte Zahl."],
+            [3, "Der Preis, zu dem Sie die Lotterie verkauft haben."],
         ],
         widget=widgets.RadioSelect,
+        blank=True,
     )
-
-    comp_4 = models.IntegerField(
+    seller_comp_4 = models.IntegerField(
         label="",
         choices=[
-            [1, "The seller will not get a bonus"],
-            [2, "The seller's bonus will match the amount the other participant is willing to pay"],
-            [3, "The seller's bonus will be 25 coins"],
+            [1, "Sie erhalten keinen Bonus."],
+            [2, "Ihr Bonus entspricht dem Betrag, den der Käufer bereit gewesen wäre zu zahlen."],
+            [3, "Ihr Bonus beträgt 25 Münzen."],
         ],
         widget=widgets.RadioSelect,
+        blank=True,
     )
 
-    comp_tries = models.IntegerField(initial=0)
+    seller_comp_tries = models.IntegerField(initial=0)
+
+    # --- Role-specific comprehension checks (buyer) ---
+
+    buyer_comp_1 = models.IntegerField(
+        label="",
+        choices=[
+            [1, "Es ist möglich, dass ich sowohl 30 Münzen als auch 80 Münzen erhalte."],
+            [2, "Ich erhalte entweder 30 Münzen ODER 80 Münzen ODER 0 Münzen."],
+            [3, "Ich erhalte mit Sicherheit mindestens einige Münzen."],
+        ],
+        widget=widgets.RadioSelect,
+        blank=True,
+    )
+    buyer_comp_2 = models.IntegerField(
+        label="",
+        choices=[
+            [1, "Die Wahrscheinlichkeit, 30 Münzen zu erhalten, beträgt 60 %."],
+            [2, "Die Wahrscheinlichkeit, 30 Münzen zu erhalten, beträgt 40 %."],
+            [3, "Die Wahrscheinlichkeit, 30 Münzen zu erhalten, beträgt 0 %."],
+        ],
+        widget=widgets.RadioSelect,
+        blank=True,
+    )
+    buyer_comp_3 = models.IntegerField(
+        label="",
+        choices=[
+            [1, "Ein von KI unterstützter Algorithmus"],
+            [2, "Ein anderer Teilnehmer des Experiments mit Gewinnabsicht"],
+            [3, "Eine Firma mit Gewinnabsicht"],
+        ],
+        widget=widgets.RadioSelect,
+        blank=True,
+    )
+
+    buyer_comp_tries = models.IntegerField(initial=0)
 
     # Helper to pass exchange rate to templates
     def get_general_instruction_vars(self):
@@ -112,7 +154,8 @@ class Player(BasePlayer):
 def creating_session(subsession: Subsession):
     """
     Load Prolific return links from SESSION_CONFIGS.
-    No grouping or role assignment happens here.
+    Grouping and role assignment are handled by group_by_arrival_time_method
+    when players reach the GroupingWaitPage.
     """
     if subsession.round_number == 1:
         required_fields = [
@@ -126,120 +169,214 @@ def creating_session(subsession: Subsession):
             setattr(subsession, field, subsession.session.config[field])
 
 
+# --- DYNAMIC GROUPING WITH group_by_arrival_time ---------------------------
+
+
+def group_by_arrival_time_method(subsession: Subsession, waiting_players):
+    """
+    Called when a new player reaches the GroupingWaitPage.
+    We form groups in the pattern:
+        1S1B -> 2S1B -> 2S2B -> 1S1B -> ...
+    based on the arrival order.
+
+    Groups and roles are created already in this introduction app.
+    Role and index information are stored in participant.vars, so that
+    the main_experiment app can reconstruct the same groups.
+    """
+    patterns = [
+        ['seller', 'buyer'],                    # 1S1B
+        ['seller', 'seller', 'buyer'],          # 2S1B
+        ['seller', 'seller', 'buyer', 'buyer'], # 2S2B
+    ]
+
+    session = subsession.session
+
+    if 'pattern_index' not in session.vars:
+        session.vars['pattern_index'] = 0
+    if 'intro_group_index' not in session.vars:
+        # Counter to assign a persistent group ID across apps
+        session.vars['intro_group_index'] = 1
+
+    pattern_index = session.vars['pattern_index']
+    current_pattern = patterns[pattern_index]
+    required_players = len(current_pattern)
+
+    # Not enough players yet to form the next group
+    if len(waiting_players) < required_players:
+        return
+
+    # First N waiting players form the next group
+    group_players = waiting_players[:required_players]
+
+    seller_counter = 0
+    buyer_counter = 0
+    intro_group_id = session.vars['intro_group_index']
+
+    for role, p in zip(current_pattern, group_players):
+        p.player_role = role
+
+        if role == 'seller':
+            seller_counter += 1
+            p.seller_index = seller_counter
+        elif role == 'buyer':
+            buyer_counter += 1
+            p.buyer_index = buyer_counter
+        else:
+            raise Exception(f"Unknown role '{role}' in grouping pattern.")
+
+        # Store roles & indices also in participant.vars (for later apps)
+        part = p.participant
+        part.vars['player_role'] = p.player_role
+        part.vars['seller_index'] = p.seller_index
+        part.vars['buyer_index'] = p.buyer_index
+        # Store a persistent group ID so that the experiment app
+        # can reconstruct the same groups in round 1.
+        part.vars['intro_group_id'] = intro_group_id
+
+    # Move to the next pattern for the next group
+    session.vars['pattern_index'] = (pattern_index + 1) % len(patterns)
+    session.vars['intro_group_index'] = intro_group_id + 1
+
+    return group_players
+
+
 # --- PAGES ---
 
 
 class Welcome(Page):
     """
-    Welcome page where participants enter their Prolific ID
-    and complete a reCAPTCHA check.
+    Welcome page.
+    No CAPTCHA is used anymore.
     """
-    form_model = 'player'
-    form_fields = ['prolific_id', 'recaptcha_token']
-
-    @staticmethod
-    def error_message(player, values):
-        token = values.get('recaptcha_token')
-        if not token:
-            return "Please verify that you are not a robot."
-
-        # IMPORTANT: Replace with your own secret key
-        secret_key = '6LfLHCcrAAAAAHR2ZraFCkA-II8Ll0z95DQQ3beT'
-
-        payload = {
-            'secret': secret_key,
-            'response': token,
-        }
-        r = requests.post('https://www.google.com/recaptcha/api/siteverify', data=payload)
-        result = r.json()
-
-        if not result.get('success'):
-            return "Invalid reCAPTCHA. Please try again."
-
+    pass
 
 class AttentionCheck(Page):
     """
     Neutral attention check for all participants.
+    Participants must pass this check; they can repeat it as often as needed.
+    The number of attempts is recorded in attention_tries.
     """
     form_model = 'player'
     form_fields = ['attention_check_daylight', 'attention_check_color']
 
     @staticmethod
-    def before_next_page(player, timeout_happened):
-        # Must write at least 10 words AND choose "Green"
-        enough_words = len(player.attention_check_daylight.split()) >= 10
-        correct_color = player.attention_check_color == 'Green'
+    def error_message(player, values):
+        # Count each submission as an attempt
+        player.attention_tries += 1
 
-        player.failed_both_attention_checks = not (enough_words and correct_color)
+        enough_words = len(values['attention_check_daylight'].split()) >= 10
+        correct_color = values['attention_check_color'] == 'Grün'
+
+        if not (enough_words and correct_color):
+            return "Einige Antworten waren falsch. Bitte versuchen Sie es nochmal."
 
 
-class AttentionCheckFail(Page):
+
+class GroupingWaitPage(WaitPage):
     """
-    Shown only to participants who fail the attention check.
+    In this app, groups and roles are formed via group_by_arrival_time.
+    """
+    group_by_arrival_time = True
+
+    @staticmethod
+    def after_all_players_arrive(group: Group):
+        """
+        Once a group is formed and everyone in that group arrived,
+        set group_type based on the number of sellers and buyers.
+        """
+        players_in_group = group.get_players()
+        sellers = [p for p in players_in_group if p.player_role == 'seller']
+        buyers = [p for p in players_in_group if p.player_role == 'buyer']
+        group.group_type = f"{len(sellers)}S{len(buyers)}B"
+
+
+class InstructionsSellerIntro(Page):
+    """
+    Role-specific instructions for sellers in the introduction app.
+    Shown only to participants with role 'seller'.
     """
     @staticmethod
-    def is_displayed(player):
-        return player.failed_both_attention_checks
+    def is_displayed(player: Player):
+        return player.player_role == 'seller'
 
     @staticmethod
-    def vars_for_template(player):
-        return {
-            "prolific_attention_link": player.subsession.prolific_attention_link
-        }
-
-
-class InstructionsGeneral(Page):
-    """
-    General instructions (not role-specific).
-    """
-    @staticmethod
-    def vars_for_template(player):
+    def vars_for_template(player: Player):
         return player.get_general_instruction_vars()
 
 
-class ComprehensionGeneral(Page):
+class InstructionsBuyerIntro(Page):
     """
-    Comprehension questions shown to all participants.
+    Role-specific instructions for buyers in the introduction app.
+    Shown only to participants with role 'buyer'.
+    """
+    @staticmethod
+    def is_displayed(player: Player):
+        return player.player_role == 'buyer'
+
+    @staticmethod
+    def vars_for_template(player: Player):
+        return player.get_general_instruction_vars()
+
+
+class ComprehensionSellerIntro(Page):
+    """
+    Seller-specific comprehension questions.
+    Participants can repeat this page until they answer correctly.
+    The number of attempts is recorded in seller_comp_tries.
     """
     form_model = 'player'
-    form_fields = ['comp_1', 'comp_2', 'comp_3', 'comp_4']
+    form_fields = ['seller_comp_1', 'seller_comp_2', 'seller_comp_3', 'seller_comp_4']
 
     @staticmethod
-    def error_message(player, values):
+    def is_displayed(player: Player):
+        return player.player_role == 'seller'
+
+    @staticmethod
+    def error_message(player: Player, values):
         correct = (
-            values['comp_1'] == 2 and
-            values['comp_2'] == 2 and
-            values['comp_3'] == 3 and
-            values['comp_4'] == 1
+            values['seller_comp_1'] == 2 and
+            values['seller_comp_2'] == 2 and
+            values['seller_comp_3'] == 3 and
+            values['seller_comp_4'] == 1
         )
 
+        player.seller_comp_tries += 1
+
         if not correct:
-            player.comp_tries += 1
-
-            if player.comp_tries < 2:
-                return "Some answers were incorrect. Please try again."
-            # After 2 attempts -> fail page will be shown.
+            return "Einige Antworten waren falsch. Bitte versuchen Sie es nochmal."
 
 
-class ComprehensionFailGeneral(Page):
+class ComprehensionBuyerIntro(Page):
     """
-    Shown only if comprehension questions were failed twice.
+    Buyer-specific comprehension questions.
+    Participants can repeat this page until they answer correctly.
+    The number of attempts is recorded in buyer_comp_tries.
     """
-    @staticmethod
-    def is_displayed(player):
-        return player.comp_tries >= 2
+    form_model = 'player'
+    form_fields = ['buyer_comp_1', 'buyer_comp_2', 'buyer_comp_3']
 
     @staticmethod
-    def vars_for_template(player):
-        return {
-            "prolific_attention_link": player.subsession.prolific_attention_link
-        }
+    def is_displayed(player: Player):
+        return player.player_role == 'buyer'
+
+    @staticmethod
+    def error_message(player: Player, values):
+        correct = (
+            values['buyer_comp_1'] == 2 and
+            values['buyer_comp_2'] == 2 and
+            values['buyer_comp_3'] == 2
+        )
+
+        player.buyer_comp_tries += 1
+
+        if not correct:
+            return "Einige Antworten waren falsch. Bitte versuchen Sie es nochmal."
 
 
 class StartExperiment(Page):
     """
     Final page of the introduction.
-    Only here do we generate the participant's lottery sequences
+    Here we generate the participant's lottery sequences
     and the paid round for the main experiment.
     """
 
@@ -265,11 +402,12 @@ class StartExperiment(Page):
 
 
 page_sequence = [
+    GroupingWaitPage,
     Welcome,
     AttentionCheck,
-    AttentionCheckFail,
-    InstructionsGeneral,
-    ComprehensionGeneral,
-    ComprehensionFailGeneral,
+    InstructionsSellerIntro,
+    InstructionsBuyerIntro,
+    ComprehensionSellerIntro,
+    ComprehensionBuyerIntro,
     StartExperiment,
 ]

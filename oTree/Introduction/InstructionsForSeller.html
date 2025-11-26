@@ -1,0 +1,172 @@
+{% load otree static %}
+
+<h5>Die Lotterien</h5>
+<p>
+    In dieser Studie treffen Teilnehmende Entscheidungen über Lotterien, die von anderen
+    Teilnehmenden in der Studie angeboten werden. Alle können einen zusätzlichen Bonus verdienen.
+    Die mögliche Bonushöhe hängt von den Entscheidungen in der Studie ab, zum Beispiel von den
+    gewählten Preisen für Lotterien, der Zahlungsbereitschaft für Lotterien und ggf. vom Ergebnis
+    einer zufälligen Ziehung. Der Bonus jeder Person kann daher sowohl von den eigenen
+    Entscheidungen als auch von den Entscheidungen anderer abhängen.
+</p>
+
+<p>
+    Unten sehen Sie ein Beispiel für eine Lotterie:
+</p>
+
+<p>
+    <table class="table table-bordered" style="text-align: center">
+        <thead>
+            <tr class="table-primary" style="border-color: black">
+                <th colspan="4">Lotterie</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <th>Wahrscheinlichkeit</th>
+                <td>40 %</td>
+                <td>30 %</td>
+                <td>30 %</td>
+            </tr>
+            <tr>
+                <th>Auszahlung</th>
+                <td>20 Münzen</td>
+                <td>40 Münzen</td>
+                <td>60 Münzen</td>
+            </tr>
+        <tbody>
+    </table>
+</p>
+
+<p>
+    In diesem Beispiel zahlt die Lotterie entweder 20 Münzen mit 40&nbsp;% Wahrscheinlichkeit,
+    oder 40 Münzen mit 30&nbsp;% Wahrscheinlichkeit, oder 60 Münzen mit 30&nbsp;% Wahrscheinlichkeit.
+    Wichtig ist: Eine Lotterie zahlt immer nur <b>einen</b> der Beträge aus; sie zahlt also
+    <b>entweder</b> 20 Münzen <b>oder</b> 40 Münzen <b>oder</b> 60 Münzen.
+</p>
+
+<br>
+
+<h5>Ihre Rolle</h5>
+<p>
+    Sie wurden der Rolle eines <b>Verkäufers</b> zugeordnet.
+    In diesem Teil der Studie bieten Sie Lotterien an, die von anderen Teilnehmenden
+    (den Käufern) betrachtet werden. Ihre Aufgabe ist es, die Lotterien zu präsentieren,
+    einen Preis für Ihre Lotterie festzulegen und Ihre Einschätzung darüber abzugeben,
+    wie häufig der höchste Gewinn der Lotterie auftreten wird.
+</p>
+
+<br>
+
+<h5>Ihre Entscheidungen</h5>
+
+<p>
+    Für jede Lotterie, die Sie anbieten, treffen Sie mehrere Entscheidungen:
+</p>
+
+<ul>
+    <li>
+        Zunächst wählen Sie, <b>wie die Lotterie präsentiert wird</b>.
+        Sie sehen unterschiedliche Darstellungen derselben Lotterie und entscheiden, welche
+        Präsentation Sie verwenden möchten.
+    </li>
+    <li>
+        Danach geben Sie an, <b>wie oft Sie glauben, dass Sie den höchsten Gewinn dieser Lotterie
+        erhalten würden</b>, wenn Sie die Lotterie <b>100&nbsp;Mal</b> spielen würden.
+        Diese Angabe ist Ihre persönliche Überzeugung über die Häufigkeit der höchsten Auszahlung.
+    </li>
+    <li>
+        Schließlich legen Sie einen <b>Preis</b> für Ihre Lotterie fest.
+        Dieser Preis gibt an, wie viele Münzen ein Käufer zahlen müsste, um Ihre Lotterie zu erwerben.
+        In der Studie darf der Preis zwischen 0 und der maximalen Auszahlung der Lotterie liegen
+        (also zum Beispiel bis zu 60 Münzen im obigen Beispiel).
+    </li>
+</ul>
+
+<p>
+    Die Käufer in Ihrer Gruppe sehen Ihre Lotterie (und gegebenenfalls Lotterien anderer Verkäufer),
+    einschließlich der von Ihnen gewählten Präsentation und Ihres Preises.
+    Auf dieser Grundlage entscheiden die Käufer, ob sie eine Lotterie kaufen möchten und wenn ja, welche.
+</p>
+
+<br>
+
+<h5>Die Entscheidungen und die Bonuszahlung</h5>
+<p>
+    Insgesamt wird es in der Studie <b>{{ C.N_LOTTERIES }} Lotterien</b> geben.
+    Zu jeder Lotterie werden die beteiligten Teilnehmenden nach ihren Entscheidungen gefragt.
+    In Ihrer Rolle als Verkäufer wählen Sie die Präsentation, geben Ihre Einschätzung zur
+    Häufigkeit des höchsten Gewinns ab und legen den Preis für Ihre Lotterie fest.
+</p>
+
+<p>
+    Am Ende des Experiments wählt der Computer zufällig eine der {{ C.N_LOTTERIES }} Lotterien für die Auszahlung aus.
+    Auf Basis der relevanten Entscheidungen zu dieser Lotterie (zum Beispiel des von Ihnen gesetzten Preises
+    und der Kaufentscheidung der Käufer) wird dann die mögliche Bonuszahlung bestimmt.
+    Eine zufällig ausgewählte Person von jeweils 7 Teilnehmenden erhält diesen zusätzlichen Bonus.
+    Wenn Sie sich für die Details interessieren, finden Sie unten auf der Seite eine ausführliche
+    Beschreibung des Auszahlungsmechanismus.
+</p>
+
+<p>
+    Ihre konkrete Bonuszahlung in der Rolle des Verkäufers hängt davon ab,
+    ob Ihre Lotterie gekauft wird:
+</p>
+
+<ul>
+    <li>
+        Wenn ein Käufer Ihre Lotterie kauft, ist Ihr Bonus gleich dem von Ihnen gesetzten Preis
+        (in Münzen) für diese Lotterie.
+    </li>
+    <li>
+        Wenn kein Käufer Ihre Lotterie kauft, erhalten Sie <b>keine</b> Bonuszahlung aus dieser Lotterie.
+    </li>
+</ul>
+
+<p>
+    Während des Experiments verwenden wir eine fiktive Währung, die wir „Münzen“ nennen.
+    Für die Bonuszahlung werden alle Münzen in Euro umgerechnet zum Kurs von
+    <b>{{ C.EXCHANGE_RATE }} Münzen = 1 Euro</b>.
+</p>
+
+<p>
+    <table width="100%">
+    <tr>
+      <td class="align-top">
+        <button class="btn btn-secondary" type="button" data-toggle="collapse"
+                data-target="#paymentMechanism" aria-expanded="false"
+                aria-controls="paymentMechanism">
+          Details zum Bonusmechanismus
+        </button>
+      </td>
+      <td>
+        <div style="text-align: right;">
+             {{ next_button }}
+        </div>
+      </td>
+    </tr>
+  </table>
+  <div class="collapse-content" id="paymentMechanism" style="display: none;">
+    <div class="card card-body">
+      {% include "Experiment/PaymentDetailsGeneral.html" %}
+      {% include "Experiment/PaymentExampleGeneral.html" %}
+    </div>
+  </div>
+</p>
+
+<style>
+    .card {
+        margin: 0 auto;
+        float: none;
+        margin-bottom: 10px;
+    }
+</style>
+
+<script>
+    $(document).ready(function() {
+      $('[data-toggle="collapse"]').on('click', function() {
+        var target = $(this).data('target');
+        $(target).slideToggle();
+      });
+    });
+</script>

@@ -5,13 +5,11 @@ import random
 
 """
 Main interaction app:
-- Groups are formed only in this app (introduction app has no roles/groups)
-- Group types (only determined in round 1):
-    * 1 seller + 1 buyer      -> '1S1B'
-    * 2 sellers + 1 buyer     -> '2S1B'
-    * 2 sellers + 2 buyers    -> '2S2B'
-- Roles ('seller' or 'buyer') are assigned in round 1 via group_by_arrival_time
-  and stay fixed for all 5 rounds.
+- Groups are formed already in the introduction app.
+- This app reconstructs the same groups in round 1 based on participant.vars,
+  and oTree keeps the groups fixed across rounds.
+- Roles ('seller' or 'buyer') are assigned in the introduction app and
+  stay fixed for all 5 rounds.
 - Sellers always have SAMPLE_CENSORING-style options (4 presentations).
 - Buyers see the sellers' lotteries including prices and choose:
     * buy lottery from seller 1
@@ -39,7 +37,7 @@ class C(BaseConstants):
 
     BELIEF_BONUS = 13
 
-    LOTTERY_CHOICES = ['Presentation 1', 'Presentation 2', 'Presentation 3', 'Presentation 4']
+    LOTTERY_CHOICES = ['Präsentation 1', 'Präsentation 2', 'Präsentation 3', 'Präsentation 4']
 
 
 # --- lottery helpers --------------------------------------------------------
@@ -96,7 +94,8 @@ def draw_lottery_outcome(mid_probability, max_payoff):
 class Subsession(BaseSubsession):
     """
     No special logic in creating_session, because groups and roles
-    are formed dynamically in round 1 via group_by_arrival_time.
+    are formed in the introduction app and reconstructed here via
+    group_by_arrival_time in round 1.
     """
     pass
 
@@ -111,7 +110,7 @@ class Group(BaseGroup):
 class Player(BasePlayer):
     # --- role & indices ------------------------------------------------------
 
-    # 'seller' or 'buyer'; assigned in round 1 via group_by_arrival_time
+    # 'seller' or 'buyer'; assigned in introduction via group_by_arrival_time
     player_role = models.StringField()
     # index within role in the group (1 or 2)
     seller_index = models.IntegerField(initial=0)
@@ -180,7 +179,8 @@ class Player(BasePlayer):
     outside_option_value = models.CurrencyField()
 
     # --- flags for automatic (timeout-based) decisions -----------------------
-
+    # These flags remain in the dataset for compatibility, but are no longer
+    # used to generate automatic decisions (no timeouts are enforced now).
     auto_lottery_decision = models.BooleanField(initial=False)
     auto_seller_decision = models.BooleanField(initial=False)
     auto_buyer_beliefs = models.BooleanField(initial=False)
@@ -231,7 +231,7 @@ class Player(BasePlayer):
     def initialize_round(self):
         """
         Ensure that in every round:
-        - role and indices are loaded from participant.vars (determined in round 1)
+        - role and indices are loaded from participant.vars (determined in introduction app)
         - lottery parameters (max_payoff, mid_probability) are set
         - sellers draw their sample (once per round)
         """
@@ -270,73 +270,55 @@ class Player(BasePlayer):
 def creating_session(subsession: Subsession):
     """
     Do not touch roles or groups here.
-    - In round 1, grouping and roles are handled dynamically via group_by_arrival_time.
+    - In round 1, grouping is reconstructed via group_by_arrival_time
+      using intro_group_id from the introduction app.
     - In later rounds, oTree automatically keeps the same groups as in round 1.
       Roles are reloaded per round from participant.vars in Player.initialize_round().
     """
     pass
 
 
-# --- dynamic grouping with group_by_arrival_time ---------------------------
+# --- dynamic grouping using intro_group_id ----------------------------------
 
 
 def group_by_arrival_time_method(subsession: Subsession, waiting_players):
     """
     Called when a new player reaches the GroupingWaitPage in round 1.
-    We form groups in the pattern:
-        1S1B -> 2S1B -> 2S2B -> 1S1B -> ...
-    based on the arrival order.
+
+    We reconstruct the groups that were formed in the introduction app
+    using participant.vars['intro_group_id'].
+
+    Logic:
+    - For each intro_group_id among waiting_players, check how many players
+      in the entire session have that intro_group_id.
+    - As soon as all players of one intro_group_id have arrived at this
+      GroupingWaitPage, we form that group.
     """
-    # Only group in round 1
     if subsession.round_number != 1:
         return
 
-    patterns = [
-        ['seller', 'buyer'],                    # 1S1B
-        ['seller', 'seller', 'buyer'],          # 2S1B
-        ['seller', 'seller', 'buyer', 'buyer'], # 2S2B
-    ]
-
     session = subsession.session
-    if 'pattern_index' not in session.vars:
-        session.vars['pattern_index'] = 0
 
-    pattern_index = session.vars['pattern_index']
-    current_pattern = patterns[pattern_index]
-    required_players = len(current_pattern)
+    # Group waiting players by their intro_group_id
+    by_gid = {}
+    for p in waiting_players:
+        gid = p.participant.vars.get('intro_group_id')
+        if gid is None:
+            continue
+        by_gid.setdefault(gid, []).append(p)
 
-    # Not enough players yet to form the next group
-    if len(waiting_players) < required_players:
-        return
+    # Check for each gid if all members of that intro group have arrived
+    for gid, plist in by_gid.items():
+        total_for_gid = sum(
+            1 for part in session.get_participants()
+            if part.vars.get('intro_group_id') == gid
+        )
+        if len(plist) == total_for_gid and total_for_gid > 0:
+            # All members of this intro group have arrived -> form this group
+            return plist
 
-    # First N waiting players form the next group
-    group_players = waiting_players[:required_players]
-
-    seller_counter = 0
-    buyer_counter = 0
-
-    for role, p in zip(current_pattern, group_players):
-        p.player_role = role
-
-        if role == 'seller':
-            seller_counter += 1
-            p.seller_index = seller_counter
-        elif role == 'buyer':
-            buyer_counter += 1
-            p.buyer_index = buyer_counter
-        else:
-            raise Exception(f"Unknown role '{role}' in grouping pattern.")
-
-        # Store roles & indices also in participant.vars (for later rounds)
-        part = p.participant
-        part.vars['player_role'] = p.player_role
-        part.vars['seller_index'] = p.seller_index
-        part.vars['buyer_index'] = p.buyer_index
-
-    # Move to the next pattern for the next group
-    session.vars['pattern_index'] = (pattern_index + 1) % len(patterns)
-
-    return group_players
+    # Otherwise, wait until enough players with the same intro_group_id arrive
+    return
 
 
 # --- context helpers for templates -----------------------------------------
@@ -537,7 +519,7 @@ def set_trade_and_outcomes(group: Group):
 
 class GroupingWaitPage(WaitPage):
     """
-    In round 1: form groups dynamically using group_by_arrival_time.
+    In round 1: reconstruct groups using intro_group_id from the Introduction app.
     In later rounds: not displayed.
     """
     group_by_arrival_time = True
@@ -549,13 +531,12 @@ class GroupingWaitPage(WaitPage):
     @staticmethod
     def after_all_players_arrive(group: Group):
         """
-        Once a group is formed and everyone in that group arrived,
+        Once a group is formed and everyone in that group arrived at this page,
         set group_type based on the number of sellers and buyers.
-        (The same grouping is automatically used in later rounds by oTree.)
         """
         players_in_group = group.get_players()
-        sellers = [p for p in players_in_group if p.player_role == 'seller']
-        buyers = [p for p in players_in_group if p.player_role == 'buyer']
+        sellers = [p for p in players_in_group if p.participant.vars.get('player_role') == 'seller']
+        buyers = [p for p in players_in_group if p.participant.vars.get('player_role') == 'buyer']
         group.group_type = f"{len(sellers)}S{len(buyers)}B"
 
 
@@ -574,10 +555,9 @@ class Lottery_decision(LotteryDecisionBase):
     """
     Seller chooses a presentation among 4 options (SAMPLE_CENSORING-style).
     All sellers use this page, independent of group type.
+    No time limit and no automatic randomization on non-response.
     """
     form_fields = ['chosen_lottery', 'justified_lottery', 'presentation_order']
-    # 30 seconds time limit
-    timeout_seconds = 30
 
     @staticmethod
     def is_displayed(player: Player):
@@ -585,25 +565,13 @@ class Lottery_decision(LotteryDecisionBase):
         return player.player_role == 'seller'
 
     @staticmethod
-    def js_vars(player: Player):
-        """
-        Pass timeout length to the template for countdown display.
-        """
-        return dict(timeout_seconds=Lottery_decision.timeout_seconds)
-
-    @staticmethod
     def before_next_page(player: Player, timeout_happened):
-        auto = False
-
-        # If no input was provided (e.g., due to timeout or empty field), choose randomly
-        if timeout_happened or not player.chosen_lottery:
-            auto = True
-            player.initialize_round()
-            player.chosen_lottery = random.choice(C.LOTTERY_CHOICES)
-            if not player.justified_lottery:
-                player.justified_lottery = (
-                    "Automatic choice due to timeout; no justification provided."
-                )
+        """
+        Map the participant's chosen presentation label to the actual
+        presentation ID defined by presentation_order.
+        No automatic randomization is applied anymore.
+        """
+        player.initialize_round()
 
         # If no presentation order was stored, use a default order
         if not player.presentation_order:
@@ -613,25 +581,27 @@ class Lottery_decision(LotteryDecisionBase):
         order_list = player.presentation_order.split(',') if player.presentation_order else []
 
         # Map the participant's choice to the actual presentation ID
-        try:
-            # Extract the chosen presentation number from 'Presentation N'
-            choice_number = int(player.chosen_lottery.split(' ')[1]) - 1  # 0-based index
-            player.chosen_presentation_id = order_list[choice_number]
-        except Exception:
-            # Fallback if something goes wrong
-            player.chosen_presentation_id = order_list[0] if order_list else 'default'
-
-        player.auto_lottery_decision = auto
+        if player.chosen_lottery and order_list:
+            try:
+                # Extract the chosen presentation number from 'Präsentation N'
+                choice_number = int(player.chosen_lottery.split(' ')[1]) - 1  # 0-based index
+                player.chosen_presentation_id = order_list[choice_number]
+            except Exception:
+                # Fallback if something goes wrong
+                player.chosen_presentation_id = order_list[0]
+        else:
+            # Fallback if something is missing; no randomization
+            if order_list:
+                player.chosen_presentation_id = order_list[0]
 
 
 class SellerDecision(LotteryDecisionBase):
     """
     Seller states price and belief for her lottery.
     Shown to all sellers, independent of group type.
+    No time limit and no automatic randomization on non-response.
     """
     form_fields = ['selling_price_lottery', 'belief_sequence', 'belief']
-    # 30 seconds time limit
-    timeout_seconds = 30
 
     @staticmethod
     def is_displayed(player: Player):
@@ -639,50 +609,29 @@ class SellerDecision(LotteryDecisionBase):
         return player.player_role == 'seller'
 
     @staticmethod
-    def js_vars(player: Player):
-        """
-        Pass timeout length to the template for countdown display.
-        """
-        return dict(timeout_seconds=SellerDecision.timeout_seconds)
-
-    @staticmethod
     def before_next_page(player: Player, timeout_happened):
         """
-        Enforce price in [1, max_payoff]. On timeout, randomize price and, if missing,
-        beliefs. If a participant somehow submits 0 or an invalid price, it is replaced
-        by a random price between 1 and max_payoff.
+        Ensure basic consistency of the price.
+        No automatic randomization is applied; invalid prices can be
+        clamped into [1, max_payoff] if needed.
         """
-        auto = False
-
         player.initialize_round()
 
-        # Always enforce valid price range: [1, max_payoff]
-        if (
-            player.selling_price_lottery is None
-            or player.selling_price_lottery <= 0
-            or player.selling_price_lottery > player.max_payoff
-        ):
-            player.selling_price_lottery = cu(random.randint(1, player.max_payoff))
-            if timeout_happened:
-                auto = True
-
-        # On timeout, also randomize beliefs if missing
-        if timeout_happened:
-            if player.belief is None:
-                player.belief = random.randint(0, 100)
-                auto = True
-
-            if not player.belief_sequence:
-                player.belief_sequence = "Automatic beliefs due to timeout."
-                auto = True
-
-        player.auto_seller_decision = auto
+        if player.selling_price_lottery is not None:
+            # Clamp price into [1, max_payoff] without randomization
+            if player.selling_price_lottery < 1:
+                player.selling_price_lottery = cu(1)
+            elif player.selling_price_lottery > player.max_payoff:
+                player.selling_price_lottery = cu(player.max_payoff)
 
 
 class WaitForSellers(WaitPage):
     """
     Wait until all sellers in each group have chosen their presentations
     and set price + belief, before showing the buyers' page.
+
+    All players in the group pass through this page, as in the working version.
+    Buyers effectively "wait for the sellers", sellers typically pass quickly.
     """
     wait_for_all_groups = False  # group-wise is enough
 
@@ -692,22 +641,14 @@ class BuyerDecision(Page):
     Buyer chooses beliefs about one or two lotteries and
     then chooses whether to buy from seller 1, seller 2 (if exists),
     or not to buy a lottery (outside option).
+    No time limit and no automatic randomization on non-response.
     """
     form_model = 'player'
-    # 30 seconds time limit
-    timeout_seconds = 30
 
     @staticmethod
     def is_displayed(player: Player):
         player.initialize_round()
         return player.player_role == 'buyer'
-
-    @staticmethod
-    def js_vars(player: Player):
-        """
-        Pass timeout length to the template for countdown display.
-        """
-        return dict(timeout_seconds=BuyerDecision.timeout_seconds)
 
     @staticmethod
     def get_form_fields(player: Player):
@@ -738,43 +679,12 @@ class BuyerDecision(Page):
 
     @staticmethod
     def before_next_page(player: Player, timeout_happened):
-        auto_beliefs = False
-        auto_choice = False
-
-        if timeout_happened:
-            group = player.group
-            sellers = [p for p in group.get_players() if p.player_role == 'seller']
-            sellers.sort(key=lambda p: p.seller_index)
-            n_sellers = len(sellers)
-
-            # --- Beliefs for seller 1 ---
-            if player.buyer_belief_seller1 is None:
-                player.buyer_belief_seller1 = random.randint(0, 100)
-                auto_beliefs = True
-            if not player.buyer_belief_sequence_seller1:
-                player.buyer_belief_sequence_seller1 = "Automatic beliefs due to timeout."
-                auto_beliefs = True
-
-            # --- Beliefs for seller 2 (if exists) ---
-            possible_choices = ['seller1', 'none']
-
-            if n_sellers == 2:
-                if player.buyer_belief_seller2 is None:
-                    player.buyer_belief_seller2 = random.randint(0, 100)
-                    auto_beliefs = True
-                if not player.buyer_belief_sequence_seller2:
-                    player.buyer_belief_sequence_seller2 = "Automatic beliefs due to timeout."
-                    auto_beliefs = True
-
-                possible_choices = ['seller1', 'seller2', 'none']
-
-            # --- Purchase decision: if empty, choose randomly (including outside option) ---
-            if not player.chosen_lottery_from_seller:
-                player.chosen_lottery_from_seller = random.choice(possible_choices)
-                auto_choice = True
-
-        player.auto_buyer_beliefs = auto_beliefs
-        player.auto_buyer_choice = auto_choice
+        """
+        No automatic randomization is applied anymore.
+        Auto flags remain in the data but are not used.
+        """
+        player.auto_buyer_beliefs = False
+        player.auto_buyer_choice = False
 
 
 class WaitForBuyerAndSetResults(WaitPage):
@@ -795,21 +705,13 @@ class SellerFeedback(Page):
     - whether their lottery was bought by at least one buyer
     - own price
     - (last) outcome drawn among buyers who purchased
+    No time limit.
     """
-    # 30 seconds time limit
-    timeout_seconds = 30
 
     @staticmethod
     def is_displayed(player: Player):
         player.initialize_round()
         return player.player_role == 'seller'
-
-    @staticmethod
-    def js_vars(player: Player):
-        """
-        Pass timeout length to the template for countdown display (if desired).
-        """
-        return dict(timeout_seconds=SellerFeedback.timeout_seconds)
 
     @staticmethod
     def vars_for_template(player: Player):
@@ -826,21 +728,13 @@ class BuyerFeedback(Page):
     - whether they bought a lottery
     - if yes: index of seller and outcome
     - if no: outside option (lowest price among sellers)
+    No time limit.
     """
-    # 30 seconds time limit
-    timeout_seconds = 30
 
     @staticmethod
     def is_displayed(player: Player):
         player.initialize_round()
         return player.player_role == 'buyer'
-
-    @staticmethod
-    def js_vars(player: Player):
-        """
-        Pass timeout length to the template for countdown display (if desired).
-        """
-        return dict(timeout_seconds=BuyerFeedback.timeout_seconds)
 
     @staticmethod
     def vars_for_template(player: Player):
@@ -852,67 +746,14 @@ class BuyerFeedback(Page):
         )
 
 
-class InstructionsSellerExp(Page):
-    """
-    Role-specific instructions for sellers in the experiment app.
-    Shown only in round 1.
-    """
-    # 30 seconds time limit
-    timeout_seconds = 30
-
-    @staticmethod
-    def is_displayed(player: Player):
-        player.initialize_round()
-        return player.round_number == 1 and player.player_role == 'seller'
-
-    @staticmethod
-    def js_vars(player: Player):
-        """
-        Pass timeout length to the template for countdown display.
-        """
-        return dict(timeout_seconds=InstructionsSellerExp.timeout_seconds)
-
-    @staticmethod
-    def vars_for_template(player: Player):
-        return player.get_general_instruction_vars()
-
-
-class InstructionsBuyerExp(Page):
-    """
-    Role-specific instructions for buyers in the experiment app.
-    Shown only in round 1.
-    """
-    # 30 seconds time limit
-    timeout_seconds = 30
-
-    @staticmethod
-    def is_displayed(player: Player):
-        player.initialize_round()
-        return player.round_number == 1 and player.player_role == 'buyer'
-
-    @staticmethod
-    def js_vars(player: Player):
-        """
-        Pass timeout length to the template for countdown display.
-        """
-        return dict(timeout_seconds=InstructionsBuyerExp.timeout_seconds)
-
-    @staticmethod
-    def vars_for_template(player: Player):
-        return player.get_general_instruction_vars()
-
-
 page_sequence = [
-    # Grouping on entry in round 1
+    # Reconstruct groups in round 1 using intro_group_id
     GroupingWaitPage,
-    # role-specific instructions (only in round 1)
-    InstructionsSellerExp,
-    InstructionsBuyerExp,
     # sellers choose how to present the lottery (SAMPLE_CENSORING-style)
     Lottery_decision,
     # sellers set price & belief
     SellerDecision,
-    # wait until all sellers are done
+    # wait until all sellers are done (group-wise)
     WaitForSellers,
     # buyers: beliefs + choice of lottery / outside option
     BuyerDecision,

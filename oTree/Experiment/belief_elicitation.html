@@ -1,32 +1,41 @@
 <table class="w3-table w3-white" style="border-spacing: 0; width: 100%" cellpadding="5">
     <tr>
       <td colspan="3">
-        Imagine a buyer would play the lottery <b>100 times</b>. How often do you think the buyer of your lottery would expect to win <b>{{ payoff_high }} coins</b>?
+        Stellen Sie sich vor, ein Käufer würde die Lotterie <b>100-mal</b> spielen.
+        Wie oft glauben Sie, dass der Käufer Ihrer Lotterie erwarten würde,
+        <b>{{ payoff_high }} Münzen</b> zu gewinnen?
       </td>
     </tr>
     <tr>
-      <td style="width: 10%; text-align: center;"> <strong> 0 times </strong></td>
+      <td style="width: 10%; text-align: center;"> <strong>0-mal</strong></td>
       <td style="width: 80%; text-align: center;">
         <div class="form-group required">
-          <div class="controls  field-belief">
+          <div class="controls field-belief">
             <input type="range" name="belief" id="id_belief_slider" class="slider2" style="width: 100%;" min="0"
               max="100" value="100" disabled/>
           </div>
         </div>
       </td>
-      <td style="width: 10%; text-align: center;"> <strong> 100 times</strong></td>
+      <td style="width: 10%; text-align: center;"> <strong>100-mal</strong></td>
     </tr>
 
     <tr>
       <td colspan="3">
 
         <span id="click_slider">
-          <h5 style="color: red">Please click on the slider to indicate your belief. You can still change your decision afterwards.</h5>
+          <h5 style="color: red">
+            Bitte klicken Sie auf den Schieberegler, um Ihre Einschätzung anzugeben.
+            Sie können Ihre Entscheidung anschließend noch ändern.
+          </h5>
         </span>
         <span id="slider_clicked" style="display:none;">
-          <h5>I believe that the buyer of my lottery would expect to win {{ payoff_high }} coins exactly <b style="color: red"> <span
-                id="text_belief">XX
-                times</span></b> if he would play the lottery 100 times.
+          <h5>
+            Ich glaube, dass der Käufer meiner Lotterie erwartet,
+            {{ payoff_high }} Münzen genau
+            <b style="color: red">
+              <span id="text_belief">XX Mal</span>
+            </b>
+            zu gewinnen, wenn er die Lotterie 100-mal spielt.
           </h5>
         </span>
 
@@ -53,10 +62,6 @@
       /* 0.2 seconds transition on hover */
     }
 
-
-
-
-
     /* The slider handle (use -webkit- (Chrome, Opera, Safari, Edge) and -moz- (Firefox) to override default look) */
     .slider::-webkit-slider-thumb {
       -webkit-appearance: none;
@@ -77,8 +82,7 @@
       background: #000000;
     }
 
-
-    /*An other class to make the thumb of the slider invisible*/
+    /* Another class to make the thumb of the slider invisible */
     .slider2 {
       -webkit-appearance: none;
       /* Override default CSS styles */
@@ -93,10 +97,6 @@
       /* Remove outline */
     }
 
-
-
-
-
     /* The slider handle (use -webkit- (Chrome, Opera, Safari, Edge) and -moz- (Firefox) to override default look) */
     .slider2::-webkit-slider-thumb {
       -webkit-appearance: none;
@@ -107,7 +107,6 @@
       height: 25px;
       /* Slider handle height */
       background: #000000;
-      /* Green background */
       visibility: hidden;
     }
 
@@ -117,8 +116,7 @@
       height: 25px;
       /* Slider handle height */
       background: #000000;
-      /* Green background */
       visibility: hidden;
-
     }
   </style>
+
