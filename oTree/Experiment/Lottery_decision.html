@@ -15,9 +15,32 @@ Bitte wählen Sie ein Präsentationsformat für die Lotterie
 <b> Bitte erläutern Sie kurz, warum Sie die Lotterie in diesem Format präsentieren möchten. </b>
 {{ formfield 'justified_lottery' }}
 
-<div style="text-align: right;">
-          {{ next_button }}
-        </div>
+
+<button class="btn btn-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#instructionsCollapse">
+    Instruktionen anzeigen
+</button>
+
+<div class="collapse" id="instructionsCollapse">
+    <div class="card card-body">
+
+        {% if participant.vars.player_role == 'buyer' %}
+            {{ include "Introduction/InstructionsForBuyer.html" }}
+
+        {% elif participant.vars.player_role == 'seller' %}
+            {{ include "Introduction/InstructionsForSeller.html" }}
+
+        {% else %}
+            <p><i>Für Ihre Rolle wurden keine Instruktionen gefunden.</i></p>
+        {% endif %}
+
+    </div>
+</div>
+
+
+<!-- Weiter Button separat platziert -->
+<div style="text-align: right; margin-top: 15px;">
+    <button class="btn btn-primary" name="next">Weiter</button>
+</div>
 
 
 {% endblock %}

@@ -28,6 +28,12 @@ class C(BaseConstants):
     PLAYERS_PER_GROUP = None  # variable group sizes (1S1B, 2S1B, 2S2B)
     NUM_ROUNDS = 5
 
+    # General intro parameters (not used in grouping logic)
+    N_LOTTERIES = 5
+    TIME_TO_FINISH = 15  # minutes
+    BASE_PAY = 2.0  # in Pound
+    EXCHANGE_RATE = 13
+
     # Lottery structure
     MAX_PAYOFF_STATES = [100, 120, 140, 160, 180]
     MID_PROBABILITIES = [0.09, 0.19, 0.29, 0.39, 0.49]

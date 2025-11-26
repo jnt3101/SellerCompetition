@@ -129,30 +129,20 @@
     <b>{{ C.EXCHANGE_RATE }} Münzen = 1 Euro</b>.
 </p>
 
+<!-- Button für Details zum Bonusmechanismus -->
 <p>
-    <table width="100%">
-    <tr>
-      <td class="align-top">
-        <button class="btn btn-secondary" type="button" data-toggle="collapse"
-                data-target="#paymentMechanism" aria-expanded="false"
-                aria-controls="paymentMechanism">
-          Details zum Bonusmechanismus
-        </button>
-      </td>
-      <td>
-        <div style="text-align: right;">
-             {{ next_button }}
-        </div>
-      </td>
-    </tr>
-  </table>
-  <div class="collapse-content" id="paymentMechanism" style="display: none;">
-    <div class="card card-body">
-      {% include "Experiment/PaymentDetailsGeneral.html" %}
-      {% include "Experiment/PaymentExampleGeneral.html" %}
-    </div>
-  </div>
+    <button class="btn btn-secondary" type="button" data-toggle="collapse" data-target="#paymentMechanism" aria-expanded="false" aria-controls="paymentMechanism">
+        Details zum Bonusmechanismus
+    </button>
 </p>
+
+<!-- Inhalte, die beim Klick sichtbar werden -->
+<div class="collapse-content collapse" id="paymentMechanism">
+    <div class="card card-body">
+        {% include "Experiment/PaymentDetailsGeneral.html" %}
+        {% include "Experiment/PaymentExampleGeneral.html" %}
+    </div>
+</div>
 
 <style>
     .card {

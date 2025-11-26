@@ -344,7 +344,7 @@
         </p>
       {% endif %}
 
-      <table class="table borderless" style="text-align: left;">
+      <table class="table borderless" style="text-align: left%;">
         <tr>
           <td colspan="2">
             <b>Wie entscheiden Sie?</b>
@@ -440,25 +440,36 @@
     </div>
   </div>
 
-  {# Dropdown-Anweisungen wie auf anderen Seiten #}
-  <div class="row">
-    <div class="col">
-      {% include "Experiment/dropdown_instructions.html" %}
-    </div>
-  </div>
+<button class="btn btn-secondary" type="button"
+        data-toggle="collapse"
+        data-target="#instructionsCollapse"
+        aria-expanded="false"
+        aria-controls="instructionsCollapse">
+    Instruktionen anzeigen
+</button>
 
-  {# Next-Button zentriert #}
-  <div class="row mt-3">
-    <div class="col">
-      <table class="table borderless" style="text-align: center">
-        <tr>
-          <td colspan="2">
-            {{ next_button }}
-          </td>
-        </tr>
-      </table>
+<div class="collapse" id="instructionsCollapse">
+    <div class="card card-body">
+
+        {% if participant.vars.player_role == 'buyer' %}
+            {{ include "Introduction/InstructionsForBuyer.html" }}
+
+        {% elif participant.vars.player_role == 'seller' %}
+            {{ include "Introduction/InstructionsForSeller.html" }}
+
+        {% else %}
+            <p><i>Für Ihre Rolle wurden keine Instruktionen gefunden.</i></p>
+        {% endif %}
+
     </div>
-  </div>
+</div>
+
+
+
+ <!-- Weiter Button separat platziert -->
+<div style="text-align: right; margin-top: 15px;">
+    <button class="btn btn-primary" name="next">Weiter</button>
+</div>
 
 </div>
 
