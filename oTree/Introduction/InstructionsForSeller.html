@@ -3,11 +3,11 @@
 <h5>Die Lotterien</h5>
 <p>
     In dieser Studie treffen Teilnehmende Entscheidungen über Lotterien, die von anderen
-    Teilnehmenden in der Studie angeboten werden. Alle können einen zusätzlichen Bonus verdienen.
+    Teilnehmenden in der Studie angeboten werden. Sowohl Käufer als auch Verkäufer können einen zusätzlichen Bonus verdienen.
     Die mögliche Bonushöhe hängt von den Entscheidungen in der Studie ab, zum Beispiel von den
-    gewählten Preisen für Lotterien, der Zahlungsbereitschaft für Lotterien und ggf. vom Ergebnis
-    einer zufälligen Ziehung. Der Bonus jeder Person kann daher sowohl von den eigenen
-    Entscheidungen als auch von den Entscheidungen anderer abhängen.
+    gewählten Preisen für Lotterien, ob die Lotterie gekauft wird und ggf. vom Ergebnis
+    einer zufälligen Ziehung. Der Bonus jedes Teilnehmenden wird daher sowohl von eigenen Entscheidungen, als auch von
+    Entscheidungen anderer Teilehmender beeinflusst.
 </p>
 
 <p>
@@ -54,6 +54,13 @@
     (den Käufern) betrachtet werden. Ihre Aufgabe ist es, die Lotterien zu präsentieren,
     einen Preis für Ihre Lotterie festzulegen und Ihre Einschätzung darüber abzugeben,
     wie häufig der höchste Gewinn der Lotterie auftreten wird.
+    {% if group.group_type == "1S1B" %}
+
+    {% else %}
+    In ihrer Gruppe gibt es <b>mehrere Verkäufer</b>. Das bedeutet, dass der Käufer neben ihrer Lotterie noch
+    eine weitere angeboten bekommt.
+
+    {% endif %}
 </p>
 
 <br>
@@ -71,9 +78,8 @@
         Präsentation Sie verwenden möchten.
     </li>
     <li>
-        Danach geben Sie an, <b>wie oft Sie glauben, dass Sie den höchsten Gewinn dieser Lotterie
+        Danach geben Sie an, <b>wie oft Sie glauben, dass der Käufer ihrer Lotteri denkt, dass er/sie den höchsten Gewinn dieser Lotterie
         erhalten würden</b>, wenn Sie die Lotterie <b>100&nbsp;Mal</b> spielen würden.
-        Diese Angabe ist Ihre persönliche Überzeugung über die Häufigkeit der höchsten Auszahlung.
     </li>
     <li>
         Schließlich legen Sie einen <b>Preis</b> für Ihre Lotterie fest.
@@ -84,28 +90,32 @@
 </ul>
 
 <p>
-    Die Käufer in Ihrer Gruppe sehen Ihre Lotterie (und gegebenenfalls Lotterien anderer Verkäufer),
+    Der Käufer in Ihrer Gruppe sieht Ihre Lotterie
+    {% if group.group_type == "1S1B" %}
     einschließlich der von Ihnen gewählten Präsentation und Ihres Preises.
-    Auf dieser Grundlage entscheiden die Käufer, ob sie eine Lotterie kaufen möchten und wenn ja, welche.
+    Auf dieser Grundlage entscheidet der Käufer, ob er ihre Lotterie kaufen möchte oder nicht.
+    Nach jeder Runde bieten Sie ihre Lotterie einem neuen Käufer an.
+    {% else %}
+    und die Lotterie eines anderen Verkäufers, einschließlich der gewählten Präsentationen und Preise.
+    Auf dieser Grundlage entscheidet der Käufer, ob sie eine Lotterie kaufen möchten und wenn ja, welche.
+    Nach jeder Runde wird eine neue Gruppe mit einem weiteren Verkäufer und einem Käufer gebildet.
+    Sie bieten ihre Lotterien also immer <b>neuen Käufern</b> an.
+    {% endif %}
+
+
 </p>
 
 <br>
 
-<h5>Die Entscheidungen und die Bonuszahlung</h5>
+<h5>Die Bonuszahlung</h5>
 <p>
-    Insgesamt wird es in der Studie <b>{{ C.N_LOTTERIES }} Lotterien</b> geben.
-    Zu jeder Lotterie werden die beteiligten Teilnehmenden nach ihren Entscheidungen gefragt.
-    In Ihrer Rolle als Verkäufer wählen Sie die Präsentation, geben Ihre Einschätzung zur
-    Häufigkeit des höchsten Gewinns ab und legen den Preis für Ihre Lotterie fest.
-</p>
-
-<p>
-    Am Ende des Experiments wählt der Computer zufällig eine der {{ C.N_LOTTERIES }} Lotterien für die Auszahlung aus.
+    Insgesamt wird es in der Studie <b>{{ C.N_LOTTERIES }} Runden</b> geben.
+    Am Ende des Experiments wählt der Computer zufällig eine der {{ C.N_LOTTERIES }} Runden für die Auszahlung aus.
     Auf Basis der relevanten Entscheidungen zu dieser Lotterie (zum Beispiel des von Ihnen gesetzten Preises
     und der Kaufentscheidung der Käufer) wird dann die mögliche Bonuszahlung bestimmt.
     Eine zufällig ausgewählte Person von jeweils 7 Teilnehmenden erhält diesen zusätzlichen Bonus.
     Wenn Sie sich für die Details interessieren, finden Sie unten auf der Seite eine ausführliche
-    Beschreibung des Auszahlungsmechanismus.
+    Beschreibung des Bonusmechanismus.
 </p>
 
 <p>
@@ -115,7 +125,7 @@
 
 <ul>
     <li>
-        Wenn ein Käufer Ihre Lotterie kauft, ist Ihr Bonus gleich dem von Ihnen gesetzten Preis
+        Wenn der Käufer Ihre Lotterie kauft, ist Ihr Bonus gleich dem von Ihnen gesetzten Preis
         (in Münzen) für diese Lotterie.
     </li>
     <li>

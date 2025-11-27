@@ -15,310 +15,320 @@
         <p>
           Unten sehen Sie Informationen über die <b>Lotterie</b>, die Sie in dieser Runde kaufen können.
           Diese Lotterie wird von <b>einer anderen Person</b> in der Studie angeboten.
-          Falls die Lotterie Stichproben-Informationen enthält, sehen Sie außerdem die
-          <b>{{ C.DRAWS }} höchsten Werte</b> aus insgesamt {{ C.SAMPLE_SIZE }} zufälligen Lotteriezügen.
         </p>
       {% else %}
         <p>
           Unten sehen Sie Informationen über die <b>zwei Lotterien</b>, die Sie in dieser Runde kaufen können.
           Jede Lotterie wird von <b>einer anderen Person</b> in der Studie angeboten.
-          Falls eine Lotterie Stichproben-Informationen enthält, sehen Sie außerdem die
-          <b>{{ C.DRAWS }} höchsten Werte</b> aus insgesamt {{ C.SAMPLE_SIZE }} zufälligen Lotteriezügen.
+
         </p>
       {% endif %}
     </div>
   </div>
 
+    <br>
+
   {# --------- Lotterien + Einschätzungen --------- #}
 
   {% for lot in sellers %}
-    {# ---------- HEADER: Preisinformation ---------- #}
-    <div class="row">
-      <div class="col">
-        <h4>Lotterie {{ forloop.counter }}</h4>
-        <p>
-          Lotterie {{ forloop.counter }} wird zu einem Preis von <b>{{ lot.price }}</b> angeboten.
-        </p>
+
+    <div class="card mb-4 shadow-sm lottery-card lottery-card-{{ forloop.counter }}">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <div>
+          <h4 class="mb-0">Lotterie {{ forloop.counter }}</h4>
+          {% if lot.presentation_id == 'Sample' or lot.presentation_id == 'Sample_Censoring' %}
+            <small class="text-muted">
+              Sie sehen die
+              <b>{{ C.DRAWS }} höchsten Werte</b> aus insgesamt {{ C.SAMPLE_SIZE }} zufälligen Lotteriezügen.
+            </small>
+          {% endif %}
+        </div>
+        <div class="text-end price-highlight">
+          <div class="price-label">Preis</div>
+          <div class="price-value">{{ lot.price }}</div>
+        </div>
       </div>
-    </div>
 
-    {# ---------- LOTTERIE-BOX ---------- #}
-    <div class="row">
-      <div class="col">
-        {% if lot.presentation_id == 'Transparent' %}
-          <div style="border:2px solid black; padding:10px; margin-bottom:20px; border-radius:8px;">
-            <table class="table table-bordered" style="text-align:center">
-              <thead>
-                <tr class="table-primary">
-                  <th colspan="4">Lotterie {{ forloop.counter }}</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <th>Wahrscheinlichkeit</th>
-                  <td>{{ lot.prob_low }} %</td>
-                  <td>{{ lot.prob_mid }} %</td>
-                  <td>{{ lot.prob_high }} %</td>
-                </tr>
-                <tr>
-                  <th>Auszahlung</th>
-                  <td>{{ lot.payoff_low }} Münzen</td>
-                  <td>{{ lot.payoff_mid }} Münzen</td>
-                  <td>{{ lot.payoff_high }} Münzen</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
+      <div class="card-body">
 
-        {% elif lot.presentation_id == 'Sample' %}
-          <div style="border:2px solid black; padding:10px; margin-bottom:20px; border-radius:8px;">
-            <table class="table table-bordered" style="text-align:center">
-              <thead>
-                <tr class="table-primary">
-                  <th colspan="4">Lotterie {{ forloop.counter }}</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <th>Wahrscheinlichkeit</th>
-                  <td>{{ lot.prob_low }} %</td>
-                  <td>{{ lot.prob_mid }} %</td>
-                  <td>{{ lot.prob_high }} %</td>
-                </tr>
-                <tr>
-                  <th>Auszahlung</th>
-                  <td>{{ lot.payoff_low }} Münzen</td>
-                  <td>{{ lot.payoff_mid }} Münzen</td>
-                  <td>{{ lot.payoff_high }} Münzen</td>
-                </tr>
-              </tbody>
-            </table>
-
-            {% if lot.subsample %}
-              <table class="table table-bordered" style="text-align:center; width:100%;">
+        {# ---------- LOTTERIE-BOX: wieder wie im Original, abhängig von presentation_id ---------- #}
+        <div class="mb-3">
+          {% if lot.presentation_id == 'Transparent' %}
+            <div class="lottery-info-box">
+              <table class="table table-bordered" style="text-align:center">
                 <thead>
-                  <tr class="table-primary" style="border-color:black">
-                    <th colspan="{{ lot.subsample|length }}">Lotteriezüge</th>
+                  <tr class="table-primary">
+                    <th colspan="4">Lotterie {{ forloop.counter }}</th>
                   </tr>
                 </thead>
                 <tbody>
                   <tr>
-                    {% for draw in lot.subsample %}
-                      <td>Ziehung {{ forloop.counter }}</td>
-                    {% endfor %}
+                    <th>Wahrscheinlichkeit</th>
+                    <td>{{ lot.prob_low }} %</td>
+                    <td>{{ lot.prob_mid }} %</td>
+                    <td>{{ lot.prob_high }} %</td>
                   </tr>
                   <tr>
-                    {% for draw in lot.subsample %}
-                      <td>{{ draw }} Münzen</td>
-                    {% endfor %}
+                    <th>Auszahlung</th>
+                    <td>{{ lot.payoff_low }} Münzen</td>
+                    <td>{{ lot.payoff_mid }} Münzen</td>
+                    <td>{{ lot.payoff_high }} Münzen</td>
                   </tr>
                 </tbody>
               </table>
-            {% endif %}
-          </div>
+            </div>
 
-        {% elif lot.presentation_id == 'Censoring' %}
-          <div style="border:2px solid black; padding:10px; margin-bottom:20px; border-radius:8px;">
-            <table class="table table-bordered" style="text-align:center">
-              <thead>
-                <tr class="table-primary">
-                  <th colspan="3">Lotterie {{ forloop.counter }}</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <th>Wahrscheinlichkeit</th>
-                  <td>{{ lot.prob_low }} %</td>
-                  <td>{{ lot.prob_upper_joint }} %</td>
-                </tr>
-                <tr>
-                  <th>Auszahlung</th>
-                  <td>{{ lot.payoff_low }} Münzen</td>
-                  <td>entweder {{ lot.payoff_mid }} Münzen oder {{ lot.payoff_high }} Münzen</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-
-        {% elif lot.presentation_id == 'Sample_Censoring' %}
-          <div style="border:2px solid black; padding:10px; margin-bottom:20px; border-radius:8px;">
-            <table class="table table-bordered" style="text-align:center">
-              <thead>
-                <tr class="table-primary">
-                  <th colspan="3">Lotterie {{ forloop.counter }}</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <th>Wahrscheinlichkeit</th>
-                  <td>{{ lot.prob_low }} %</td>
-                  <td>{{ lot.prob_upper_joint }} %</td>
-                </tr>
-                <tr>
-                  <th>Auszahlung</th>
-                  <td>{{ lot.payoff_low }} Münzen</td>
-                  <td>entweder {{ lot.payoff_mid }} Münzen oder {{ lot.payoff_high }} Münzen</td>
-                </tr>
-              </tbody>
-            </table>
-
-            {% if lot.subsample %}
-              <table class="table table-bordered" style="text-align:center; width:100%;">
+          {% elif lot.presentation_id == 'Sample' %}
+            <div class="lottery-info-box">
+              <table class="table table-bordered" style="text-align:center">
                 <thead>
-                  <tr class="table-primary" style="border-color:black">
-                    <th colspan="{{ lot.subsample|length }}">Lotteriezüge</th>
+                  <tr class="table-primary">
+                    <th colspan="4">Lotterie {{ forloop.counter }}</th>
                   </tr>
                 </thead>
                 <tbody>
                   <tr>
-                    {% for draw in lot.subsample %}
-                      <td>Ziehung {{ forloop.counter }}</td>
-                    {% endfor %}
+                    <th>Wahrscheinlichkeit</th>
+                    <td>{{ lot.prob_low }} %</td>
+                    <td>{{ lot.prob_mid }} %</td>
+                    <td>{{ lot.prob_high }} %</td>
                   </tr>
                   <tr>
-                    {% for draw in lot.subsample %}
-                      <td>{{ draw }} Münzen</td>
-                    {% endfor %}
+                    <th>Auszahlung</th>
+                    <td>{{ lot.payoff_low }} Münzen</td>
+                    <td>{{ lot.payoff_mid }} Münzen</td>
+                    <td>{{ lot.payoff_high }} Münzen</td>
                   </tr>
                 </tbody>
               </table>
-            {% endif %}
+
+              {% if lot.subsample %}
+                <table class="table table-bordered" style="text-align:center; width:100%;">
+                  <thead>
+                    <tr class="table-primary" style="border-color:black">
+                      <th colspan="{{ lot.subsample|length }}">Ziehungen der Lotterie</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      {% for draw in lot.subsample %}
+                        <td>Ziehung {{ forloop.counter }}</td>
+                      {% endfor %}
+                    </tr>
+                    <tr>
+                      {% for draw in lot.subsample %}
+                        <td>{{ draw }} Münzen</td>
+                      {% endfor %}
+                    </tr>
+                  </tbody>
+                </table>
+              {% endif %}
+            </div>
+
+          {% elif lot.presentation_id == 'Censoring' %}
+            <div class="lottery-info-box">
+              <table class="table table-bordered" style="text-align:center">
+                <thead>
+                  <tr class="table-primary">
+                    <th colspan="3">Lotterie {{ forloop.counter }}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <th>Wahrscheinlichkeit</th>
+                    <td>{{ lot.prob_low }} %</td>
+                    <td>{{ lot.prob_upper_joint }} %</td>
+                  </tr>
+                  <tr>
+                    <th>Auszahlung</th>
+                    <td>{{ lot.payoff_low }} Münzen</td>
+                    <td>entweder {{ lot.payoff_mid }} Münzen oder {{ lot.payoff_high }} Münzen</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+          {% elif lot.presentation_id == 'Sample_Censoring' %}
+            <div class="lottery-info-box">
+              <table class="table table-bordered" style="text-align:center">
+                <thead>
+                  <tr class="table-primary">
+                    <th colspan="3">Lotterie {{ forloop.counter }}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <th>Wahrscheinlichkeit</th>
+                    <td>{{ lot.prob_low }} %</td>
+                    <td>{{ lot.prob_upper_joint }} %</td>
+                  </tr>
+                  <tr>
+                    <th>Auszahlung</th>
+                    <td>{{ lot.payoff_low }} Münzen</td>
+                    <td>entweder {{ lot.payoff_mid }} Münzen oder {{ lot.payoff_high }} Münzen</td>
+                  </tr>
+                </tbody>
+              </table>
+
+              {% if lot.subsample %}
+                <table class="table table-bordered" style="text-align:center; width:100%;">
+                  <thead>
+                    <tr class="table-primary" style="border-color:black">
+                      <th colspan="{{ lot.subsample|length }}">Ziehungen der Lotterie</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      {% for draw in lot.subsample %}
+                        <td>Ziehung {{ forloop.counter }}</td>
+                      {% endfor %}
+                    </tr>
+                    <tr>
+                      {% for draw in lot.subsample %}
+                        <td>{{ draw }} Münzen</td>
+                      {% endfor %}
+                    </tr>
+                  </tbody>
+                </table>
+              {% endif %}
+            </div>
+          {% endif %}
+        </div>
+
+        {# ---------- GLAUBENS-SLIDER FÜR DIESE LOTTERIE ---------- #}
+        {% if forloop.counter == 1 %}
+          <div class="card mb-0 shadow-sm belief-card"
+               tabindex="0"
+               data-bs-trigger="hover focus"
+               id="card_belief_s1"
+               data-bs-content="Bitte denken Sie sorgfältig über Lotterie 1 nach. Sie können die Frage nach 5 Sekunden beantworten.">
+            <div class="card-header bg-secondary text-white">
+              Ihre Einschätzung zu Lotterie 1
+            </div>
+            <div class="card-body belief-card-body" id="card_belief_body_s1">
+
+              <p>
+                Stellen Sie sich vor, Sie würden <b>Lotterie 1</b> <b>100 Mal</b> spielen.<br>
+                Wie oft glauben Sie, dass Sie den <b>höchsten Gewinn</b> dieser Lotterie erhalten würden?
+              </p>
+
+              <table style="border-spacing: 0; width: 100%;" cellpadding="5">
+                <tr>
+                  <td style="width: 10%; text-align: center;"><strong>0 Mal</strong></td>
+                  <td style="width: 80%; text-align: center;">
+                    <div class="form-group required">
+                      <div class="controls">
+                        <input type="range"
+                               name="buyer_belief_seller1"
+                               id="id_belief_slider_s1"
+                               class="slider2"
+                               style="width: 100%;"
+                               min="0"
+                               max="100"
+                               value="50"
+                               disabled />
+                      </div>
+                    </div>
+                  </td>
+                  <td style="width: 10%; text-align: center;"><strong>100 Mal</strong></td>
+                </tr>
+
+                <tr>
+                  <td colspan="3">
+                    <span id="click_slider_s1">
+                      <h5 style="color: red">
+                        Der Slider wird in wenigen Sekunden aktiviert. Sobald er aktiv ist, bewegen Sie ihn bitte, um Ihre Einschätzung anzugeben.
+                      </h5>
+                    </span>
+                    <span id="slider_clicked_s1" style="display:none;">
+                      <h5>
+                        Ich glaube, dass bei <b>Lotterie 1</b> der höchste Gewinn
+                        genau <b style="color: red"><span id="text_belief_s1">XX Mal</span></b>
+                        auftreten würde, wenn ich die Lotterie 100 Mal spielen würde.
+                      </h5>
+                    </span>
+                  </td>
+                </tr>
+              </table>
+
+              <input type="hidden" name="buyer_belief_sequence_seller1" id="belief_sequence_s1" />
+
+              {% if form.buyer_belief_seller1.errors %}
+                <div class="text-danger small mt-2">
+                  {{ form.buyer_belief_seller1.errors.0 }}
+                </div>
+              {% endif %}
+            </div>
+          </div>
+
+        {% elif forloop.counter == 2 %}
+          <div class="card mb-0 shadow-sm belief-card"
+               tabindex="0"
+               data-bs-trigger="hover focus"
+               id="card_belief_s2"
+               data-bs-content="Bitte denken Sie sorgfältig über Lotterie 2 nach. Sie können die Frage nach 5 Sekunden beantworten.">
+            <div class="card-header bg-secondary text-white">
+              Ihre Einschätzung zu Lotterie 2
+            </div>
+            <div class="card-body belief-card-body" id="card_belief_body_s2">
+
+              <p>
+                Stellen Sie sich vor, Sie würden <b>Lotterie 2</b> <b>100 Mal</b> spielen.<br>
+                Wie oft glauben Sie, dass Sie den <b>höchsten Gewinn</b> dieser Lotterie erhalten würden?
+              </p>
+
+              <table style="border-spacing: 0; width: 100%;" cellpadding="5">
+                <tr>
+                  <td style="width: 10%; text-align: center;"><strong>0 Mal</strong></td>
+                  <td style="width: 80%; text-align: center;">
+                    <div class="form-group required">
+                      <div class="controls">
+                        <input type="range"
+                               name="buyer_belief_seller2"
+                               id="id_belief_slider_s2"
+                               class="slider2"
+                               style="width: 100%;"
+                               min="0"
+                               max="100"
+                               value="50"
+                               disabled />
+                      </div>
+                    </div>
+                  </td>
+                  <td style="width: 10%; text-align: center;"><strong>100 Mal</strong></td>
+                </tr>
+
+                <tr>
+                  <td colspan="3">
+                    <span id="click_slider_s2">
+                      <h5 style="color: red">
+                        Dieser Slider wird aktiviert, nachdem Sie Ihre Einschätzung zu Lotterie 1 abgegeben haben.
+                      </h5>
+                    </span>
+                    <span id="slider_clicked_s2" style="display:none;">
+                      <h5>
+                        Ich glaube, dass bei <b>Lotterie 2</b> der höchste Gewinn
+                        genau <b style="color: red"><span id="text_belief_s2">XX Mal</span></b>
+                        auftreten würde, wenn ich die Lotterie 100 Mal spielen würde.
+                      </h5>
+                    </span>
+                  </td>
+                </tr>
+              </table>
+
+              <input type="hidden" name="buyer_belief_sequence_seller2" id="belief_sequence_s2" />
+
+              {% if form.buyer_belief_seller2.errors %}
+                <div class="text-danger small mt-2">
+                  {{ form.buyer_belief_seller2.errors.0 }}
+                </div>
+              {% endif %}
+            </div>
           </div>
         {% endif %}
-      </div>
-    </div>
 
-    {# ---------- GLAUBENS-SLIDER FÜR DIESE LOTTERIE ---------- #}
-    {% if forloop.counter == 1 %}
-      <div class="card mb-4 shadow-sm"
-           tabindex="0"
-           data-bs-trigger="hover focus"
-           id="card_belief_s1"
-           data-bs-content="Bitte denken Sie sorgfältig über Lotterie 1 nach. Sie können die Frage nach 5 Sekunden beantworten.">
-        <div class="card-header bg-secondary text-white">
-          Ihre Einschätzung zu Lotterie 1
-        </div>
-        <div class="card-body" style="background-color:#e0e0e0;" id="card_belief_body_s1">
-
-          <p>
-            Stellen Sie sich vor, Sie würden <b>Lotterie 1</b> <b>100 Mal</b> spielen.<br>
-            Wie oft glauben Sie, dass Sie den <b>höchsten Gewinn</b> dieser Lotterie erhalten würden?
-          </p>
-
-          <table style="border-spacing: 0; width: 100%;" cellpadding="5">
-            <tr>
-              <td style="width: 10%; text-align: center;"><strong>0 Mal</strong></td>
-              <td style="width: 80%; text-align: center;">
-                <div class="form-group required">
-                  <div class="controls">
-                    <input type="range"
-                           name="buyer_belief_seller1"
-                           id="id_belief_slider_s1"
-                           class="slider2"
-                           style="width: 100%;"
-                           min="0"
-                           max="100"
-                           value="50"
-                           disabled />
-                  </div>
-                </div>
-              </td>
-              <td style="width: 10%; text-align: center;"><strong>100 Mal</strong></td>
-            </tr>
-
-            <tr>
-              <td colspan="3">
-                <span id="click_slider_s1">
-                  <h5 style="color: red">
-                    Der Schieberegler wird in wenigen Sekunden aktiviert. Sobald er aktiv ist, bewegen Sie ihn bitte, um Ihre Einschätzung anzugeben.
-                  </h5>
-                </span>
-                <span id="slider_clicked_s1" style="display:none;">
-                  <h5>
-                    Ich glaube, dass bei <b>Lotterie 1</b> der höchste Gewinn
-                    genau <b style="color: red"><span id="text_belief_s1">XX Mal</span></b>
-                    auftreten würde, wenn ich die Lotterie 100 Mal spielen würde.
-                  </h5>
-                </span>
-              </td>
-            </tr>
-          </table>
-
-          <input type="hidden" name="buyer_belief_sequence_seller1" id="belief_sequence_s1" />
-
-          {% if form.buyer_belief_seller1.errors %}
-            <div class="text-danger small mt-2">
-              {{ form.buyer_belief_seller1.errors.0 }}
-            </div>
-          {% endif %}
-        </div>
-      </div>
-
-    {% elif forloop.counter == 2 %}
-      <div class="card mb-4 shadow-sm"
-           tabindex="0"
-           data-bs-trigger="hover focus"
-           id="card_belief_s2"
-           data-bs-content="Bitte denken Sie sorgfältig über Lotterie 2 nach. Sie können die Frage nach 5 Sekunden beantworten.">
-        <div class="card-header bg-secondary text-white">
-          Ihre Einschätzung zu Lotterie 2
-        </div>
-        <div class="card-body" style="background-color:#e0e0e0;" id="card_belief_body_s2">
-
-          <p>
-            Stellen Sie sich vor, Sie würden <b>Lotterie 2</b> <b>100 Mal</b> spielen.<br>
-            Wie oft glauben Sie, dass Sie den <b>höchsten Gewinn</b> dieser Lotterie erhalten würden?
-          </p>
-
-          <table style="border-spacing: 0; width: 100%;" cellpadding="5">
-            <tr>
-              <td style="width: 10%; text-align: center;"><strong>0 Mal</strong></td>
-              <td style="width: 80%; text-align: center;">
-                <div class="form-group required">
-                  <div class="controls">
-                    <input type="range"
-                           name="buyer_belief_seller2"
-                           id="id_belief_slider_s2"
-                           class="slider2"
-                           style="width: 100%;"
-                           min="0"
-                           max="100"
-                           value="50"
-                           disabled />
-                  </div>
-                </div>
-              </td>
-              <td style="width: 10%; text-align: center;"><strong>100 Mal</strong></td>
-            </tr>
-
-            <tr>
-              <td colspan="3">
-                <span id="click_slider_s2">
-                  <h5 style="color: red">
-                    Der Schieberegler wird in wenigen Sekunden aktiviert. Sobald er aktiv ist, bewegen Sie ihn bitte, um Ihre Einschätzung anzugeben.
-                  </h5>
-                </span>
-                <span id="slider_clicked_s2" style="display:none;">
-                  <h5>
-                    Ich glaube, dass bei <b>Lotterie 2</b> der höchste Gewinn
-                    genau <b style="color: red"><span id="text_belief_s2">XX Mal</span></b>
-                    auftreten würde, wenn ich die Lotterie 100 Mal spielen würde.
-                  </h5>
-                </span>
-              </td>
-            </tr>
-          </table>
-
-          <input type="hidden" name="buyer_belief_sequence_seller2" id="belief_sequence_s2" />
-
-          {% if form.buyer_belief_seller2.errors %}
-            <div class="text-danger small mt-2">
-              {{ form.buyer_belief_seller2.errors.0 }}
-            </div>
-          {% endif %}
-        </div>
-      </div>
-    {% endif %}
+      </div>  {# end card-body #}
+    </div>    {# end lottery-card #}
 
   {% endfor %}
 
@@ -344,7 +354,7 @@
         </p>
       {% endif %}
 
-      <table class="table borderless" style="text-align: left%;">
+      <table class="table borderless" style="text-align: left;">
         <tr>
           <td colspan="2">
             <b>Wie entscheiden Sie?</b>
@@ -376,7 +386,7 @@
             </td>
             <td>
               <label for="choice_none">
-                Ich <b>möchte keine</b> Lotterie kaufen (Außenoption).
+                Ich möchte <b>keine</b> Lotterie kaufen.
               </label>
             </td>
           </tr>
@@ -392,7 +402,7 @@
             </td>
             <td>
               <label for="choice_seller1">
-                Ich möchte <b>Lotterie 1</b> kaufen (angeboten von Verkäufer 1).
+                Ich möchte <b>Lotterie 1</b> kaufen.
               </label>
             </td>
           </tr>
@@ -406,7 +416,7 @@
             </td>
             <td>
               <label for="choice_seller2">
-                Ich möchte <b>Lotterie 2</b> kaufen (angeboten von Verkäufer 2).
+                Ich möchte <b>Lotterie 2</b> kaufen.
               </label>
             </td>
           </tr>
@@ -420,7 +430,7 @@
             </td>
             <td>
               <label for="choice_none">
-                Ich <b>möchte keine</b> Lotterie kaufen (Außenoption).
+                Ich möchte <b>keine</b> Lotterie kaufen.
               </label>
             </td>
           </tr>
@@ -440,36 +450,35 @@
     </div>
   </div>
 
-<button class="btn btn-secondary" type="button"
-        data-toggle="collapse"
-        data-target="#instructionsCollapse"
-        aria-expanded="false"
-        aria-controls="instructionsCollapse">
-    Instruktionen anzeigen
-</button>
+  <!-- Instruktionen ein-/ausblenden -->
+  <button class="btn btn-secondary mb-3" type="button"
+          data-toggle="collapse"
+          data-target="#instructionsCollapse"
+          aria-expanded="false"
+          aria-controls="instructionsCollapse">
+      Instruktionen anzeigen
+  </button>
 
-<div class="collapse" id="instructionsCollapse">
-    <div class="card card-body">
+  <div class="collapse" id="instructionsCollapse">
+      <div class="card card-body">
 
-        {% if participant.vars.player_role == 'buyer' %}
-            {{ include "Introduction/InstructionsForBuyer.html" }}
+          {% if participant.vars.player_role == 'buyer' %}
+              {{ include "Introduction/InstructionsForBuyer.html" }}
 
-        {% elif participant.vars.player_role == 'seller' %}
-            {{ include "Introduction/InstructionsForSeller.html" }}
+          {% elif participant.vars.player_role == 'seller' %}
+              {{ include "Introduction/InstructionsForSeller.html" }}
 
-        {% else %}
-            <p><i>Für Ihre Rolle wurden keine Instruktionen gefunden.</i></p>
-        {% endif %}
+          {% else %}
+              <p><i>Für Ihre Rolle wurden keine Instruktionen gefunden.</i></p>
+          {% endif %}
 
-    </div>
-</div>
+      </div>
+  </div>
 
-
-
- <!-- Weiter Button separat platziert -->
-<div style="text-align: right; margin-top: 15px;">
-    <button class="btn btn-primary" name="next">Weiter</button>
-</div>
+  <!-- Weiter Button separat platziert -->
+  <div style="text-align: right; margin-top: 15px;">
+      <button class="btn btn-primary" name="next">Weiter</button>
+  </div>
 
 </div>
 
@@ -478,6 +487,47 @@
   .borderless td,
   .borderless th {
     border: none !important;
+  }
+
+  .lottery-card {
+    border-radius: 0.5rem;
+    border: 1px solid #dee2e6;
+  }
+
+  .lottery-card-1 {
+    border-left: 5px solid #0d6efd;
+  }
+
+  .lottery-card-2 {
+    border-left: 5px solid #198754;
+  }
+
+  .lottery-info-box {
+    border: 2px solid #000000;
+    padding: 10px;
+    border-radius: 8px;
+    background-color: #fafafa;
+  }
+
+  .price-highlight {
+    min-width: 150px;
+  }
+
+  .price-label {
+    text-transform: uppercase;
+    font-size: 0.75rem;
+    letter-spacing: 0.08em;
+    color: #6c757d;
+  }
+
+  .price-value {
+    font-size: 1.75rem;
+    font-weight: 700;
+    line-height: 1.1;
+  }
+
+  .belief-card-body {
+    background-color: #e0e0e0;
   }
 
   /* Initial slider style (like seller before moving) */
@@ -506,7 +556,7 @@
     visibility: hidden;
   }
 
-  /* After interaction: visible thumb, same as seller using class "slider" */
+  /* After interaction: visible thumb */
   .slider {
     -webkit-appearance: none;
     appearance: none;
@@ -533,13 +583,16 @@
   }
 </style>
 
-{# Bootstrap bundle for Popovers (like on seller page) #}
+{# Bootstrap bundle for Popovers #}
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"
         integrity="sha384-ka7Sk0Gln4gmtz2MlQnikT1wXgYsOg+OMhuP+IlRH9sENBO0LRn5q+8nbTov4+1p"
         crossorigin="anonymous"></script>
 
 <script>
-  // Slider for Lottery 1 (same behavior as seller slider, minus price logic)
+  // Flag, damit der Timer für Slider 2 nur einmal gestartet wird
+  var slider2EnableTimerStarted = false;
+
+  // Slider für Lotterie 1
   (function () {
     var slider = document.getElementById('id_belief_slider_s1');
     if (!slider) { return; }
@@ -553,38 +606,53 @@
     var card_belief = document.getElementById("card_belief_s1");
     var card_belief_body = document.getElementById("card_belief_body_s1");
 
-    // Activate Bootstrap popover (like seller page)
+    // Bootstrap Popover
     var popover_belief = new bootstrap.Popover(card_belief);
 
-    // Enable slider after 5 seconds and change card color
+    // Slider 1 nach 5s aktivieren
     setTimeout(function () {
       slider.disabled = false;
-
-      // Change background color of belief card body
       card_belief_body.style.backgroundColor = "#FFFFFF";
-
-      // Disable popover (same as seller: jQuery syntax)
       $('#card_belief_s1').popover('disable');
     }, 5000);
 
     slider.addEventListener('input', function () {
-      // Show belief text and hide placeholder
+      // Hinweistext umschalten
       clickText.style.display = "none";
       clickedText.style.display = "block";
 
-      // Track all numbers the participant considered
+      // Verlauf der Werte speichern
       all_numbers = all_numbers + ";" + slider.value.toString();
       if (seqInput) {
         seqInput.value = all_numbers;
       }
 
-      // Switch slider class so the thumb becomes visible (like seller)
+      // Slider-Stil anpassen
       slider.className = "slider";
       textBelief.textContent = slider.value.toString() + " Mal";
+
+      // ---- Steuerung für Slider 2 ----
+      if (!slider2EnableTimerStarted) {
+        slider2EnableTimerStarted = true;
+
+        var slider2 = document.getElementById('id_belief_slider_s2');
+        var card_belief_body_2 = document.getElementById("card_belief_body_s2");
+
+        if (slider2) {
+          // Slider 2 erst 5 Sekunden NACH Bewegung von Slider 1 freigeben
+          setTimeout(function () {
+            slider2.disabled = false;
+            if (card_belief_body_2) {
+              card_belief_body_2.style.backgroundColor = "#FFFFFF";
+            }
+            $('#card_belief_s2').popover('disable');
+          }, 5000);
+        }
+      }
     });
   })();
 
-  // Slider for Lottery 2 (if exists)
+  // Slider für Lotterie 2
   (function () {
     var slider = document.getElementById('id_belief_slider_s2');
     if (!slider) { return; }
@@ -596,17 +664,12 @@
     var seqInput = document.getElementById('belief_sequence_s2');
 
     var card_belief = document.getElementById("card_belief_s2");
-    var card_belief_body = document.getElementById("card_belief_body_s2");
 
+    // Popover für Karte 2 (wird durch Slider 1 später deaktiviert)
     var popover_belief = new bootstrap.Popover(card_belief);
 
-    // Enable slider after 5 seconds and change card color
-    setTimeout(function () {
-      slider.disabled = false;
-
-      card_belief_body.style.backgroundColor = "#FFFFFF";
-      $('#card_belief_s2').popover('disable');
-    }, 5000);
+    // KEINE eigene setTimeout-Aktivierung mehr hier!
+    // Aktivierung von Slider 2 erfolgt gesteuert durch Slider 1 (siehe oben).
 
     slider.addEventListener('input', function () {
       clickText.style.display = "none";
@@ -623,5 +686,5 @@
   })();
 </script>
 
-
 {% endblock %}
+

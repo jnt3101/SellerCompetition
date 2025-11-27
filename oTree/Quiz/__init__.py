@@ -46,14 +46,27 @@ class Player(BasePlayer):
 
 
     ### Loot box questions ###
-    q_loot_box_what = models.BooleanField(label="Haben Sie schon mal von Lootboxen in Videospielen gehört?")
+    q_loot_box_what = models.BooleanField(
+        label="Haben Sie schon mal von Lootboxen in Videospielen gehört?",
+        choices=[
+            [True, "Ja"],
+            [False, "Nein"],
+        ],
+    )
+
     q_videogame_time = models.FloatField(label="Wie viele Stunden verbringen Sie durchschnittlich pro Tag mit Videospielen?",
                                          min=0, max=24)
 
 
     q_loot_box_spending = models.FloatField(label="Wie viel haben Sie im letzten Jahr monatlich durchschnittlich für Lootboxen ausgegeben?",  #Added time frame
                                             min=0)
-    q_loot_box_more_than_planned = models.BooleanField(label="Haben Sie schon mal mehr Geld für Lootboxen ausgegeben, als sie eigentlich geplant hatten?")
+    q_loot_box_more_than_planned = models.BooleanField(
+        label="Haben Sie schon mal mehr Geld für Lootboxen ausgegeben, als Sie eigentlich geplant hatten?",
+        choices=[
+            [True, "Ja"],
+            [False, "Nein"],
+        ],
+    )
 
     ### Self Control survey ###
     q_self_control_1 = models.IntegerField(label="I am good at resisting temptation.",
