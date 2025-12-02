@@ -6,7 +6,7 @@ import random
 """
 Main interaction app:
 - Roles ('seller' or 'buyer') are assigned in the introduction app and
-  stay fixed for all 5 rounds.
+  stay fixed for all 10 rounds.
 - In EACH round, new groups of type 2S1B (2 sellers, 1 buyer) are formed
   dynamically from the pool of players via group_by_arrival_time.
 - There is no persistent grouping across rounds anymore.
@@ -28,7 +28,10 @@ Main interaction app:
 class C(BaseConstants):
     NAME_IN_URL = 'main_experiment'
     PLAYERS_PER_GROUP = None  # variable group sizes through dynamic grouping (2S1B)
-    NUM_ROUNDS = 5
+
+    # CHANGED: number of rounds increased from 5 to 10
+    # EN: The experiment now runs for 10 rounds instead of 5.
+    NUM_ROUNDS = 10
 
     # General intro parameters (not used in grouping logic)
     N_LOTTERIES = 5
@@ -153,6 +156,9 @@ class Player(BasePlayer):
         choices=C.LOTTERY_CHOICES,
         label="",
     )
+
+    # EN: Text justification for the chosen lottery presentation.
+    #     It will only be asked in round 1 (see Lottery_decision.get_form_fields).
     justified_lottery = models.LongStringField(label="")
 
     # feedback for sellers
@@ -193,6 +199,16 @@ class Player(BasePlayer):
     auto_seller_decision = models.BooleanField(initial=False)
     auto_buyer_beliefs = models.BooleanField(initial=False)
     auto_buyer_choice = models.BooleanField(initial=False)
+
+    # --- bonus payment tracking ---------------------------------------------
+
+    # NEW: per-round bonus payment
+    # EN: Stores the bonus payment earned in this round for each player.
+    bonus_payment = models.CurrencyField(initial=0)
+
+    # NEW: total bonus payment across all rounds
+    # EN: After the last round, this field stores the sum of all per-round bonus payments.
+    total_bonus_payment = models.CurrencyField(initial=0)
 
     # --- helper methods ------------------------------------------------------
 
@@ -245,32 +261,87 @@ class Player(BasePlayer):
         - lottery parameters are set ONLY for sellers
         - sellers draw their sample (once per round)
 
-        Buyers bekommen keine eigene Lotterie und keine Draws.
-        Die Felder max_payoff/mid_probability werden für Buyer nur mit
-        harmlosen Defaultwerten befüllt, damit das Modell konsistent bleibt.
+        Buyers do not get their own lottery and no sample draws.
+        The fields max_payoff/mid_probability are only set to harmless
+        default values for buyers to keep the model consistent.
+
+        EN (lottery sequence logic):
+        - We have 5 different high payoffs and 5 different mid probabilities.
+        - There are 10 rounds.
+        - Rounds 1–5: generated "as before":
+            * Take a copy of MAX_PAYOFF_STATES, shuffle it.
+            * Take a copy of MID_PROBABILITIES, shuffle it independently.
+            * Zip the 2 shuffled lists to get 5 random (x, q) pairs.
+        - Rounds 6–10: RESET and do the same again for a new block of 5 rounds.
+        - Technically, we construct blocks of length 5 using this procedure
+          and concatenate the blocks to obtain a sequence of length 10.
         """
         if self.round_initialized:
             return
 
-        # Load role from participant.vars (role is fixed across all rounds)
-        self.player_role = self.participant.vars.get('player_role')
+        participant = self.participant
 
-        # Lottery parameters for sellers only (sequence stored in introduction app)
-        combos = self.participant.vars['payoff_probability_combinations']
+        # Load role from participant.vars (role is fixed across all rounds)
+        self.player_role = participant.vars.get('player_role')
+
+        # --- Build / ensure the per-round lottery parameter sequence --------
+        combos = participant.vars.get('payoff_probability_combinations')
+
+        # EN:
+        # We expect a list of (max_payoff, mid_prob) pairs of length C.NUM_ROUNDS.
+        # If it is missing or has the wrong length (e.g., only 5 from the intro app),
+        # we (re)create it here using the "blockwise, independently shuffled" rule.
+        if not combos or len(combos) != C.NUM_ROUNDS:
+
+            full_sequence = []
+
+            block_size = len(C.MAX_PAYOFF_STATES)  # should be 5
+            n_blocks = C.NUM_ROUNDS // block_size
+            remainder = C.NUM_ROUNDS % block_size
+
+            # EN:
+            # For each full block:
+            # - shuffle MAX_PAYOFF_STATES independently of MID_PROBABILITIES
+            # - zip the shuffled lists to get random (x, q) pairs
+            for _ in range(n_blocks):
+                max_states = C.MAX_PAYOFF_STATES.copy()
+                mid_probs = C.MID_PROBABILITIES.copy()
+                random.shuffle(max_states)
+                random.shuffle(mid_probs)
+                block = list(zip(max_states, mid_probs))
+                full_sequence.extend(block)
+
+            # EN:
+            # If NUM_ROUNDS is not a multiple of 5, add a partial block.
+            # (Not needed for 10 rounds, but kept general.)
+            if remainder:
+                max_states = C.MAX_PAYOFF_STATES.copy()
+                mid_probs = C.MID_PROBABILITIES.copy()
+                random.shuffle(max_states)
+                random.shuffle(mid_probs)
+                block = list(zip(max_states, mid_probs))
+                full_sequence.extend(block[:remainder])
+
+            combos = full_sequence
+            participant.vars['payoff_probability_combinations'] = combos
+
+        # Pick the combination for THIS round (1-based round_number).
         max_payoff, mid_prob = combos[self.round_number - 1]
 
         if self.player_role == 'seller':
-            # Seller bekommt eine eigene Lotterie und einen Sample-Draw
+            # EN: Sellers get their own lottery and sample draw.
             self.max_payoff = max_payoff
             self.mid_probability = mid_prob
             self.draw_sample()
         else:
-            # Buyer: keine eigene Lotterie, keine Draws
-            # Nur Defaultwerte setzen, die nirgendwo verwendet werden.
+            # EN: Buyers do not have their own lottery.
+            # We only set benign default values that are never used.
             self.max_payoff = 0
             self.mid_probability = 0.0
 
         self.round_initialized = True
+
+
 
     def get_general_instruction_vars(self):
         """
@@ -475,6 +546,11 @@ def set_trade_and_outcomes(group: Group):
     - buyer payoff:
         * lottery outcome if a lottery is bought
         * otherwise: lowest price offered by any seller in the group
+
+    NEW (bonus logic):
+    - For each player, bonus_payment is set equal to the payoff in that round.
+    - In the last round, total_bonus_payment is computed as the sum of
+      bonus_payment across all rounds for that player.
     """
     # Ensure all players in the group are initialized for this round
     for p in group.get_players():
@@ -542,6 +618,18 @@ def set_trade_and_outcomes(group: Group):
         else:
             s.payoff = Currency(0)
 
+    # NEW: store bonus payment per round and compute running total each round
+    # EN: We interpret the round's payoff as the bonus payment and store it.
+    for p in players:
+        p.bonus_payment = p.payoff
+
+    # EN: After every round, compute the cumulative total bonus across all rounds so far.
+    #     This means total_bonus_payment in round t equals the sum of bonus_payment from
+    #     rounds 1..t for that participant.
+    for p in players:
+        total = sum(r.bonus_payment for r in p.in_all_rounds())
+        p.total_bonus_payment = total
+
 
 # --- PAGES ------------------------------------------------------------------
 
@@ -582,8 +670,28 @@ class Lottery_decision(LotteryDecisionBase):
     Seller chooses a presentation among 4 options (SAMPLE_CENSORING-style).
     All sellers use this page, independent of group type (always 2S1B here).
     No time limit and no automatic randomization on non-response.
+
+    CHANGED:
+    - The lottery justification (justified_lottery) is now only asked in round 1.
+      In later rounds, sellers choose the presentation without giving a justification.
     """
-    form_fields = ['chosen_lottery', 'justified_lottery', 'presentation_order']
+
+    # CHANGED: we now dynamically choose form fields depending on the round
+    # (instead of a fixed 'form_fields' list).
+    @staticmethod
+    def get_form_fields(player: Player):
+        """
+        EN:
+        - In round 1, we ask for:
+            chosen_lottery, justified_lottery, presentation_order.
+        - In rounds 2–10, we only ask for:
+            chosen_lottery, presentation_order.
+        """
+        fields = ['chosen_lottery', 'presentation_order']
+        if player.round_number == 1:
+            # Insert justification between choice and order for nicer display order
+            fields.insert(1, 'justified_lottery')
+        return fields
 
     @staticmethod
     def is_displayed(player: Player):
@@ -804,5 +912,4 @@ page_sequence = [
     # end-of-round global wait, so next round's grouping uses full pool
     RoundTransitionWaitPage,
 ]
-
 

@@ -12,8 +12,11 @@ Bitte wählen Sie ein Präsentationsformat für die Lotterie
 <b> Welches Format möchten Sie verwenden, um Ihre Lotterie zu präsentieren? </b>
 {{ formfield 'chosen_lottery' }}
 
-<b> Bitte erläutern Sie kurz, warum Sie die Lotterie in diesem Format präsentieren möchten. </b>
-{{ formfield 'justified_lottery' }}
+{% if player.round_number == 1 %}
+    <b> Bitte erläutern Sie kurz, warum Sie die Lotterie in diesem Format präsentieren möchten. </b>
+    {{ formfield 'justified_lottery' }}
+{% endif %}
+
 
 
 <button class="btn btn-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#instructionsCollapse">

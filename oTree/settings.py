@@ -6,19 +6,14 @@ SESSION_CONFIGS = [
         display_name="FULL",
         app_sequence=['Introduction', 'Experiment', 'Quiz'],
         num_demo_participants=6,
-        use_browser_bots=False,
+        use_browser_bots=True,
     ),
 dict(
         name='EXPERIMENT_TEST',
         display_name="EXPERIMENT_TEST",
         app_sequence=['Experiment'],
-        treatment_list = ['TRANSPARENT', 'CENSORING', 'SAMPLE', 'SAMPLE_CENSORING'],
-        num_demo_participants=51,
-        use_browser_bots=False,
-        prolific_url="https://google.com",
-        prolific_attention_link="https://google.com",  # TODO: Replace
-        prolific_completion_link="https://google.com",  # TODO: Replace
-        prolific_no_consent_link="https://google.com"  # TODO: Replace
+        num_demo_participants=9,
+        use_browser_bots=True,
     ),
 ]
 
