@@ -18,13 +18,13 @@ class C(BaseConstants):
     NUM_ROUNDS = 1
 
     # General intro parameters (not used in grouping logic)
-    N_LOTTERIES = 5
+    N_LOTTERIES = 10
     TIME_TO_FINISH = 15  # minutes
-    BASE_PAY = 2  # in Pound
+    BASE_PAY = 6  # in euro
     EXCHANGE_RATE = 13
 
     # These constants MUST match the ones in Experiment.C
-    EXP_NUM_ROUNDS = 5
+    EXP_NUM_ROUNDS = 10
     EXP_MAX_PAYOFF_STATES = [100, 120, 140, 160, 180]
     EXP_MID_PROBABILITIES = [0.09, 0.19, 0.29, 0.39, 0.49]
 

@@ -34,9 +34,9 @@ class C(BaseConstants):
     NUM_ROUNDS = 10
 
     # General intro parameters (not used in grouping logic)
-    N_LOTTERIES = 5
+    N_LOTTERIES = 10
     TIME_TO_FINISH = 15  # minutes
-    BASE_PAY = 2.0  # in Pound
+    BASE_PAY = 6  # in euro
     EXCHANGE_RATE = 13
 
     # Lottery structure

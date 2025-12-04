@@ -6,7 +6,7 @@ SESSION_CONFIGS = [
         display_name="FULL",
         app_sequence=['Introduction', 'Experiment', 'Quiz'],
         num_demo_participants=6,
-        use_browser_bots=True,
+        use_browser_bots=False,
     ),
 dict(
         name='EXPERIMENT_TEST',
