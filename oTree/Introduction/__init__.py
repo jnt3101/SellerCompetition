@@ -6,14 +6,15 @@ import random
 doc = """
 Introduction app:
 - General instructions, attention checks, comprehension checks
-- Roles (seller / buyer) are created here (via group_by_arrival_time)
-- Only 2S1B groups are used in this app
-- Roles are then reused in the main_experiment app, but groups are NOT kept fixed
+- Roles (seller / buyer) are created here in creating_session
+- Players are also assigned to fixed matching groups of size 15 (10 sellers, 5 buyers)
+- The roles and matching_group_id are reused in the main_experiment app
 """
 
 
 class C(BaseConstants):
     NAME_IN_URL = 'introduction'
+    # EN: We do not use dynamic grouping here anymore; grouping is not important in this app.
     PLAYERS_PER_GROUP = None
     NUM_ROUNDS = 1
 
@@ -31,13 +32,13 @@ class C(BaseConstants):
 
 class Subsession(BaseSubsession):
     """
-    Keine Prolific-spezifischen Felder mehr.
+    No Prolific-specific fields anymore.
     """
     pass
 
 
 class Group(BaseGroup):
-    # Group type, immer '2S1B' in diesem App (wenn Gruppe vollständig)
+    # EN: Group type, not essential in this app anymore.
     group_type = models.StringField()
 
 
@@ -53,11 +54,12 @@ class Player(BasePlayer):
     # Count of attention check attempts
     attention_tries = models.IntegerField(initial=0)
 
-    # --- Role & indices (assigned when groups are formed in this app) ---
-
-    # 'seller' or 'buyer'; assigned via group_by_arrival_time
+    # --- Role & indices ------------------------------------------------------
+    # EN: 'seller' or 'buyer'; assigned in creating_session and kept fixed
+    # across all apps (stored in participant.vars['player_role']).
     player_role = models.StringField()
-    # index within role in the (temporary) group (1 or 2 for sellers, 1 for buyers)
+    # EN: Indices within role are not important in this app, but kept for
+    # possible diagnostics.
     seller_index = models.IntegerField(initial=0)
     buyer_index = models.IntegerField(initial=0)
 
@@ -153,56 +155,60 @@ class Player(BasePlayer):
 
 def creating_session(subsession: Subsession):
     """
-    Keine Prolific-spezifische Logik mehr.
-    Grouping und Rollenzuweisung passieren über group_by_arrival_time_method.
+    EN:
+    - At session creation, we assign:
+        * fixed matching groups of size 15
+        * roles 'seller' / 'buyer' within each matching group
+    - These roles are stored in participant.vars['player_role'] and reused
+      in the main_experiment app.
+    - Each matching group of 15 participants is constructed as:
+        10 sellers and 5 buyers.
+    - This guarantees that the Experiment app's grouping logic
+      (which expects 10S + 5B per matching group) works correctly.
     """
-    pass
+    players = subsession.get_players()
+    group_size_matching = 15
 
+    # Sort players by id_in_subsession to get a stable ordering
+    players_sorted = sorted(players, key=lambda p: p.id_in_subsession)
 
-# --- DYNAMIC ROLE ASSIGNMENT & GROUPING (2S1B) ------------------------------
+    # Assign matching group IDs: blocks of 15 participants
+    for idx, p in enumerate(players_sorted):
+        mg_id = idx // group_size_matching + 1
+        p.participant.vars['matching_group_id'] = mg_id
 
+    # Build matching groups and assign roles inside each group
+    matching_groups = {}
+    for p in players_sorted:
+        mg_id = p.participant.vars['matching_group_id']
+        matching_groups.setdefault(mg_id, []).append(p)
 
-def group_by_arrival_time_method(subsession: Subsession, waiting_players):
-    """
-    Called when a new player reaches the GroupingWaitPage.
+    for mg_id, block in matching_groups.items():
+        # EN: We require full blocks of 15 for this design.
+        if len(block) != group_size_matching:
+            raise Exception(
+                f"Matching group {mg_id} must have exactly {group_size_matching} players. "
+                f"Found {len(block)}. Make sure the total number of participants in "
+                f"the session is a multiple of {group_size_matching}."
+            )
 
-    In this app, we only form 2S1B groups (2 sellers, 1 buyer),
-    but these groups are *not* reused in the main experiment.
+        # EN: Create a list of 10 sellers and 5 buyers and shuffle it.
+        roles = ['seller'] * 10 + ['buyer'] * 5
+        random.shuffle(roles)
 
-    Roles are assigned here and stored in participant.vars['player_role'],
-    but no persistent group IDs are stored.
-    """
-    required_players = 3
+        seller_counter = 0
+        buyer_counter = 0
 
-    # Not enough players yet to form the next 2S1B group
-    if len(waiting_players) < required_players:
-        return
+        for p, role in zip(block, roles):
+            p.player_role = role
+            p.participant.vars['player_role'] = role
 
-    # First 3 waiting players form the next temporary group
-    group_players = waiting_players[:required_players]
-
-    seller_counter = 0
-    buyer_counter = 0
-
-    for i, p in enumerate(group_players):
-        # First two players in the group become sellers, third becomes buyer.
-        if i < 2:
-            role = 'seller'
-            seller_counter += 1
-            p.seller_index = seller_counter
-        else:
-            role = 'buyer'
-            buyer_counter += 1
-            p.buyer_index = buyer_counter
-
-        p.player_role = role
-
-        # Store role in participant.vars for use in the main experiment
-        part = p.participant
-        part.vars['player_role'] = role
-        # Keine intro_group_id, keine persistente Gruppierung.
-
-    return group_players
+            if role == 'seller':
+                seller_counter += 1
+                p.seller_index = seller_counter
+            else:
+                buyer_counter += 1
+                p.buyer_index = buyer_counter
 
 
 # --- PAGES ---
@@ -239,23 +245,19 @@ class AttentionCheck(Page):
 
 class GroupingWaitPage(WaitPage):
     """
-    Roles are assigned via group_by_arrival_time (2 sellers, 1 buyer).
-    The concrete groups in this app are temporary and NOT reused in the
-    main experiment (there is no intro_group_id anymore).
+    EN:
+    - We no longer need any dynamic grouping logic.
+    - Assign fixed group type '2S1B' only to avoid None-values later.
     """
-    group_by_arrival_time = True
+    wait_for_all_groups = True
+    group_by_arrival_time = False
 
     @staticmethod
-    def after_all_players_arrive(group: Group):
-        """
-        Once a temporary group is formed and everyone in that group arrived,
-        set group_type based on the number of sellers and buyers.
-        (Should always be '2S1B' here.)
-        """
-        players_in_group = group.get_players()
-        sellers = [p for p in players_in_group if p.player_role == 'seller']
-        buyers = [p for p in players_in_group if p.player_role == 'buyer']
-        group.group_type = f"{len(sellers)}S{len(buyers)}B"
+    def after_all_players_arrive(subsession: Subsession):
+        for g in subsession.get_groups():
+            g.group_type = "2S1B"
+
+
 
 
 class InstructionsSellerIntro(Page):

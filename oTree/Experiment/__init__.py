@@ -5,19 +5,37 @@ import random
 
 """
 Main interaction app:
-- Roles ('seller' or 'buyer') are assigned in the introduction app and
-  stay fixed for all 10 rounds.
-- In EACH round, new groups of type 2S1B (2 sellers, 1 buyer) are formed
-  dynamically from the pool of players via group_by_arrival_time.
-- There is no persistent grouping across rounds anymore.
+
+- Participants are pre-assigned roles ('seller' or 'buyer') in the
+  introduction app and this role stays fixed for all 10 rounds.
+
+- Participants are divided into fixed "matching groups" of size 15:
+    * 10 sellers
+    * 5 buyers
+  These matching groups remain constant across all rounds.
+
+- In EACH round, within every 15-player matching group, we form:
+    * 5 small groups of size 3, each containing
+        - 2 sellers
+        - 1 buyer
+  The composition of these 2S1B groups is newly randomized in every round,
+  but always restricted to players within the same 15-player matching group.
+
+- There is no group_by_arrival_time anymore. Grouping is done in
+  creating_session for each round.
+
 - At the end of each round, all players wait for each other before
-  proceeding to the next round, so that regrouping uses the entire pool.
+  proceeding to the next round, so that regrouping uses the entire pool
+  within each matching group.
+
 - Sellers always have SAMPLE_CENSORING-style options (4 presentations).
 - Buyers see the sellers' lotteries including prices and choose:
     * buy lottery from seller 1
     * buy lottery from seller 2
     * buy no lottery (outside option)
+
 - Each buyer can buy at most one lottery.
+
 - Seller payoff: price of the lottery if (at least) one buyer buys, 0 otherwise.
 - Buyer payoff:
     * if they buy a lottery: outcome of that lottery
@@ -27,10 +45,12 @@ Main interaction app:
 
 class C(BaseConstants):
     NAME_IN_URL = 'main_experiment'
-    PLAYERS_PER_GROUP = None  # variable group sizes through dynamic grouping (2S1B)
 
-    # CHANGED: number of rounds increased from 5 to 10
-    # EN: The experiment now runs for 10 rounds instead of 5.
+    # EN: Groups in the experiment are always 2 sellers + 1 buyer.
+    #     Matching groups of size 15 (10S + 5B) are handled in creating_session.
+    PLAYERS_PER_GROUP = 3
+
+    # EN: The experiment now runs for 10 rounds.
     NUM_ROUNDS = 10
 
     # General intro parameters (not used in grouping logic)
@@ -104,9 +124,13 @@ def draw_lottery_outcome(mid_probability, max_payoff):
 
 class Subsession(BaseSubsession):
     """
-    No special logic in creating_session, because roles are formed in the
-    introduction app. In this app, groups of type 2S1B are formed dynamically
-    in each round via group_by_arrival_time.
+    No special logic in the model itself. Grouping logic is implemented
+    in the module-level creating_session function.
+
+    Design:
+    - Fixed matching groups of size 15 (10 sellers, 5 buyers).
+    - In each round, within each matching group, players are rematched into
+      2S1B groups.
     """
     pass
 
@@ -115,7 +139,7 @@ class Group(BaseGroup):
     """
     Group-level fields mainly for storing meta information.
     """
-    group_type = models.StringField()  # e.g. '2S1B'
+    group_type = models.StringField(initial="2S1B")  # e.g. '2S1B'
 
 
 class Player(BasePlayer):
@@ -128,7 +152,7 @@ class Player(BasePlayer):
     buyer_index = models.IntegerField(initial=0)
 
     # --- lottery parameters (per round, for everyone's "own" lottery) -------
-    # Für Buyer werden hier nur Defaults gesetzt, die nicht verwendet werden.
+    # EN: For buyers, only default values are set here, which are not used.
     max_payoff = models.IntegerField()
     mid_probability = models.FloatField()
 
@@ -202,11 +226,9 @@ class Player(BasePlayer):
 
     # --- bonus payment tracking ---------------------------------------------
 
-    # NEW: per-round bonus payment
     # EN: Stores the bonus payment earned in this round for each player.
     bonus_payment = models.CurrencyField(initial=0)
 
-    # NEW: total bonus payment across all rounds
     # EN: After the last round, this field stores the sum of all per-round bonus payments.
     total_bonus_payment = models.CurrencyField(initial=0)
 
@@ -237,7 +259,7 @@ class Player(BasePlayer):
         will be displayed to the participant (seller).
         SAMPLE_CENSORING-style: always draw a sample and show the top DRAWS outcomes.
 
-        Wird ausschließlich für Seller aufgerufen.
+        EN: This is only called for sellers.
         """
         current_lottery_dist = create_lottery(
             q=self.mid_probability,
@@ -341,8 +363,6 @@ class Player(BasePlayer):
 
         self.round_initialized = True
 
-
-
     def get_general_instruction_vars(self):
         """
         Helper to pass general variables to templates, e.g. exchange rate and show-up fee.
@@ -354,77 +374,113 @@ class Player(BasePlayer):
         return context
 
 
-# --- session creation -------------------------------------------------------
+# --- session creation & grouping --------------------------------------------
+
+
+def _create_groups_within_matching_groups(subsession: Subsession):
+    """
+    Helper that, for the given subsession (round), creates 2S1B groups
+    within each fixed matching group of size 15.
+
+    Assumptions per matching group:
+    - 10 players with role 'seller'
+    - 5 players with role 'buyer'
+
+    For each matching group:
+    - randomize sellers and buyers separately
+    - build 5 groups: [seller[2*i], seller[2*i+1], buyer[i]] for i=0..4
+    """
+    players = subsession.get_players()
+
+    # Group players by matching_group_id
+    matching_groups = {}
+    for p in players:
+        mg_id = p.participant.vars.get('matching_group_id')
+        if mg_id is None:
+            raise Exception(
+                "matching_group_id is missing on participant. "
+                "It should be assigned in round 1 of this app."
+            )
+        matching_groups.setdefault(mg_id, []).append(p)
+
+    group_matrix = []
+
+    for mg_id in sorted(matching_groups.keys()):
+        block_players = matching_groups[mg_id]
+
+        sellers = [p for p in block_players if p.participant.vars.get('player_role') == 'seller']
+        buyers = [p for p in block_players if p.participant.vars.get('player_role') == 'buyer']
+
+        # Optional: strict check for exactly 10 sellers and 5 buyers
+        if len(sellers) != 10 or len(buyers) != 5:
+            raise Exception(
+                f"Matching group {mg_id} must consist of exactly 10 sellers and 5 buyers. "
+                f"Found {len(sellers)} sellers and {len(buyers)} buyers. "
+                f"Check the role assignment and participant count."
+            )
+
+        random.shuffle(sellers)
+        random.shuffle(buyers)
+
+        # Create 5 groups of [seller, seller, buyer]
+        for i in range(5):
+            g_players = [sellers[2 * i], sellers[2 * i + 1], buyers[i]]
+            group_matrix.append(g_players)
+
+    # Apply the group matrix to the subsession
+    subsession.set_group_matrix(group_matrix)
+
+    # Set model-level role information and indices for this round
+    for group in subsession.get_groups():
+        seller_idx = 0
+        buyer_idx = 0
+        for p in group.get_players():
+            # Copy role from participant.vars
+            p.player_role = p.participant.vars.get('player_role')
+            if p.player_role == 'seller':
+                seller_idx += 1
+                p.seller_index = seller_idx
+            elif p.player_role == 'buyer':
+                buyer_idx += 1
+                p.buyer_index = buyer_idx
 
 
 def creating_session(subsession: Subsession):
     """
-    Do not touch roles or groups here.
-    - Roles are assigned in the introduction app and stored in participant.vars['player_role'].
-    - In every round, grouping is done dynamically via group_by_arrival_time
-      to form 2S1B groups from the pool of sellers and buyers.
+    Grouping logic for the entire app.
+
+    Round 1:
+        - Assign a fixed matching_group_id to each participant.
+          Participants are sorted by id_in_subsession and divided into
+          consecutive blocks of 15 participants:
+              * block 1 -> matching_group_id = 1
+              * block 2 -> matching_group_id = 2
+              * etc.
+        - Within each matching group (of size 15), create 5 groups of 2S1B.
+
+    Rounds 2–10:
+        - Reuse matching_group_id from participant.vars.
+        - Within each matching group, randomize again and create new 2S1B
+          groups for that round.
+
+    Requirements:
+        - Total number of participants should be a multiple of 15.
+        - Each 15-player block should consist of 10 sellers and 5 buyers.
+          Roles come from participant.vars['player_role'], which is assigned
+          in the introduction app.
     """
-    pass
+    players = subsession.get_players()
+    group_size_matching = 15
 
+    if subsession.round_number == 1:
+        # Assign matching_group_id based on position in the sorted list of players
+        players_sorted = sorted(players, key=lambda p: p.id_in_subsession)
+        for idx, p in enumerate(players_sorted):
+            matching_group_id = idx // group_size_matching + 1
+            p.participant.vars['matching_group_id'] = matching_group_id
 
-# --- dynamic grouping: always 2S1B, every round -----------------------------
-
-
-def group_by_arrival_time_method(subsession: Subsession, waiting_players):
-    """
-    Called when a new player reaches the GroupingWaitPage in each round.
-
-    We dynamically form 2S1B groups (2 sellers, 1 buyer) based on roles
-    stored in participant.vars['player_role'].
-
-    Logic:
-    - Among waiting_players, we check if there are at least 2 sellers
-      and at least 1 buyer.
-    - If yes, we form a group from the earliest-arrived players that can
-      make up exactly 2 sellers and 1 buyer.
-    - Roles are fixed across rounds; we do NOT change participant.vars here.
-    """
-    # Separate waiting players by role (from participant.vars, which is fixed)
-    sellers_waiting = [p for p in waiting_players if p.participant.vars.get('player_role') == 'seller']
-    buyers_waiting = [p for p in waiting_players if p.participant.vars.get('player_role') == 'buyer']
-
-    if len(sellers_waiting) < 2 or len(buyers_waiting) < 1:
-        # Not enough players yet to form a 2S1B group
-        return
-
-    group_players = []
-    seller_needed = 2
-    buyer_needed = 1
-
-    # Go through waiting_players in arrival order and pick the first 2 sellers and 1 buyer
-    for p in waiting_players:
-        role = p.participant.vars.get('player_role')
-        if role == 'seller' and seller_needed > 0:
-            group_players.append(p)
-            seller_needed -= 1
-        elif role == 'buyer' and buyer_needed > 0:
-            group_players.append(p)
-            buyer_needed -= 1
-
-        if seller_needed == 0 and buyer_needed == 0:
-            break
-
-    if seller_needed == 0 and buyer_needed == 0:
-        # Assign model-level roles and indices for THIS round's group
-        seller_index = 0
-        buyer_index = 0
-        for p in group_players:
-            p.player_role = p.participant.vars.get('player_role')
-            if p.player_role == 'seller':
-                seller_index += 1
-                p.seller_index = seller_index
-            else:
-                buyer_index += 1
-                p.buyer_index = buyer_index
-        return group_players
-
-    # Otherwise: wait for more players
-    return
+    # For the current round, create 2S1B groups within each matching group
+    _create_groups_within_matching_groups(subsession)
 
 
 # --- context helpers for templates -----------------------------------------
@@ -549,7 +605,7 @@ def set_trade_and_outcomes(group: Group):
 
     NEW (bonus logic):
     - For each player, bonus_payment is set equal to the payoff in that round.
-    - In the last round, total_bonus_payment is computed as the sum of
+    - After each round, total_bonus_payment is computed as the sum of
       bonus_payment across all rounds for that player.
     """
     # Ensure all players in the group are initialized for this round
@@ -636,22 +692,13 @@ def set_trade_and_outcomes(group: Group):
 
 class GroupingWaitPage(WaitPage):
     """
-    In every round: form new 2S1B groups dynamically from the pool
-    of sellers and buyers using group_by_arrival_time.
+    In every round, groups already exist because grouping is done in creating_session.
+    We here simply set group_type to a stable string '2S1B'.
     """
-    group_by_arrival_time = True
-
     @staticmethod
     def after_all_players_arrive(group: Group):
-        """
-        Once a group is formed and everyone in that group arrived at this page,
-        set group_type based on the number of sellers and buyers.
-        (Should always be '2S1B' here.)
-        """
-        players_in_group = group.get_players()
-        sellers = [p for p in players_in_group if p.player_role == 'seller']
-        buyers = [p for p in players_in_group if p.player_role == 'buyer']
-        group.group_type = f"{len(sellers)}S{len(buyers)}B"
+        group.group_type = "2S1B"
+
 
 
 class LotteryDecisionBase(Page):
@@ -671,13 +718,10 @@ class Lottery_decision(LotteryDecisionBase):
     All sellers use this page, independent of group type (always 2S1B here).
     No time limit and no automatic randomization on non-response.
 
-    CHANGED:
-    - The lottery justification (justified_lottery) is now only asked in round 1.
-      In later rounds, sellers choose the presentation without giving a justification.
+    The lottery justification (justified_lottery) is only asked in round 1.
+    In later rounds, sellers choose the presentation without giving a justification.
     """
 
-    # CHANGED: we now dynamically choose form fields depending on the round
-    # (instead of a fixed 'form_fields' list).
     @staticmethod
     def get_form_fields(player: Player):
         """
@@ -883,7 +927,8 @@ class RoundTransitionWaitPage(WaitPage):
     """
     At the end of each round, wait for ALL players in the session
     before proceeding to the next round. This ensures that the dynamic
-    regrouping in the next round uses the full pool of participants.
+    regrouping in the next round uses the full pool of participants
+    within each matching group.
     """
     wait_for_all_groups = True
 
@@ -894,7 +939,7 @@ class RoundTransitionWaitPage(WaitPage):
 
 
 page_sequence = [
-    # In every round: form new 2S1B groups dynamically
+    # In every round: groups 2S1B are already formed in creating_session
     GroupingWaitPage,
     # sellers choose how to present the lottery (SAMPLE_CENSORING-style)
     Lottery_decision,
