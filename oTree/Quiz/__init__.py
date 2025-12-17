@@ -68,75 +68,169 @@ class Player(BasePlayer):
         ],
     )
 
-    ### Self Control survey ###
-    q_self_control_1 = models.IntegerField(label="I am good at resisting temptation.",
+    ### Self Control Scale Tangney et al (2004) ###
+    ### German Translation: Betrams und Dickhäuser (2009) ###
+    q_self_control_1 = models.IntegerField(label="Ich bin gut darin, Versuchungen zu widerstehen.",
                                         widget=widgets.RadioSelect(),
                                         choices=[1, 2, 3, 4, 5])
-    q_self_control_2 = models.IntegerField(label="I have a hard time breaking bad habits.",
+    q_self_control_2 = models.IntegerField(label="Es fällt mir schwer, schlechte Gewohnheiten abzulegen.",
                                         widget=widgets.RadioSelect(),
                                         choices=[1, 2, 3, 4, 5])
-    q_self_control_3 = models.IntegerField(label="I am lazy.",
+    q_self_control_3 = models.IntegerField(label="Ich bin faul.",
                                         widget=widgets.RadioSelect(),
                                         choices=[1, 2, 3, 4, 5])
-    q_self_control_4 = models.IntegerField(label="I say inappropriate things.",
+    q_self_control_4 = models.IntegerField(label="Ich sage unangemessene Dinge.",
                                         widget=widgets.RadioSelect(),
                                         choices=[1, 2, 3, 4, 5])
-    q_self_control_5 = models.IntegerField(label="I do certain things that are bad for me, if they are fun.",
+    q_self_control_5 = models.IntegerField(label="Ich tue manchmal Dinge, die schlecht für mich sind,wenn sie mir Spaß machen.",
                                         widget=widgets.RadioSelect(),
                                         choices=[1, 2, 3, 4, 5])
-    q_self_control_6 = models.IntegerField(label="I refuse things that are bad for me.",
+    q_self_control_6 = models.IntegerField(label="Ich wünschte, ich hätte mehr Selbstdisziplin.",
                                         widget=widgets.RadioSelect(),
                                         choices=[1, 2, 3, 4, 5])
-    q_self_control_7 = models.IntegerField(label="I wish I had more self-discipline.",
+    q_self_control_7 = models.IntegerField(label="Angenehme Aktivitäten und Vergnügen hindern michmanchmal daran, meine Arbeit zu machen. ",
                                         widget=widgets.RadioSelect(),
                                         choices=[1, 2, 3, 4, 5])
-    q_self_control_8 = models.IntegerField(label="People would say that I have iron self-discipline.",
+    q_self_control_8 = models.IntegerField(label="Es fällt mir schwer, mich zu konzentrieren.",
                                         widget=widgets.RadioSelect(),
                                         choices=[1, 2, 3, 4, 5])
-    q_self_control_9 = models.IntegerField(label="Pleasure and fun sometimes keep me from getting work done.",
+    q_self_control_9 = models.IntegerField(label="Ich kann effektiv auf langfristige Ziele hinarbeiten.",
                                         widget=widgets.RadioSelect(),
                                         choices=[1, 2, 3, 4, 5])
-    q_self_control_10 = models.IntegerField(label="I have trouble concentrating.",
+    q_self_control_10 = models.IntegerField(label="Manchmal kann ich mich selbst nicht daran hindern,etwas zu tun, obwohl ich weiß, dass es falsch ist.",
                                         widget=widgets.RadioSelect(),
                                         choices=[1, 2, 3, 4, 5])
-    q_self_control_11 = models.IntegerField(label="I am able to work effectively toward long-term goals.",
+    q_self_control_11 = models.IntegerField(label="Ich handle oft ohne alle Alternativen durchdacht zu haben.",
                                         widget=widgets.RadioSelect(),
                                         choices=[1, 2, 3, 4, 5])
-    q_self_control_12 = models.IntegerField(label="Sometimes I can’t stop myself from doing something, even if I know it is wrong.",
+    q_self_control_12 = models.IntegerField(label="Ich lehne Dinge ab, die schlecht für mich sind.",
                                         widget=widgets.RadioSelect(),
                                         choices=[1, 2, 3, 4, 5])
-    q_self_control_13 = models.IntegerField(label="I often act without thinking through all the alternatives.",
+    q_self_control_13 = models.IntegerField(label="Andere würden sagen, dass ich eine eiserneSelbstdisziplin habe.",
                                         widget=widgets.RadioSelect(),
                                         choices=[1, 2, 3, 4, 5])
 
-    ### Problem Gambling Severity Index ###
-    q_gambling_1 = models.IntegerField(label="Have you bet more than you could really afford to lose?",
-                                        widget=widgets.RadioSelect(),
-                                        choices=[(0, "Never"), (1, "Sometimes"), (2, "Most of the time"), (3, "Always")])
-    q_gambling_2 = models.IntegerField(label="Have you needed to gamble with larger amounts of money to get the same feeling of excitement?",
-                                        widget=widgets.RadioSelect(),
-                                        choices=[(0, "Never"), (1, "Sometimes"), (2, "Most of the time"), (3, "Always")])
-    q_gambling_3 = models.IntegerField(label="Have you gone back on another day to try to win back the money you lost?",
-                                        widget=widgets.RadioSelect(),
-                                        choices=[(0, "Never"), (1, "Sometimes"), (2, "Most of the time"), (3, "Always")])
-    q_gambling_4 = models.IntegerField(label="Have you borrowed money or sold anything to gamble?",
-                                        widget=widgets.RadioSelect(),
-                                        choices=[(0, "Never"), (1, "Sometimes"), (2, "Most of the time"), (3, "Always")])
-    q_gambling_5 = models.IntegerField(label="Have you felt that you might have a problem with gambling?",
-                                        widget=widgets.RadioSelect(),
-                                        choices=[(0, "Never"), (1, "Sometimes"), (2, "Most of the time"), (3, "Always")])
-    q_gambling_6 = models.IntegerField(label="Have people criticised your betting or told you that you had a gambling problem, whether or not you thought it was true?",
-                                        widget=widgets.RadioSelect(),
-                                        choices=[(0, "Never"), (1, "Sometimes"), (2, "Most of the time"), (3, "Always")])
-    q_gambling_7 = models.IntegerField(label="Have you felt guilty about the way you gamble or what happens when you gamble?",
-                                        widget=widgets.RadioSelect(),
-                                        choices=[(0, "Never"), (1, "Sometimes"), (2, "Most of the time"), (3, "Always")])
-    q_gambling_8 = models.IntegerField(label="Has gambling caused you any health problems, including stress or anxiety?",
-                                        widget=widgets.RadioSelect(),
-                                        choices=[(0, "Never"), (1, "Sometimes"), (2, "Most of the time"), (3, "Always")])
-    q_gambling_9 = models.IntegerField(label="Has your gambling caused any financial problems for you or your household?",
-                                        widget=widgets.RadioSelect(),
-                                        choices=[(0, "Never"), (1, "Sometimes"), (2, "Most of the time"), (3, "Always")])
+    ### Kurzfragebogen zum Glücksspielverhalten (KFG)  ###
+    ### Source:  Petry, J. (1996) Psychotherapie der Glücksspielsucht, Weinheim: Psychologie Verlags Union ###
+    q_kfg_1 = models.IntegerField(
+        label="Ich habe meistens gespielt, um Verluste wieder auszugleichen.",
+        widget=widgets.RadioSelect(),
+        choices=[(0, "trifft gar nicht zu"), (1, "trifft eher nicht zu"), (2, "trifft eher zu"), (3, "trifft genau zu")]
+    )
+
+    q_kfg_2 = models.IntegerField(
+        label="Ich kann mein Spielen nicht mehr kontrollieren.",
+        widget=widgets.RadioSelect(),
+        choices=[(0, "trifft gar nicht zu"), (1, "trifft eher nicht zu"), (2, "trifft eher zu"), (3, "trifft genau zu")]
+    )
+
+    q_kfg_3 = models.IntegerField(
+        label="Meine Angehörigen oder Freunde dürfen nicht wissen, wieviel ich verspiele.",
+        widget=widgets.RadioSelect(),
+        choices=[(0, "trifft gar nicht zu"), (1, "trifft eher nicht zu"), (2, "trifft eher zu"), (3, "trifft genau zu")]
+    )
+
+    q_kfg_4 = models.IntegerField(
+        label="Im Vergleich zum Spielen erscheint mir der Alltag langweilig.",
+        widget=widgets.RadioSelect(),
+        choices=[(0, "trifft gar nicht zu"), (1, "trifft eher nicht zu"), (2, "trifft eher zu"), (3, "trifft genau zu")]
+    )
+
+    q_kfg_5 = models.IntegerField(
+        label="Nach dem Spielen habe ich oft ein schlechtes Gewissen.",
+        widget=widgets.RadioSelect(),
+        choices=[(0, "trifft gar nicht zu"), (1, "trifft eher nicht zu"), (2, "trifft eher zu"), (3, "trifft genau zu")]
+    )
+
+    q_kfg_6 = models.IntegerField(
+        label="Ich benutze Vorwände, um spielen zu können.",
+        widget=widgets.RadioSelect(),
+        choices=[(0, "trifft gar nicht zu"), (1, "trifft eher nicht zu"), (2, "trifft eher zu"), (3, "trifft genau zu")]
+    )
+
+    q_kfg_7 = models.IntegerField(
+        label="Ich schaffe es nicht, das Spielen längere Zeit einzustellen.",
+        widget=widgets.RadioSelect(),
+        choices=[(0, "trifft gar nicht zu"), (1, "trifft eher nicht zu"), (2, "trifft eher zu"), (3, "trifft genau zu")]
+    )
+
+    q_kfg_8 = models.IntegerField(
+        label="Ich spiele fast täglich um Geld.",
+        widget=widgets.RadioSelect(),
+        choices=[(0, "trifft gar nicht zu"), (1, "trifft eher nicht zu"), (2, "trifft eher zu"), (3, "trifft genau zu")]
+    )
+
+    q_kfg_9 = models.IntegerField(
+        label="Durch mein Spielen habe ich berufliche Schwierigkeiten.",
+        widget=widgets.RadioSelect(),
+        choices=[(0, "trifft gar nicht zu"), (1, "trifft eher nicht zu"), (2, "trifft eher zu"), (3, "trifft genau zu")]
+    )
+
+    q_kfg_10 = models.IntegerField(
+        label="Beim Spielen suche ich Nervenkitzel.",
+        widget=widgets.RadioSelect(),
+        choices=[(0, "trifft gar nicht zu"), (1, "trifft eher nicht zu"), (2, "trifft eher zu"), (3, "trifft genau zu")]
+    )
+
+    q_kfg_11 = models.IntegerField(
+        label="Ich denke ständig ans Spielen.",
+        widget=widgets.RadioSelect(),
+        choices=[(0, "trifft gar nicht zu"), (1, "trifft eher nicht zu"), (2, "trifft eher zu"), (3, "trifft genau zu")]
+    )
+
+    q_kfg_12 = models.IntegerField(
+        label="Um mein Spiel zu finanzieren, habe ich oft unrechtmäßig Geld besorgt.",
+        widget=widgets.RadioSelect(),
+        choices=[(0, "trifft gar nicht zu"), (1, "trifft eher nicht zu"), (2, "trifft eher zu"), (3, "trifft genau zu")]
+    )
+
+    q_kfg_13 = models.IntegerField(
+        label="Den größten Teil meiner Freizeit spiele ich.",
+        widget=widgets.RadioSelect(),
+        choices=[(0, "trifft gar nicht zu"), (1, "trifft eher nicht zu"), (2, "trifft eher zu"), (3, "trifft genau zu")]
+    )
+
+    q_kfg_14 = models.IntegerField(
+        label="Ich habe schon fremdes bzw. geliehenes Geld verspielt.",
+        widget=widgets.RadioSelect(),
+        choices=[(0, "trifft gar nicht zu"), (1, "trifft eher nicht zu"), (2, "trifft eher zu"), (3, "trifft genau zu")]
+    )
+
+    q_kfg_15 = models.IntegerField(
+        label="Ich war wegen meiner Spielprobleme schon in Behandlung.",
+        widget=widgets.RadioSelect(),
+        choices=[(0, "trifft gar nicht zu"), (1, "trifft eher nicht zu"), (2, "trifft eher zu"), (3, "trifft genau zu")]
+    )
+
+    q_kfg_16 = models.IntegerField(
+        label="Ich habe schon häufig mit dem Spielen aufhören müssen, weil ich kein Geld mehr hatte.",
+        widget=widgets.RadioSelect(),
+        choices=[(0, "trifft gar nicht zu"), (1, "trifft eher nicht zu"), (2, "trifft eher zu"), (3, "trifft genau zu")]
+    )
+
+    q_kfg_17 = models.IntegerField(
+        label="Weil ich so viel spiele, habe ich viele Freunde verloren.",
+        widget=widgets.RadioSelect(),
+        choices=[(0, "trifft gar nicht zu"), (1, "trifft eher nicht zu"), (2, "trifft eher zu"), (3, "trifft genau zu")]
+    )
+
+    q_kfg_18 = models.IntegerField(
+        label="Um spielen zu können, leihe ich mir häufig Geld.",
+        widget=widgets.RadioSelect(),
+        choices=[(0, "trifft gar nicht zu"), (1, "trifft eher nicht zu"), (2, "trifft eher zu"), (3, "trifft genau zu")]
+    )
+
+    q_kfg_19 = models.IntegerField(
+        label="In meiner Phantasie bin ich der große Gewinner.",
+        widget=widgets.RadioSelect(),
+        choices=[(0, "trifft gar nicht zu"), (1, "trifft eher nicht zu"), (2, "trifft eher zu"), (3, "trifft genau zu")]
+    )
+
+    q_kfg_20 = models.IntegerField(
+        label="Wegen des Spielens war ich schon oft so verzweifelt, dass ich mir das Leben nehmen wollte.",
+        widget=widgets.RadioSelect(),
+        choices=[(0, "trifft gar nicht zu"), (1, "trifft eher nicht zu"), (2, "trifft eher zu"), (3, "trifft genau zu")]
+    )
 
 
 class General(Page):
@@ -170,9 +264,13 @@ class Control(Page):
 
 class Game(Page):
     form_model = 'player'
-    form_fields = ['q_gambling_1', 'q_gambling_2', 'q_gambling_3', 'q_gambling_4',
-                   'q_gambling_5', 'q_gambling_6', 'q_gambling_7', 'q_gambling_8',
-                   'q_gambling_9']
+    form_fields = [
+        'q_kfg_1', 'q_kfg_2', 'q_kfg_3', 'q_kfg_4', 'q_kfg_5',
+        'q_kfg_6', 'q_kfg_7', 'q_kfg_8', 'q_kfg_9', 'q_kfg_10',
+        'q_kfg_11', 'q_kfg_12', 'q_kfg_13', 'q_kfg_14', 'q_kfg_15',
+        'q_kfg_16', 'q_kfg_17', 'q_kfg_18', 'q_kfg_19', 'q_kfg_20'
+    ]
+
 
 class Debriefing(Page):
     pass

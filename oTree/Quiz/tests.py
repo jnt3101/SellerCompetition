@@ -60,8 +60,8 @@ class PlayerBot(Bot):
         # Page 5: Game (Gambling Index 0–3)
         # ------------------------------------------------------
         yield Game, {
-            f'q_gambling_{i}': random.choice([0, 1, 2, 3])
-            for i in range(1, 10)
+            f'q_KFG_{i}': random.choice([0, 1, 2, 3])
+            for i in range(1, 20)
         }
 
         # ------------------------------------------------------

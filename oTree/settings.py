@@ -15,6 +15,13 @@ dict(
         num_demo_participants=9,
         use_browser_bots=True,
     ),
+dict(
+        name='Quiz_TEST',
+        display_name="Quiz_TEST",
+        app_sequence=['Quiz'],
+        num_demo_participants=9,
+        use_browser_bots=False,
+    ),
 ]
 
 # if you set a property in SESSION_CONFIG_DEFAULTS, it will be inherited by all configs
