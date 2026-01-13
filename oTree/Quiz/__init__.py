@@ -24,7 +24,7 @@ class Player(BasePlayer):
     # General Questions
     q_age = models.IntegerField(label='Wie alt sind Sie?', min=16, max=99)
     q_gender = models.StringField(
-        label='Was ist ihr Geschlecht?',
+        label='Welchem Geschlecht fühlen Sie sich zugehörig?',
         choices=['Männlich', 'Weiblich', 'Divers', 'Möchte ich nicht beantworten']
     )
 
@@ -39,9 +39,9 @@ class Player(BasePlayer):
             'Möchte ich nicht beantworten'],
         label='Was ist ihr höchster Bildungsabschluss?')
 
-    q_study_field = models.StringField(label='Was studieren Sie? / Was ist ihr Berufsfeld?')
+    q_study_field = models.StringField(label='Welches Fach studieren Sie?')
 
-    q_budget = models.IntegerField(label="Wie viel Geld haben Sie monatlich (nach Abzug der Fixkosten wie Miete etc.) zur freien Verfügung?",
+    q_budget = models.IntegerField(label="Wie viel Geld haben Sie monatlich (nach Abzug aller Fixkosten wie Miete etc.) zur freien Verfügung?",
                                    min=0, max=1000000)
 
 

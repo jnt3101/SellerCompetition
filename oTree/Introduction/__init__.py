@@ -8,6 +8,7 @@ Introduction app:
 - General instructions, attention checks, comprehension checks
 - Roles (seller / buyer) are created here in creating_session
 - Players are also assigned to fixed matching groups of size 15 (10 sellers, 5 buyers)
+  OR size 3 (2 sellers, 1 buyer)
 - The roles and matching_group_id are reused in the main_experiment app
 """
 
@@ -157,22 +158,43 @@ def creating_session(subsession: Subsession):
     """
     EN:
     - At session creation, we assign:
-        * fixed matching groups of size 15
+        * fixed matching groups of size 15 (10 sellers, 5 buyers) OR size 3 (2 sellers, 1 buyer)
         * roles 'seller' / 'buyer' within each matching group
     - These roles are stored in participant.vars['player_role'] and reused
       in the main_experiment app.
-    - Each matching group of 15 participants is constructed as:
-        10 sellers and 5 buyers.
-    - This guarantees that the Experiment app's grouping logic
-      (which expects 10S + 5B per matching group) works correctly.
+    - This guarantees that the Experiment app's grouping logic works correctly
+      given the chosen matching group size and composition.
     """
     players = subsession.get_players()
-    group_size_matching = 15
+    n_players = len(players)
+
+    # EN: Determine which matching group size to use based on the session size.
+    # We support:
+    # - 15: 10 sellers + 5 buyers
+    # - 3:  2 sellers + 1 buyer
+    if n_players % 15 == 0:
+        group_size_matching = 15
+        roles_template = (['seller'] * 10) + (['buyer'] * 5)
+        group_type_value = "10S5B"
+    elif n_players % 3 == 0:
+        group_size_matching = 3
+        roles_template = (['seller'] * 2) + (['buyer'] * 1)
+        group_type_value = "2S1B"
+    else:
+        raise Exception(
+            "Total number of participants must be a multiple of 15 (10 sellers, 5 buyers) "
+            "or a multiple of 3 (2 sellers, 1 buyer). "
+            f"Found {n_players} participants."
+        )
+
+    # EN: Store for later pages (e.g., GroupingWaitPage) to avoid hardcoding.
+    subsession.session.vars['matching_group_size'] = group_size_matching
+    subsession.session.vars['group_type_value'] = group_type_value
 
     # Sort players by id_in_subsession to get a stable ordering
     players_sorted = sorted(players, key=lambda p: p.id_in_subsession)
 
-    # Assign matching group IDs: blocks of 15 participants
+    # Assign matching group IDs: blocks of group_size_matching participants
     for idx, p in enumerate(players_sorted):
         mg_id = idx // group_size_matching + 1
         p.participant.vars['matching_group_id'] = mg_id
@@ -184,7 +206,7 @@ def creating_session(subsession: Subsession):
         matching_groups.setdefault(mg_id, []).append(p)
 
     for mg_id, block in matching_groups.items():
-        # EN: We require full blocks of 15 for this design.
+        # EN: We require full blocks for this design.
         if len(block) != group_size_matching:
             raise Exception(
                 f"Matching group {mg_id} must have exactly {group_size_matching} players. "
@@ -192,8 +214,8 @@ def creating_session(subsession: Subsession):
                 f"the session is a multiple of {group_size_matching}."
             )
 
-        # EN: Create a list of 10 sellers and 5 buyers and shuffle it.
-        roles = ['seller'] * 10 + ['buyer'] * 5
+        # EN: Create a role list for this matching group and shuffle it.
+        roles = roles_template.copy()
         random.shuffle(roles)
 
         seller_counter = 0
@@ -247,15 +269,16 @@ class GroupingWaitPage(WaitPage):
     """
     EN:
     - We no longer need any dynamic grouping logic.
-    - Assign fixed group type '2S1B' only to avoid None-values later.
+    - Assign a fixed group type to avoid None-values later.
     """
     wait_for_all_groups = True
     group_by_arrival_time = False
 
     @staticmethod
     def after_all_players_arrive(subsession: Subsession):
+        group_type_value = subsession.session.vars.get('group_type_value', "2S1B")
         for g in subsession.get_groups():
-            g.group_type = "2S1B"
+            g.group_type = group_type_value
 
 
 
@@ -381,3 +404,4 @@ page_sequence = [
     ComprehensionBuyerIntro,
     StartExperiment,
 ]
+

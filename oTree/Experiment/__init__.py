@@ -14,12 +14,18 @@ Main interaction app:
     * 5 buyers
   These matching groups remain constant across all rounds.
 
-- In EACH round, within every 15-player matching group, we form:
-    * 5 small groups of size 3, each containing
-        - 2 sellers
-        - 1 buyer
+  OR (small-session mode):
+
+- Participants are divided into fixed "matching groups" of size 3:
+    * 2 sellers
+    * 1 buyer
+
+- In EACH round:
+    * if matching groups are size 15: within every matching group, we form 5 small groups of size 3 (2S1B)
+    * if matching groups are size 3: each matching group is itself exactly one 2S1B group
+
   The composition of these 2S1B groups is newly randomized in every round,
-  but always restricted to players within the same 15-player matching group.
+  but always restricted to players within the same matching group.
 
 - There is no group_by_arrival_time anymore. Grouping is done in
   creating_session for each round.
@@ -47,7 +53,7 @@ class C(BaseConstants):
     NAME_IN_URL = 'main_experiment'
 
     # EN: Groups in the experiment are always 2 sellers + 1 buyer.
-    #     Matching groups of size 15 (10S + 5B) are handled in creating_session.
+    #     Matching groups of size 15 (10S + 5B) or 3 (2S + 1B) are handled in creating_session.
     PLAYERS_PER_GROUP = 3
 
     # EN: The experiment now runs for 10 rounds.
@@ -128,9 +134,9 @@ class Subsession(BaseSubsession):
     in the module-level creating_session function.
 
     Design:
-    - Fixed matching groups of size 15 (10 sellers, 5 buyers).
+    - Fixed matching groups of size 15 (10 sellers, 5 buyers) OR size 3 (2 sellers, 1 buyer).
     - In each round, within each matching group, players are rematched into
-      2S1B groups.
+      2S1B groups (or remain a single 2S1B group in the size-3 mode).
     """
     pass
 
@@ -380,17 +386,26 @@ class Player(BasePlayer):
 def _create_groups_within_matching_groups(subsession: Subsession):
     """
     Helper that, for the given subsession (round), creates 2S1B groups
-    within each fixed matching group of size 15.
+    within each fixed matching group.
 
-    Assumptions per matching group:
-    - 10 players with role 'seller'
-    - 5 players with role 'buyer'
+    Supported matching group modes:
+    - size 15: 10 sellers + 5 buyers -> create 5 groups of 2S1B
+    - size 3:  2 sellers + 1 buyer  -> create 1 group of 2S1B
 
     For each matching group:
     - randomize sellers and buyers separately
-    - build 5 groups: [seller[2*i], seller[2*i+1], buyer[i]] for i=0..4
+    - build groups:
+        * size-15: [seller[2*i], seller[2*i+1], buyer[i]] for i=0..4
+        * size-3:  [seller[0], seller[1], buyer[0]]
     """
     players = subsession.get_players()
+
+    group_size_matching = subsession.session.vars.get('matching_group_size')
+    if group_size_matching not in (15, 3):
+        raise Exception(
+            "matching_group_size is missing or invalid. "
+            "It should be assigned in creating_session in round 1."
+        )
 
     # Group players by matching_group_id
     matching_groups = {}
@@ -411,21 +426,37 @@ def _create_groups_within_matching_groups(subsession: Subsession):
         sellers = [p for p in block_players if p.participant.vars.get('player_role') == 'seller']
         buyers = [p for p in block_players if p.participant.vars.get('player_role') == 'buyer']
 
-        # Optional: strict check for exactly 10 sellers and 5 buyers
-        if len(sellers) != 10 or len(buyers) != 5:
-            raise Exception(
-                f"Matching group {mg_id} must consist of exactly 10 sellers and 5 buyers. "
-                f"Found {len(sellers)} sellers and {len(buyers)} buyers. "
-                f"Check the role assignment and participant count."
-            )
+        if group_size_matching == 15:
+            # EN: Strict check for exactly 10 sellers and 5 buyers.
+            if len(sellers) != 10 or len(buyers) != 5:
+                raise Exception(
+                    f"Matching group {mg_id} must consist of exactly 10 sellers and 5 buyers. "
+                    f"Found {len(sellers)} sellers and {len(buyers)} buyers. "
+                    f"Check the role assignment and participant count."
+                )
 
-        random.shuffle(sellers)
-        random.shuffle(buyers)
+            random.shuffle(sellers)
+            random.shuffle(buyers)
 
-        # Create 5 groups of [seller, seller, buyer]
-        for i in range(5):
-            g_players = [sellers[2 * i], sellers[2 * i + 1], buyers[i]]
-            group_matrix.append(g_players)
+            # Create 5 groups of [seller, seller, buyer]
+            for i in range(5):
+                g_players = [sellers[2 * i], sellers[2 * i + 1], buyers[i]]
+                group_matrix.append(g_players)
+
+        elif group_size_matching == 3:
+            # EN: Strict check for exactly 2 sellers and 1 buyer.
+            if len(sellers) != 2 or len(buyers) != 1:
+                raise Exception(
+                    f"Matching group {mg_id} must consist of exactly 2 sellers and 1 buyer. "
+                    f"Found {len(sellers)} sellers and {len(buyers)} buyers. "
+                    f"Check the role assignment and participant count."
+                )
+
+            random.shuffle(sellers)
+            random.shuffle(buyers)
+
+            # Create exactly 1 group of [seller, seller, buyer]
+            group_matrix.append([sellers[0], sellers[1], buyers[0]])
 
     # Apply the group matrix to the subsession
     subsession.set_group_matrix(group_matrix)
@@ -451,12 +482,12 @@ def creating_session(subsession: Subsession):
 
     Round 1:
         - Assign a fixed matching_group_id to each participant.
+          Depending on the total number of participants, use one of:
+              * matching groups of size 15 (10 sellers, 5 buyers)
+              * matching groups of size 3  (2 sellers, 1 buyer)
           Participants are sorted by id_in_subsession and divided into
-          consecutive blocks of 15 participants:
-              * block 1 -> matching_group_id = 1
-              * block 2 -> matching_group_id = 2
-              * etc.
-        - Within each matching group (of size 15), create 5 groups of 2S1B.
+          consecutive blocks of that matching group size.
+        - For the current round, create 2S1B groups within each matching group.
 
     Rounds 2–10:
         - Reuse matching_group_id from participant.vars.
@@ -464,15 +495,35 @@ def creating_session(subsession: Subsession):
           groups for that round.
 
     Requirements:
-        - Total number of participants should be a multiple of 15.
-        - Each 15-player block should consist of 10 sellers and 5 buyers.
-          Roles come from participant.vars['player_role'], which is assigned
+        - Total number of participants should be a multiple of 15 or a multiple of 3.
+        - Roles come from participant.vars['player_role'], which is assigned
           in the introduction app.
     """
     players = subsession.get_players()
-    group_size_matching = 15
+    n_players = len(players)
 
+    # EN: Determine which matching group size to use based on the session size.
+    # We support:
+    # - 15: 10 sellers + 5 buyers
+    # - 3:  2 sellers + 1 buyer
     if subsession.round_number == 1:
+        if n_players % 15 == 0:
+            group_size_matching = 15
+            group_type_value = "2S1B"
+        elif n_players % 3 == 0:
+            group_size_matching = 3
+            group_type_value = "2S1B"
+        else:
+            raise Exception(
+                "Total number of participants must be a multiple of 15 (10 sellers, 5 buyers) "
+                "or a multiple of 3 (2 sellers, 1 buyer). "
+                f"Found {n_players} participants."
+            )
+
+        # EN: Store for later pages to avoid hardcoding.
+        subsession.session.vars['matching_group_size'] = group_size_matching
+        subsession.session.vars['group_type_value'] = group_type_value
+
         # Assign matching_group_id based on position in the sorted list of players
         players_sorted = sorted(players, key=lambda p: p.id_in_subsession)
         for idx, p in enumerate(players_sorted):
@@ -697,7 +748,7 @@ class GroupingWaitPage(WaitPage):
     """
     @staticmethod
     def after_all_players_arrive(group: Group):
-        group.group_type = "2S1B"
+        group.group_type = group.subsession.session.vars.get('group_type_value', "2S1B")
 
 
 
