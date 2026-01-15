@@ -209,7 +209,7 @@
 
               <p>
                 Stellen Sie sich vor, Sie würden <b>Lotterie 1</b> <b>100 Mal</b> spielen.<br>
-                Wie oft glauben Sie, dass Sie den <b>höchsten Gewinn</b> dieser Lotterie erhalten würden?
+                Wie oft glauben Sie, dass Sie <b>{{ lot.payoff_high }} Münzen</b> erhalten würden?
               </p>
 
               <table style="border-spacing: 0; width: 100%;" cellpadding="5">
@@ -242,7 +242,7 @@
                     </span>
                     <span id="slider_clicked_s1" style="display:none;">
                       <h5>
-                        Ich glaube, dass bei <b>Lotterie 1</b> der höchste Gewinn
+                        Ich glaube, dass bei <b>Lotterie 1</b> die Auszahlung von <b>{{ lot.payoff_high }} Münzen</b>
                         genau <b style="color: red"><span id="text_belief_s1">XX Mal</span></b>
                         auftreten würde, wenn ich die Lotterie 100 Mal spielen würde.
                       </h5>
@@ -274,7 +274,7 @@
 
               <p>
                 Stellen Sie sich vor, Sie würden <b>Lotterie 2</b> <b>100 Mal</b> spielen.<br>
-                Wie oft glauben Sie, dass Sie den <b>höchsten Gewinn</b> dieser Lotterie erhalten würden?
+                Wie oft glauben Sie, dass Sie <b>{{ lot.payoff_high }} Münzen</b> erhalten würden?
               </p>
 
               <table style="border-spacing: 0; width: 100%;" cellpadding="5">
@@ -307,7 +307,7 @@
                     </span>
                     <span id="slider_clicked_s2" style="display:none;">
                       <h5>
-                        Ich glaube, dass bei <b>Lotterie 2</b> der höchste Gewinn
+                        Ich glaube, dass bei <b>Lotterie 2</b> die Auszahlung von <b>{{ lot.payoff_high }} Münzen</b>
                         genau <b style="color: red"><span id="text_belief_s2">XX Mal</span></b>
                         auftreten würde, wenn ich die Lotterie 100 Mal spielen würde.
                       </h5>
@@ -687,4 +687,5 @@
 </script>
 
 {% endblock %}
+
 
