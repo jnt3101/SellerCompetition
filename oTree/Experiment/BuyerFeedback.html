@@ -10,26 +10,21 @@
 
 <div style="display: flex; flex-direction: column; gap: 1rem; max-width: 700px; margin: auto;">
 
-    <div style="padding: 1rem; border: 1px solid #ccc; border-radius: 8px; background-color: #f9f9f9;">
-        <p>
-            Ihre Rolle in dieser Runde: <strong>Käufer</strong>
-        </p>
-    </div>
 
     {% if bought_lottery %}
-        <div style="padding: 1rem; border: 1px solid #ccc; border-radius: 8px; background-color: #e5ffe5;">
-            <h5>Ihre Kaufentscheidung</h5>
+        <div style="padding: 1rem; border: 1px solid #ccc; border-radius: 8px; background-color: #f9f9f9;">
+            <h5>Lotterie Ergebnis</h5>
             {% if chosen_seller_index == 1 %}
                 <p>
-                    In dieser Runde haben Sie sich entschieden, <strong>Lotterie 1</strong> zu kaufen (angeboten von Verkäufer 1).
+                    In dieser Runde haben Sie sich entschieden, <strong>Lotterie 1</strong> zu kaufen.
                 </p>
             {% elif chosen_seller_index == 2 %}
                 <p>
-                    In dieser Runde haben Sie sich entschieden, <strong>Lotterie 2</strong> zu kaufen (angeboten von Verkäufer 2).
+                    In dieser Runde haben Sie sich entschieden, <strong>Lotterie 2</strong> zu kaufen.
                 </p>
             {% else %}
                 <p>
-                    In dieser Runde haben Sie sich entschieden, <strong>eine Lotterie zu kaufen</strong>.
+
                 </p>
             {% endif %}
 
