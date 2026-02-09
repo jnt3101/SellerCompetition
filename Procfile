@@ -1,1 +1,1 @@
-web: cd oTree && otree runserver 0.0.0.0:$PORT
+web: cd oTree && otree prodserver 0.0.0.0:$PORT
