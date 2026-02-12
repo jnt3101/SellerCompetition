@@ -1,44 +1,16 @@
-{% extends "global/Page.html" %}
+{% extends "global/WaitPage.html" %}
 {% load otree static %}
 
 {% block title %}
-    Please wait
+    Bitte warten
 {% endblock %}
 
 {% block content %}
 
-<div class="card" style="max-width: 700px; margin: 0 auto;">
-    <div class="card-body">
-        {% if player.player_role == 'seller' %}
-            <!-- Message for sellers -->
-            <h3>Processing the results</h3>
-            <p>
-                You have submitted the price and your belief for this lottery.
-                The buyer has now entered their willingness to pay.
-                We are currently processing the trade decisions and the
-                lottery outcomes for this round.
-            </p>
-        {% elif player.player_role == 'buyer' %}
-            <!-- Message for buyer -->
-            <h3>Processing the results</h3>
-            <p>
-                You have entered your willingness to pay for the lotteries
-                offered by both sellers.
-                We are now determining which trades take place and, if
-                applicable, drawing the outcomes of the lotteries.
-            </p>
-        {% else %}
-            <!-- Fallback -->
-            <h3>Please wait</h3>
-            <p>
-                Please wait while we process the trade decisions and determine
-                the lottery outcomes for this round.
-            </p>
-        {% endif %}
-
-        <p style="margin-top: 15px;">
-            Once the calculations are finished, you will automatically be
-            taken to the feedback page.
+<div class="card" style="max-width: 600px; margin: 0 auto;">
+    <div class="card-body text-center">
+        <p>
+            Bitte warten Sie kurz, bis die anderen Teilnehmer ihre Entscheidungen getroffen haben.
         </p>
     </div>
 </div>
