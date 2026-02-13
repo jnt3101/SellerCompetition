@@ -1,34 +1,16 @@
-{% extends "otree/Base.html" %}
+{% extends "otree/WaitPage.html" %}
 {% load otree static %}
 
-{% block body_main %}
-  <div class="otree-body container">
-    <h2 class="otree-title page-header">
-      {% block title %}Bitte warten{% endblock %}
-    </h2>
-
-    <div class="card" style="max-width: 600px; margin: 0 auto;">
-      <div class="card-body text-center">
-        {% block content %}
-          <p>
-            Bitte warten Sie kurz, bis die anderen Teilnehmer ihre Entscheidungen getroffen haben.
-          </p>
-        {% endblock %}
-      </div>
-    </div>
-  </div>
+{% block title %}
+  Bitte warten
 {% endblock %}
 
-{% block internal_scripts %}
-  {{ super() }}
-
-  <!-- Standard oTree WebSocket Redirect -->
-  <script id="websocket-redirect"
-          src="{% static 'otree/js/page-websocket-redirect.js' %}"
-          data-socket-url="{{ view.socket_url() }}"
-          data-is-debug="{{ view.is_debug || '' }}">
-  </script>
-
+{% block content %}
+  <div class="card" style="max-width: 600px; margin: 0 auto;">
+    <div class="card-body text-center">
+      <p>Bitte warten Sie kurz, bis die anderen Teilnehmer ihre Entscheidungen getroffen haben.</p>
+    </div>
+  </div>
 {% endblock %}
 
 
