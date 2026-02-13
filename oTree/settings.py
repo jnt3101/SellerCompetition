@@ -8,20 +8,6 @@ SESSION_CONFIGS = [
         num_demo_participants=3,
         use_browser_bots=False,
     ),
-dict(
-        name='EXPERIMENT_TEST',
-        display_name="EXPERIMENT_TEST",
-        app_sequence=['Experiment'],
-        num_demo_participants=9,
-        use_browser_bots=True,
-    ),
-dict(
-        name='Quiz_TEST',
-        display_name="Quiz_TEST",
-        app_sequence=['Quiz'],
-        num_demo_participants=9,
-        use_browser_bots=False,
-    ),
 ]
 
 # if you set a property in SESSION_CONFIG_DEFAULTS, it will be inherited by all configs

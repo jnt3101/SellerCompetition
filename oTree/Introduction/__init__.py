@@ -135,7 +135,7 @@ class Player(BasePlayer):
         label="",
         choices=[
             [1, "Ein von KI unterstützter Algorithmus"],
-            [2, "Ein anderer Teilnehmer des Experiments mit Gewinnabsicht"],
+            [2, "Ein anderer Teilnehmer des Experiments"],
             [3, "Eine Firma mit Gewinnabsicht"],
         ],
         widget=widgets.RadioSelect,
@@ -397,7 +397,6 @@ class StartExperiment(Page):
 page_sequence = [
     GroupingWaitPage,
     Welcome,
-    AttentionCheck,
     InstructionsSellerIntro,
     InstructionsBuyerIntro,
     ComprehensionSellerIntro,

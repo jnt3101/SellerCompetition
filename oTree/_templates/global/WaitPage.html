@@ -6,12 +6,28 @@
 {% endblock %}
 
 {% block content %}
-  <div class="card" style="max-width: 600px; margin: 0 auto;">
-    <div class="card-body text-center">
-      <p>Bitte warten Sie kurz, bis die anderen Teilnehmer ihre Entscheidungen getroffen haben.</p>
+  <div class="card shadow-sm border-0" style="max-width: 600px; margin: 0 auto; border-radius: 16px;">
+    <div class="card-body text-center" style="padding: 2rem 2.25rem;">
+
+      <div class="mb-3">
+        <div class="spinner-border" role="status" aria-label="Lädt…"></div>
+      </div>
+
+      <h5 class="mb-2">Einen Moment…</h5>
+      <p class="text-muted mb-0">
+        Wir warten kurz, bis alle Teilnehmenden ihre Entscheidungen getroffen haben.
+      </p>
+
+      <hr class="my-4">
+
+      <small class="text-muted">
+        Bitte lassen Sie dieses Fenster geöffnet.
+      </small>
+
     </div>
   </div>
 {% endblock %}
+
 
 
 
