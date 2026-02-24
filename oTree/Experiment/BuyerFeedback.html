@@ -6,6 +6,28 @@
 {% endblock %}
 
 {% block content %}
+<style>
+  /* kleines Kästchen oben rechts */
+  .round-badge{
+    position: fixed;
+    top: 12px;
+    right: 12px;
+    background: #fff;
+    border: 2px solid #000;
+    border-radius: 8px;
+    padding: 6px 10px;
+    font-weight: 600;
+    z-index: 2000;
+    box-shadow: 0 2px 8px rgba(0,0,0,.15);
+  }
+</style>
+
+<!-- Rundenzähler -->
+<div class="round-badge">
+  Runde {{ player.round_number }} von {{ C.NUM_ROUNDS }}
+</div>
+
+
 <br/><br/>
 
 <div style="display: flex; flex-direction: column; gap: 1rem; max-width: 700px; margin: auto;">
