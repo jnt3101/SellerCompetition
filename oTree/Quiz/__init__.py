@@ -11,6 +11,17 @@ class C(BaseConstants):
     PLAYERS_PER_GROUP = None
     NUM_ROUNDS = 1
 
+    PROB_LOW = 70
+    PROB_MID = 29
+    PROB_HIGH = 1
+    PROB_UPPER_JOINT = PROB_MID + PROB_HIGH
+
+    PAYOFF_LOW = 0
+    PAYOFF_MID = 10
+    PAYOFF_HIGH = 140
+
+    SUBSAMPLE = [140, 140, 140, 140, 10]
+
 
 class Subsession(BaseSubsession):
     pass
@@ -21,6 +32,17 @@ class Group(BaseGroup):
 
 
 class Player(BasePlayer):
+
+
+    # Saves the Drop and Drag order
+    buyer_lottery_ranking = models.LongStringField(blank=False)
+
+    # Justification for order
+    buyer_lottery_justification = models.LongStringField(
+        label="Bitte begründen Sie Ihre Reihenfolge kurz:",
+        blank=False,
+    )
+
     # General Questions
     q_age = models.IntegerField(label='Wie alt sind Sie?', min=16, max=99)
     q_gender = models.StringField(
@@ -271,8 +293,55 @@ class Game(Page):
         'q_kfg_16', 'q_kfg_17', 'q_kfg_18', 'q_kfg_19', 'q_kfg_20'
     ]
 
+class BuyerLotteries(Page):
+    form_model = 'player'
+    form_fields = ['buyer_lottery_ranking', 'buyer_lottery_justification']
+
+    @staticmethod
+    def is_displayed(player: Player):
+        return player.participant.vars.get('player_role') == 'buyer'
+
+    @staticmethod
+    def vars_for_template(player: Player):
+        return dict(
+            prob_low=C.PROB_LOW,
+            prob_mid=C.PROB_MID,
+            prob_high=C.PROB_HIGH,
+            prob_upper_joint=C.PROB_UPPER_JOINT,
+            payoff_low=C.PAYOFF_LOW,
+            payoff_mid=C.PAYOFF_MID,
+            payoff_high=C.PAYOFF_HIGH,
+            subsample=C.SUBSAMPLE,
+        )
+
+    @staticmethod
+    def error_message(player: Player, values):
+        ranking = values.get('buyer_lottery_ranking', '').strip()
+
+        required_ids = {
+            'Transparent',
+            'Sample',
+            'Censoring',
+            'Sample_Censoring',
+        }
+
+        if not ranking:
+            return 'Bitte ziehen Sie alle vier Präsentationen in das rechte Feld.'
+
+        ranking_list = [x.strip() for x in ranking.split(',') if x.strip()]
+        submitted_ids = set(ranking_list)
+
+        if len(ranking_list) != 4:
+            return 'Bitte ordnen Sie im rechten Feld genau vier Präsentationen.'
+
+        if submitted_ids != required_ids:
+            return 'Bitte ziehen Sie alle vier Präsentationen in das rechte Feld und ordnen Sie sie dort.'
+
+        justification = values.get('buyer_lottery_justification', '').strip()
+        if not justification:
+            return 'Bitte geben Sie eine kurze Begründung an.'
 
 class Debriefing(Page):
     pass
 
-page_sequence = [General, Video_1, Video_2, Control, Game]
+page_sequence = [General, Video_1, Video_2, Control, Game, BuyerLotteries]
