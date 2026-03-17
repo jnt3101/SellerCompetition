@@ -30,7 +30,7 @@
 
 <br/><br/>
 
-<div style="display: flex; flex-direction: column; gap: 1rem; max-width: 600px; margin: auto;">
+<div style="display: flex; flex-direction: column; gap: 1rem; max-width: 800px; margin: auto;">
 
 
     <div style="padding: 1rem; border: 1px solid #ccc; border-radius: 8px; background-color: #f2f2f2;">
@@ -62,16 +62,17 @@
             </p>
             <p>
                 Deshalb beträgt Ihr zusätzlicher Bonus in dieser Runde
-                <strong>0</strong>.
+                <strong>{{ C.SELLER_ENDOWMENT }} Münzen</strong>, ihre Anfangsausstattung.
             </p>
         </div>
     {% endif %}
 
-    <div style="padding: 1rem; border: 1px solid #ccc; border-radius: 8px; background-color: #f9f9f9;">
+        <div style="padding: 1rem; border: 1px solid #ccc; border-radius: 8px; background-color: #f2f2f2;">
         <p>
-            Gesamtauszahlung aus dieser Runde:
+            Ihre Auszahlung in dieser Runde beträgt:
             <strong>{{ player.payoff }}</strong>
         </p>
+
     </div>
 
 <!-- Weiter Button separat platziert -->

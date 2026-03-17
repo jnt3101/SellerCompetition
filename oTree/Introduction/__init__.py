@@ -370,7 +370,7 @@ class StartExperiment(Page):
     """
     Final page of the introduction.
     Here we generate the participant's lottery sequences
-    and the paid round for the main experiment.
+    for the main experiment.
     """
 
     @staticmethod
@@ -389,10 +389,6 @@ class StartExperiment(Page):
                 zip(max_states, mid_probs)
             )
 
-        # Assign randomly selected round for payment
-        if 'paid_round' not in participant.vars:
-            participant.vars['paid_round'] = random.randint(1, C.EXP_NUM_ROUNDS)
-
 
 page_sequence = [
     GroupingWaitPage,
@@ -403,4 +399,3 @@ page_sequence = [
     ComprehensionBuyerIntro,
     StartExperiment,
 ]
-

@@ -27,11 +27,9 @@
   Runde {{ player.round_number }} von {{ C.NUM_ROUNDS }}
 </div>
 
-
 <br/><br/>
 
-<div style="display: flex; flex-direction: column; gap: 1rem; max-width: 700px; margin: auto;">
-
+<div style="display: flex; flex-direction: column; gap: 1rem; max-width: 800px; margin: auto;">
 
     {% if bought_lottery %}
         <div style="padding: 1rem; border: 1px solid #ccc; border-radius: 8px; background-color: #f9f9f9;">
@@ -45,9 +43,7 @@
                     In dieser Runde haben Sie sich entschieden, <strong>Lotterie 2</strong> zu kaufen.
                 </p>
             {% else %}
-                <p>
-
-                </p>
+                <p></p>
             {% endif %}
 
             <p>
@@ -55,7 +51,9 @@
                 <strong>{{ lottery_outcome }}</strong>.
             </p>
             <p>
-                Gemäß der Auszahlungsregel bestimmt dieses Ergebnis Ihren Bonus für diese Runde.
+                Ihre Auszahlung wird bestimmt durch Anfangsausstattung - Preis der Lotterie + Ergebnis der Lotterie.
+                <br>
+                Also: <strong>{{ outside_option_value }} - {{ chosen_lottery_price }} + {{ lottery_outcome }} = {{ player.payoff }}</strong>
             </p>
         </div>
     {% else %}
@@ -65,11 +63,10 @@
                 In dieser Runde haben Sie sich entschieden, <strong>keine Lotterie zu kaufen</strong>.
             </p>
             <p>
-                In diesem Fall entspricht Ihr Bonus für diese Runde dem <strong>niedrigsten Preis</strong> unter allen Lotterien,
-                die von den Verkäufern in Ihrer Gruppe angeboten wurden.
+                In diesem Fall entspricht Ihre Auszahlung in dieser Runde ihrer <strong>Anfangsausstattung</strong>.
             </p>
             <p>
-                Der niedrigste in Ihrer Gruppe angebotene Preis betrug:
+                Ihre Anfangsausstattung war:
                 <strong>{{ outside_option_value }}</strong>.
             </p>
         </div>
@@ -77,17 +74,16 @@
 
     <div style="padding: 1rem; border: 1px solid #ccc; border-radius: 8px; background-color: #e5ffe5;">
         <p>
-            Ihre gesamte Auszahlung aus dieser Runde beträgt:
+            Ihre Auszahlung in dieser Runde beträgt:
             <strong>{{ player.payoff }}</strong>
         </p>
+
     </div>
 
-    <!-- Weiter Button separat platziert -->
-<div style="text-align: right; margin-top: 15px;">
-    <button class="btn btn-primary" name="next">Weiter</button>
-</div>
+    <div style="text-align: right; margin-top: 15px;">
+        <button class="btn btn-primary" name="next">Weiter</button>
+    </div>
 
 </div>
-
 
 {% endblock %}

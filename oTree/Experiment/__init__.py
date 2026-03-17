@@ -42,10 +42,16 @@ Main interaction app:
 
 - Each buyer can buy at most one lottery.
 
-- Seller payoff: price of the lottery if (at least) one buyer buys, 0 otherwise.
+- Seller payoff:
+    * seller endowment + price of the lottery if sold
+    * seller endowment if not sold
 - Buyer payoff:
-    * if they buy a lottery: outcome of that lottery
-    * if they do not buy: lowest price offered by any seller in the group.
+    * if they buy a lottery: endowment - price + outcome of that lottery
+    * if they do not buy: endowment
+
+- All rounds count toward the total bonus.
+- bonus_payment stores the round-specific bonus in euros.
+- total_bonus_payment stores the sum of all round bonuses in euros.
 """
 
 
@@ -53,7 +59,7 @@ class C(BaseConstants):
     NAME_IN_URL = 'main_experiment'
 
     # EN: Groups in the experiment are always 2 sellers + 1 buyer.
-    #     Matching groups of size 15 (10S + 5B) or 3 (2S + 1B) are handled in creating_session.
+    #     Matching groups of size 15 (10S + 5B) or size 3 (2S + 1B) are handled in creating_session.
     PLAYERS_PER_GROUP = 3
 
     # EN: The experiment now runs for 10 rounds.
@@ -64,6 +70,11 @@ class C(BaseConstants):
     TIME_TO_FINISH = 15  # minutes
     BASE_PAY = 6  # in euro
     EXCHANGE_RATE = 13
+
+    # NEW: Buyer and seller endowments / outside option and fixed price cap
+    BUYER_ENDOWMENT = 100
+    SELLER_ENDOWMENT = 50
+    MAX_PRICE = 100
 
     # Lottery structure
     MAX_PAYOFF_STATES = [100, 120, 140, 160, 180]
@@ -167,8 +178,8 @@ class Player(BasePlayer):
 
     # --- seller-specific fields ---------------------------------------------
 
-    # price for the seller's lottery (must be >= 1)
-    selling_price_lottery = models.CurrencyField(label="", min=1)
+    # NEW: price for the seller's lottery must be between 1 and 100
+    selling_price_lottery = models.CurrencyField(label="", min=1, max=C.MAX_PRICE)
 
     # belief about highest payoff state (second-order belief about buyers)
     belief = models.IntegerField(label="")
@@ -219,6 +230,7 @@ class Player(BasePlayer):
     # feedback for buyers
     bought_lottery = models.BooleanField(initial=False)
     chosen_seller_index = models.IntegerField(initial=0)
+    chosen_lottery_price = models.CurrencyField(initial=0)
     buyer_lottery_outcome = models.CurrencyField()
     outside_option_value = models.CurrencyField()
 
@@ -232,20 +244,23 @@ class Player(BasePlayer):
 
     # --- bonus payment tracking ---------------------------------------------
 
-    # EN: Stores the bonus payment earned in this round for each player.
-    bonus_payment = models.CurrencyField(initial=0)
+    # EN: Kept for compatibility in the data export. Since all rounds are
+    # bonus-relevant again, this field is not used for payment logic.
+    paid_lottery_round = models.IntegerField(initial=0)
 
-    # EN: After the last round, this field stores the sum of all per-round bonus payments.
-    total_bonus_payment = models.CurrencyField(initial=0)
+    # EN: Stores the bonus payment of the current round in euros.
+    bonus_payment = models.FloatField(initial=0)
+
+    # EN: Stores the sum of bonus payments across all rounds in euros.
+    total_bonus_payment = models.FloatField(initial=0)
 
     # --- helper methods ------------------------------------------------------
 
     def selling_price_lottery_max(self):
         """
-        Helper to determine the maximum possible price for the given
-        round dynamically (equals the max payoff of the lottery).
+        NEW: maximum possible price is fixed at 100.
         """
-        return self.max_payoff
+        return C.MAX_PRICE
 
     def set_all_draws(self, x):
         self.all_draws = json.dumps(x)
@@ -311,6 +326,9 @@ class Player(BasePlayer):
 
         # Load role from participant.vars (role is fixed across all rounds)
         self.player_role = participant.vars.get('player_role')
+
+        # EN: Kept for compatibility in data export; no paid-round logic is used.
+        self.paid_lottery_round = 0
 
         # --- Build / ensure the per-round lottery parameter sequence --------
         combos = participant.vars.get('payoff_probability_combinations')
@@ -649,15 +667,17 @@ def set_trade_and_outcomes(group: Group):
     - read sellers and buyers
     - each buyer chooses at most one seller (or none)
     - if buyer buys from seller i: draw lottery outcome for that buyer
-    - seller payoff: price if at least one buyer buys from them, 0 otherwise
+    - seller payoff:
+        * seller endowment + price if sold
+        * seller endowment if not sold
     - buyer payoff:
-        * lottery outcome if a lottery is bought
-        * otherwise: lowest price offered by any seller in the group
+        * if they buy a lottery: endowment - price + outcome
+        * otherwise: endowment
 
     NEW (bonus logic):
-    - For each player, bonus_payment is set equal to the payoff in that round.
-    - After each round, total_bonus_payment is computed as the sum of
-      bonus_payment across all rounds for that player.
+    - All rounds are bonus-relevant.
+    - bonus_payment is set in every round to payoff / exchange rate.
+    - total_bonus_payment is the sum across all rounds.
     """
     # Ensure all players in the group are initialized for this round
     for p in group.get_players():
@@ -675,8 +695,11 @@ def set_trade_and_outcomes(group: Group):
     if len(buyers) != 1:
         raise Exception("Each group must contain exactly 1 buyer in this design.")
 
-    # Lowest price across all sellers (outside option for buyers who do not buy)
-    lowest_price = min(s.selling_price_lottery for s in sellers)
+    # Buyer outside option / endowment
+    outside_option = cu(C.BUYER_ENDOWMENT)
+
+    # Seller endowment
+    seller_endowment = cu(C.SELLER_ENDOWMENT)
 
     # Reset seller fields
     for s in sellers:
@@ -687,14 +710,15 @@ def set_trade_and_outcomes(group: Group):
     for b in buyers:
         choice = b.chosen_lottery_from_seller
 
-        b.outside_option_value = lowest_price
+        b.outside_option_value = outside_option
         b.bought_lottery = False
         b.chosen_seller_index = 0
+        b.chosen_lottery_price = Currency(0)
         b.buyer_lottery_outcome = Currency(0)
 
         if choice == 'none' or choice is None:
-            # Outside option
-            b.payoff = lowest_price
+            # Buyer gets outside option = buyer endowment
+            b.payoff = outside_option
         else:
             if choice == 'seller1':
                 chosen_seller = sellers[0]
@@ -710,29 +734,28 @@ def set_trade_and_outcomes(group: Group):
 
             b.bought_lottery = True
             b.chosen_seller_index = chosen_seller.seller_index
-            b.buyer_lottery_outcome = outcome
-            b.payoff = outcome
+            b.chosen_lottery_price = chosen_seller.selling_price_lottery
+            b.buyer_lottery_outcome = cu(outcome)
+            # Buyer payoff unchanged: endowment - price + outcome
+            b.payoff = outside_option - chosen_seller.selling_price_lottery + cu(outcome)
 
             # Mark seller as having sold (at least once)
             chosen_seller.sold = True
-            # Store last observed outcome on seller level (for feedback)
-            chosen_seller.lottery_outcome = outcome
+            # Store last observed outcome on seller level (for feedback only)
+            chosen_seller.lottery_outcome = cu(outcome)
 
-    # Set seller payoffs: price if sold at least once, 0 otherwise
+    # Set seller payoffs: seller endowment + price if sold, else seller endowment
     for s in sellers:
         if s.sold:
-            s.payoff = s.selling_price_lottery
+            s.payoff = seller_endowment + s.selling_price_lottery
         else:
-            s.payoff = Currency(0)
+            s.payoff = seller_endowment
 
-    # NEW: store bonus payment per round and compute running total each round
-    # EN: We interpret the round's payoff as the bonus payment and store it.
+    # EN: All rounds count toward bonus; store round bonus in euros.
     for p in players:
-        p.bonus_payment = p.payoff
+        p.bonus_payment = float(p.payoff) / C.EXCHANGE_RATE
 
-    # EN: After every round, compute the cumulative total bonus across all rounds so far.
-    #     This means total_bonus_payment in round t equals the sum of bonus_payment from
-    #     rounds 1..t for that participant.
+    # EN: total bonus equals the cumulative sum across all rounds.
     for p in players:
         total = sum(r.bonus_payment for r in p.in_all_rounds())
         p.total_bonus_payment = total
@@ -749,7 +772,6 @@ class GroupingWaitPage(WaitPage):
     @staticmethod
     def after_all_players_arrive(group: Group):
         group.group_type = group.subsession.session.vars.get('group_type_value', "2S1B")
-
 
 
 class LotteryDecisionBase(Page):
@@ -842,16 +864,16 @@ class SellerDecision(LotteryDecisionBase):
         """
         Ensure basic consistency of the price.
         No automatic randomization is applied; invalid prices can be
-        clamped into [1, max_payoff] if needed.
+        clamped into [1, 100] if needed.
         """
         player.initialize_round()
 
         if player.selling_price_lottery is not None:
-            # Clamp price into [1, max_payoff] without randomization
+            # NEW: clamp price into [1, 100]
             if player.selling_price_lottery < 1:
                 player.selling_price_lottery = cu(1)
-            elif player.selling_price_lottery > player.max_payoff:
-                player.selling_price_lottery = cu(player.max_payoff)
+            elif player.selling_price_lottery > C.MAX_PRICE:
+                player.selling_price_lottery = cu(C.MAX_PRICE)
 
 
 class WaitForSellers(WaitPage):
@@ -947,6 +969,10 @@ class SellerFeedback(Page):
             sold=player.sold,
             price=player.selling_price_lottery,
             outcome=player.lottery_outcome,
+            paid_round='alle Runden',
+            is_paid_round=True,
+            round_payoff=player.payoff,
+            round_bonus_euro=player.bonus_payment,
         )
 
 
@@ -954,8 +980,8 @@ class BuyerFeedback(Page):
     """
     Feedback for buyers:
     - whether they bought a lottery
-    - if yes: index of seller and outcome
-    - if no: outside option (lowest price among sellers)
+    - if yes: index of seller, price, and outcome
+    - if no: outside option
     No time limit.
     """
 
@@ -969,8 +995,13 @@ class BuyerFeedback(Page):
         return dict(
             bought_lottery=player.bought_lottery,
             chosen_seller_index=player.chosen_seller_index,
+            chosen_lottery_price=player.chosen_lottery_price,
             lottery_outcome=player.buyer_lottery_outcome,
             outside_option_value=player.outside_option_value,
+            paid_round='alle Runden',
+            is_paid_round=True,
+            round_payoff=player.payoff,
+            round_bonus_euro=player.bonus_payment,
         )
 
 
@@ -1008,4 +1039,3 @@ page_sequence = [
     # end-of-round global wait, so next round's grouping uses full pool
     RoundTransitionWaitPage,
 ]
-
