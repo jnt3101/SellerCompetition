@@ -15,15 +15,14 @@ Introduction app:
 
 class C(BaseConstants):
     NAME_IN_URL = 'introduction'
-    # EN: We do not use dynamic grouping here anymore; grouping is not important in this app.
     PLAYERS_PER_GROUP = None
     NUM_ROUNDS = 1
 
     # General intro parameters (not used in grouping logic)
     N_LOTTERIES = 10
-    TIME_TO_FINISH = 15  # minutes
+    TIME_TO_FINISH = 45  # minutes
     BASE_PAY = 6  # in euro
-    EXCHANGE_RATE = 13
+    EXCHANGE_RATE = 100
 
     # These constants MUST match the ones in Experiment.C
     EXP_NUM_ROUNDS = 10
@@ -39,7 +38,7 @@ class Subsession(BaseSubsession):
 
 
 class Group(BaseGroup):
-    # EN: Group type, not essential in this app anymore.
+    # Group type, not essential in this app anymore.
     group_type = models.StringField()
 
 
@@ -55,62 +54,17 @@ class Player(BasePlayer):
     # Count of attention check attempts
     attention_tries = models.IntegerField(initial=0)
 
-    # --- Role & indices ------------------------------------------------------
-    # EN: 'seller' or 'buyer'; assigned in creating_session and kept fixed
+    # Role and indices
+    # 'seller' or 'buyer'; assigned in creating_session and kept fixed
     # across all apps (stored in participant.vars['player_role']).
     player_role = models.StringField()
-    # EN: Indices within role are not important in this app, but kept for
+
+    # Indices within role are not important in this app, but kept for
     # possible diagnostics.
     seller_index = models.IntegerField(initial=0)
     buyer_index = models.IntegerField(initial=0)
 
-    # --- Role-specific comprehension checks (seller) ---
-
-    seller_comp_1 = models.IntegerField(
-        label="",
-        choices=[
-            [1, "Es ist möglich, dass ich sowohl 30 Münzen als auch 80 Münzen erhalte."],
-            [2, "Ich erhalte entweder 30 Münzen ODER 80 Münzen ODER 0 Münzen."],
-            [3, "Ich erhalte mit Sicherheit mindestens einige Münzen."],
-        ],
-        widget=widgets.RadioSelect,
-        blank=True,
-    )
-    seller_comp_2 = models.IntegerField(
-        label="",
-        choices=[
-            [1, "Die Wahrscheinlichkeit, 30 Münzen zu erhalten, beträgt 60 %."],
-            [2, "Die Wahrscheinlichkeit, 30 Münzen zu erhalten, beträgt 40 %."],
-            [3, "Die Wahrscheinlichkeit, 30 Münzen zu erhalten, beträgt 0 %."],
-        ],
-        widget=widgets.RadioSelect,
-        blank=True,
-    )
-    seller_comp_3 = models.IntegerField(
-        label="",
-        choices=[
-            [1, "Die maximale Auszahlung der Lotterie, die Sie anbieten."],
-            [2, "Eine zufällig generierte Zahl."],
-            [3, "Der Preis, zu dem Sie die Lotterie verkauft haben."],
-        ],
-        widget=widgets.RadioSelect,
-        blank=True,
-    )
-    seller_comp_4 = models.IntegerField(
-        label="",
-        choices=[
-            [1, "Sie erhalten keinen Bonus."],
-            [2, "Ihr Bonus entspricht dem Betrag, den der Käufer bereit gewesen wäre zu zahlen."],
-            [3, "Ihr Bonus beträgt 25 Münzen."],
-        ],
-        widget=widgets.RadioSelect,
-        blank=True,
-    )
-
-    seller_comp_tries = models.IntegerField(initial=0)
-
-    # --- Role-specific comprehension checks (buyer) ---
-
+    # Shared comprehension checks
     buyer_comp_1 = models.IntegerField(
         label="",
         choices=[
@@ -135,14 +89,34 @@ class Player(BasePlayer):
         label="",
         choices=[
             [1, "Ein von KI unterstützter Algorithmus"],
-            [2, "Ein anderer Teilnehmer des Experiments"],
+            [2, "Teilnehmer des Experiments"],
             [3, "Eine Firma mit Gewinnabsicht"],
         ],
         widget=widgets.RadioSelect,
         blank=True,
     )
+    seller_comp_3 = models.IntegerField(
+        label="",
+        choices=[
+            [1, "Die maximale Auszahlung der Lotterie, die angeboten wird."],
+            [2, "Eine zufällig generierte Zahl."],
+            [3, "Der Preis, zu dem die Lotterie verkauft wurde."],
+        ],
+        widget=widgets.RadioSelect,
+        blank=True,
+    )
+    seller_comp_4 = models.IntegerField(
+        label="",
+        choices=[
+            [1, "Keinen Bonus."],
+            [2, "Der Bonus entspricht dem Betrag, den der Käufer bereit gewesen wäre zu zahlen."],
+            [3, "Der Bonus beträgt 25 Münzen."],
+        ],
+        widget=widgets.RadioSelect,
+        blank=True,
+    )
 
-    buyer_comp_tries = models.IntegerField(initial=0)
+    comprehension_tries = models.IntegerField(initial=0)
 
     # Helper to pass exchange rate to templates
     def get_general_instruction_vars(self):
@@ -156,19 +130,18 @@ class Player(BasePlayer):
 
 def creating_session(subsession: Subsession):
     """
-    EN:
-    - At session creation, we assign:
+    At session creation, we assign:
         * fixed matching groups of size 15 (10 sellers, 5 buyers) OR size 3 (2 sellers, 1 buyer)
         * roles 'seller' / 'buyer' within each matching group
-    - These roles are stored in participant.vars['player_role'] and reused
-      in the main_experiment app.
-    - This guarantees that the Experiment app's grouping logic works correctly
-      given the chosen matching group size and composition.
+    These roles are stored in participant.vars['player_role'] and reused
+    in the main_experiment app.
+    This guarantees that the Experiment app's grouping logic works correctly
+    given the chosen matching group size and composition.
     """
     players = subsession.get_players()
     n_players = len(players)
 
-    # EN: Determine which matching group size to use based on the session size.
+    # Determine which matching group size to use based on the session size.
     # We support:
     # - 15: 10 sellers + 5 buyers
     # - 3:  2 sellers + 1 buyer
@@ -187,7 +160,7 @@ def creating_session(subsession: Subsession):
             f"Found {n_players} participants."
         )
 
-    # EN: Store for later pages (e.g., GroupingWaitPage) to avoid hardcoding.
+    # Store for later pages to avoid hardcoding.
     subsession.session.vars['matching_group_size'] = group_size_matching
     subsession.session.vars['group_type_value'] = group_type_value
 
@@ -206,7 +179,7 @@ def creating_session(subsession: Subsession):
         matching_groups.setdefault(mg_id, []).append(p)
 
     for mg_id, block in matching_groups.items():
-        # EN: We require full blocks for this design.
+        # We require full blocks for this design.
         if len(block) != group_size_matching:
             raise Exception(
                 f"Matching group {mg_id} must have exactly {group_size_matching} players. "
@@ -214,7 +187,7 @@ def creating_session(subsession: Subsession):
                 f"the session is a multiple of {group_size_matching}."
             )
 
-        # EN: Create a role list for this matching group and shuffle it.
+        # Create a role list for this matching group and shuffle it.
         roles = roles_template.copy()
         random.shuffle(roles)
 
@@ -267,9 +240,8 @@ class AttentionCheck(Page):
 
 class GroupingWaitPage(WaitPage):
     """
-    EN:
-    - We no longer need any dynamic grouping logic.
-    - Assign a fixed group type to avoid None-values later.
+    We no longer need any dynamic grouping logic.
+    Assign a fixed group type to avoid None-values later.
     """
     wait_for_all_groups = True
     group_by_arrival_time = False
@@ -281,89 +253,55 @@ class GroupingWaitPage(WaitPage):
             g.group_type = group_type_value
 
 
-
-
-class InstructionsSellerIntro(Page):
+class InstructionsIntro(Page):
     """
-    Role-specific instructions for sellers in the introduction app.
-    Shown only to participants with role 'seller'.
+    Shared instructions page for all participants.
     """
-    @staticmethod
-    def is_displayed(player: Player):
-        return player.player_role == 'seller'
-
     @staticmethod
     def vars_for_template(player: Player):
         return player.get_general_instruction_vars()
 
 
-class InstructionsBuyerIntro(Page):
+class ComprehensionIntro(Page):
     """
-    Role-specific instructions for buyers in the introduction app.
-    Shown only to participants with role 'buyer'.
-    """
-    @staticmethod
-    def is_displayed(player: Player):
-        return player.player_role == 'buyer'
-
-    @staticmethod
-    def vars_for_template(player: Player):
-        return player.get_general_instruction_vars()
-
-
-class ComprehensionSellerIntro(Page):
-    """
-    Seller-specific comprehension questions.
+    Shared comprehension questions for all participants.
     Participants can repeat this page until they answer correctly.
-    The number of attempts is recorded in seller_comp_tries.
+    The number of attempts is recorded in comprehension_tries.
     """
     form_model = 'player'
-    form_fields = ['seller_comp_1', 'seller_comp_2', 'seller_comp_3', 'seller_comp_4']
-
-    @staticmethod
-    def is_displayed(player: Player):
-        return player.player_role == 'seller'
-
-    @staticmethod
-    def error_message(player: Player, values):
-        correct = (
-            values['seller_comp_1'] == 2 and
-            values['seller_comp_2'] == 2 and
-            values['seller_comp_3'] == 3 and
-            values['seller_comp_4'] == 1
-        )
-
-        player.seller_comp_tries += 1
-
-        if not correct:
-            return "Einige Antworten waren falsch. Bitte versuchen Sie es nochmal."
-
-
-class ComprehensionBuyerIntro(Page):
-    """
-    Buyer-specific comprehension questions.
-    Participants can repeat this page until they answer correctly.
-    The number of attempts is recorded in buyer_comp_tries.
-    """
-    form_model = 'player'
-    form_fields = ['buyer_comp_1', 'buyer_comp_2', 'buyer_comp_3']
-
-    @staticmethod
-    def is_displayed(player: Player):
-        return player.player_role == 'buyer'
+    form_fields = [
+        'buyer_comp_1',
+        'buyer_comp_2',
+        'buyer_comp_3',
+        'seller_comp_3',
+        'seller_comp_4',
+    ]
 
     @staticmethod
     def error_message(player: Player, values):
         correct = (
             values['buyer_comp_1'] == 2 and
             values['buyer_comp_2'] == 2 and
-            values['buyer_comp_3'] == 2
+            values['buyer_comp_3'] == 2 and
+            values['seller_comp_3'] == 3 and
+            values['seller_comp_4'] == 1
         )
 
-        player.buyer_comp_tries += 1
+        player.comprehension_tries += 1
 
         if not correct:
             return "Einige Antworten waren falsch. Bitte versuchen Sie es nochmal."
+
+
+class YourRole(Page):
+    """
+    Role reminder page shown after the shared comprehension page.
+    """
+    @staticmethod
+    def vars_for_template(player: Player):
+        return {
+            'player_role': player.player_role,
+        }
 
 
 class StartExperiment(Page):
@@ -393,9 +331,8 @@ class StartExperiment(Page):
 page_sequence = [
     GroupingWaitPage,
     Welcome,
-    InstructionsSellerIntro,
-    InstructionsBuyerIntro,
-    ComprehensionSellerIntro,
-    ComprehensionBuyerIntro,
+    InstructionsIntro,
+    ComprehensionIntro,
+    YourRole,
     StartExperiment,
 ]

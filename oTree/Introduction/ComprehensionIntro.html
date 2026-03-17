@@ -100,7 +100,29 @@
 
 <br>
 
+<div class="card">
+    <div class="card-header">
+        <b>4. Welchen Bonus erhalten Verkäufer, falls sie in der Lage sind ihre Lotterie zu verkaufen?</b>
+    </div>
 
+    <div class="card-body">
+        {% formfield player.seller_comp_3 label="Bitte wählen Sie eine der folgenden Aussagen aus:" %}
+    </div>
+</div>
+
+<br>
+
+<div class="card">
+    <div class="card-header">
+        <b>5. Welchen Bonus erhalten Verkäufer, falls sie <b> nicht </b>in der Lage sind ihre Lotterie zu verkaufen?</b>
+    </div>
+
+    <div class="card-body">
+        {% formfield player.seller_comp_4 label="Bitte wählen Sie eine der folgenden Aussagen aus:" %}
+    </div>
+</div>
+
+<br>
 
 <button class="btn btn-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#instructionsCollapse">
     Instruktionen anzeigen
@@ -108,7 +130,7 @@
 
 <div class="collapse" id="instructionsCollapse">
     <div class="card card-body">
-        {{ include_sibling 'InstructionsForBuyer.html' }}
+        {{ include_sibling 'InstructionsGeneral.html' }}
     </div>
 </div>
 

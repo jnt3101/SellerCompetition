@@ -1,0 +1,204 @@
+{% load otree static %}
+
+<h5>Die Lotterien</h5>
+<p>
+    In dieser Studie können Teilnehmende Lotterien kaufen, die von anderen Teilnehmenden in der Studie angeboten werden.
+    Sowohl Käufer als auch Verkäufer können einen zusätzlichen Bonus verdienen.
+    Die mögliche Bonushöhe hängt von den Entscheidungen in der Studie ab, zum Beispiel von den
+    gewählten Preisen für Lotterien, ob die Lotterie gekauft wird und gegebenenfalls vom Ergebnis
+    einer zufälligen Ziehung. Der Bonus jedes Teilnehmenden wird daher sowohl von eigenen Entscheidungen
+    als auch von Entscheidungen anderer Teilnehmender beeinflusst.
+</p>
+
+<p>
+    Unten sehen Sie ein Beispiel für eine Lotterie:
+</p>
+
+<p>
+<table class="table table-bordered" style="text-align: center">
+    <thead>
+        <tr class="table-primary" style="border-color: black">
+            <th colspan="4">Lotterie</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <th>Wahrscheinlichkeit</th>
+            <td>40 %</td>
+            <td>30 %</td>
+            <td>30 %</td>
+        </tr>
+        <tr>
+            <th>Auszahlung</th>
+            <td>20 Münzen</td>
+            <td>40 Münzen</td>
+            <td>60 Münzen</td>
+        </tr>
+    </tbody>
+</table>
+</p>
+
+<p>
+    In diesem Beispiel zahlt die Lotterie entweder 20 Münzen mit 40&nbsp;% Wahrscheinlichkeit,
+    oder 40 Münzen mit 30&nbsp;% Wahrscheinlichkeit, oder 60 Münzen mit 30&nbsp;% Wahrscheinlichkeit.
+    Wichtig ist: Eine Lotterie zahlt immer nur <b>einen</b> der Beträge aus; sie zahlt also
+    <b>entweder</b> 20 Münzen <b>oder</b> 40 Münzen <b>oder</b> 60 Münzen.
+</p>
+
+<br>
+
+<h5>Die Rollen in dieser Studie</h5>
+<p>
+    In dieser Studie gibt es zwei Rollen: <b>Verkäufer</b> und <b>Käufer</b>.
+    Welche Rolle Sie selbst in dieser Studie haben, wird Ihnen nach den Verständnisfragen noch einmal ausdrücklich angezeigt.
+</p>
+
+<p>
+    Verkäufer bieten Lotterien an. Käufer sehen diese Lotterien und entscheiden,
+    ob sie eine Lotterie kaufen möchten.
+</p>
+
+<p>
+    In jeder Runde erhalten die Teilnehmenden außerdem eine Anfangsaustattung:
+</p>
+
+<ul>
+    <li>
+        <b>Verkäufer</b> erhalten in jeder Runde <b>50 Münzen</b> und zusätzlich die <b>Lotterie</b>, die sie anbieten.
+    </li>
+    <li>
+        <b>Käufer</b> erhalten in jeder Runde <b>100 Münzen</b>.
+    </li>
+</ul>
+
+<br>
+
+<h5>Die Entscheidungen der Verkäufer</h5>
+<p>
+    Verkäufer treffen für jede Lotterie, die sie anbieten, mehrere Entscheidungen:
+</p>
+
+<ul>
+    <li>
+        Zunächst wählen sie, <b>wie die Lotterie präsentiert wird</b>.
+        Sie sehen unterschiedliche Darstellungen derselben Lotterie und entscheiden,
+        welche Präsentation verwendet werden soll.
+    </li>
+    <li>
+        Danach geben sie an, <b>wie oft sie glauben, dass der Käufer denkt, den höchsten Gewinn
+        der Lotterie zu erhalten</b>, wenn diese Lotterie <b>100&nbsp;Mal</b> gespielt würde.
+    </li>
+    <li>
+        Schließlich legen sie einen <b>Preis</b> für ihre Lotterie fest.
+        Dieser Preis gibt an, wie viele Münzen ein Käufer zahlen müsste, um die Lotterie zu erwerben.
+        Der Preis kann zwischen 0 und der maximalen Auszahlung der Lotterie liegen.
+    </li>
+</ul>
+
+
+<br>
+
+<h5>Die Entscheidungen der Käufer</h5>
+<p>
+    Käufer treffen für jede Lotterie ebenfalls mehrere Entscheidungen:
+</p>
+<ul>
+    <li>
+        Käufer sehen die Lotterieangebote anderer Teilnehmender.
+    Für jede angezeigte Lotterie geben sie zunächst an, <b>wie oft sie glauben, den höchsten Gewinn
+    dieser Lotterie zu erhalten</b>, wenn sie die Lotterie <b>100&nbsp;Mal</b> spielen würden.
+    </li>
+    <li>
+        Danach entscheiden Käufer, ob sie eine Lotterie kaufen möchten. Käufer sehen zwei Lotterien, die von <b>unterschiedliche Verkäufern</b>
+    angeboten werden. Käufer können maximal <b>eine</b> Lotterie kaufen
+    oder sich dafür entscheiden, <b>keine</b> Lotterie zu kaufen.
+    </li>
+</ul>
+
+
+<br>
+
+<h5>Die Gruppenzusammensetzung</h5>
+
+
+<p>
+    Käufer und Verkäufer treffen ihre Entscheidungen nicht isoliert, sondern in Gruppen.
+    In jeder Gruppe befinden sich zwei Verkäufer und ein Käufer. Die Lotterieangebote der Verkäufer konkurrieren miteinander.
+</p>
+
+<p>
+    Nach jeder Runde werden die Gruppen <b>neu gebildet</b>. Das bedeutet, dass Sie in verschiedenen Runden
+    auf <b>unterschiedliche</b> andere Teilnehmende treffen können.
+</p>
+
+
+
+<br>
+
+<h5>Die Bonuszahlung</h5>
+<p>
+    Insgesamt wird es in der Studie <b>{{ C.N_LOTTERIES }} Runden</b> geben.
+    Sie können in jeder Runde zusätzliche Münzen verdienen.
+    Wenn Sie sich für die Details interessieren, finden Sie unten auf der Seite eine ausführliche
+    Beschreibung des Bonusmechanismus.
+</p>
+
+<p>
+    Die konkrete Bonuszahlung hängt von der Rolle und den getroffenen Entscheidungen ab:
+</p>
+
+<ul>
+    <li>
+        <b>Wenn ein Käufer eine Lotterie kauft</b>, wird per Computer eine zufällige Auszahlung dieser Lotterie gezogen.
+        Der Bonus ist dann Anfangsausstattung - Preis + Auszahlung
+    </li>
+    <li>
+        <b>Wenn ein Käufer keine Lotterie kauft</b>, behält er stattdessem seine Anfangsausstattung
+    </li>
+    <li>
+        <b>Wenn die Lotterie eines Verkäufers gekauft wird</b>, ist der Bonus des Verkäufers gleich seiner Anfangsausstattung + dem von ihm gesetzten Preis.
+    </li>
+    <li>
+        <b>Wenn die Lotterie eines Verkäufers nicht gekauft wird</b>, erhält der Verkäufer seine Anfangsausstattung als Bonus.
+    </li>
+</ul>
+
+<p>
+    Während des Experiments verwenden wir eine fiktive Währung, die wir „Münzen“ nennen.
+    Für die Bonuszahlung werden alle Münzen in Euro umgerechnet zum Kurs von
+    <b>{{ C.EXCHANGE_RATE }} Münzen = 1 Euro</b>.
+</p>
+
+
+
+<!-- Button for payment details -->
+<p>
+    <button class="btn btn-secondary" type="button" data-toggle="collapse" data-target="#paymentMechanism" aria-expanded="false" aria-controls="paymentMechanism">
+        Details zum Bonusmechanismus
+    </button>
+</p>
+
+<!-- Collapsible payment details -->
+<div class="collapse-content collapse" id="paymentMechanism">
+    <div class="card card-body">
+        {% include "Experiment/PaymentDetailsGeneral.html" %}
+        {% include "Experiment/PaymentExampleGeneral.html" %}
+    </div>
+</div>
+
+<style>
+    .card {
+        margin: 0 auto;
+        float: none;
+        margin-bottom: 10px;
+    }
+</style>
+
+<script>
+    $(document).ready(function() {
+        $('[data-toggle="collapse"]').on('click', function() {
+            var target = $(this).data('target');
+            $(target).slideToggle();
+        });
+    });
+</script>

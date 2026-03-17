@@ -67,9 +67,9 @@ class C(BaseConstants):
 
     # General intro parameters (not used in grouping logic)
     N_LOTTERIES = 10
-    TIME_TO_FINISH = 15  # minutes
+    TIME_TO_FINISH = 45  # minutes
     BASE_PAY = 6  # in euro
-    EXCHANGE_RATE = 13
+    EXCHANGE_RATE = 100
 
     # NEW: Buyer and seller endowments / outside option and fixed price cap
     BUYER_ENDOWMENT = 100
