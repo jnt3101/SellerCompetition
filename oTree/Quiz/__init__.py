@@ -32,10 +32,8 @@ class Group(BaseGroup):
 
 
 class Player(BasePlayer):
-    buyer_lottery_favorite = models.StringField(
-        choices=['Transparent', 'Sample', 'Censoring', 'Sample_Censoring'],
-        blank=False
-    )
+    # Saves the Drop and Drag order
+    buyer_lottery_ranking = models.LongStringField(blank=False)
 
     # Justification for preference
     buyer_lottery_justification = models.LongStringField(
@@ -295,7 +293,7 @@ class Game(Page):
 
 class BuyerLotteries(Page):
     form_model = 'player'
-    form_fields = ['buyer_lottery_favorite', 'buyer_lottery_justification']
+    form_fields = ['buyer_lottery_ranking', 'buyer_lottery_justification']
 
     @staticmethod
     def is_displayed(player: Player):
@@ -316,20 +314,26 @@ class BuyerLotteries(Page):
 
     @staticmethod
     def error_message(player: Player, values):
-        favorite = values.get('buyer_lottery_favorite', '').strip()
+        ranking = values.get('buyer_lottery_ranking', '').strip()
 
-        valid_ids = {
+        required_ids = {
             'Transparent',
             'Sample',
             'Censoring',
             'Sample_Censoring',
         }
 
-        if not favorite:
-            return 'Bitte wählen Sie eine Präsentation aus.'
+        if not ranking:
+            return 'Bitte ziehen Sie alle vier Präsentationen in das rechte Feld.'
 
-        if favorite not in valid_ids:
-            return 'Bitte wählen Sie eine gültige Präsentation aus.'
+        ranking_list = [x.strip() for x in ranking.split(',') if x.strip()]
+        submitted_ids = set(ranking_list)
+
+        if len(ranking_list) != 4:
+            return 'Bitte ordnen Sie im rechten Feld genau vier Präsentationen.'
+
+        if submitted_ids != required_ids:
+            return 'Bitte ziehen Sie alle vier Präsentationen in das rechte Feld und ordnen Sie sie dort.'
 
         justification = values.get('buyer_lottery_justification', '').strip()
         if not justification:

@@ -6,29 +6,27 @@ Präferenz der Lotterie-Präsentationen
 
 <p>
     Sie haben in diesem Experiment die Rolle des Käufers gehabt. In dieser haben Sie möglicherweise
-    verschiedene Präsentationen von den Lotterien gesehen. Unten sehen Sie vier verschiedene Präsentationsmöglichkeiten.
-    Bitte wählen Sie die Präsentation aus, die Sie in Ihrer Rolle als Käufer am liebsten gesehen haben bzw. hätten.
+        verschiedene Präsentationen von den Lotterien gesehen. Unten sehen Sie die Präsentationsmöglichkeiten, die den Verkäufern
+        gegeben wurden. Bitte ziehen Sie die 4 Präsentationsformate aus dem oberen Feld in das untere Feld
+    und ordnen Sie sie dort nach Ihrer Präferenz. Dies bedeutet, welche Sie in ihrer Rolle als Käufer am liebsten gesehen haben bzw. hätten.
 </p>
 
 <p>
-    <b>Bitte wählen Sie genau eine Präsentation aus.</b>
+    <b>Oben im unteren Feld sollte Ihre am meisten bevorzugte Präsentation stehen,
+    unten Ihre am wenigsten bevorzugte.</b>
 </p>
 
-<input type="hidden" name="buyer_lottery_favorite" id="buyer_lottery_favorite">
+<input type="hidden" name="buyer_lottery_ranking" id="buyer_lottery_ranking">
 
-<div id="presentations-container">
+
+<h4>Verfügbare Präsentationen</h4>
+
+<div id="available-presentations" class="drop-zone">
 
     <!-- Präsentation 1 -->
-    <div class="presentation card mb-3" data-presentation-id="Transparent">
+    <div class="presentation card mb-3" draggable="true" data-presentation-id="Transparent">
         <div class="card-body">
-            <div class="form-check mb-3">
-                <input class="form-check-input presentation-radio" type="radio" name="presentation_choice" value="Transparent" id="choice_Transparent">
-                <label class="form-check-label" for="choice_Transparent">
-                    <b>Diese Präsentation wählen</b>
-                </label>
-            </div>
-
-
+            <p align="center" style="font-size: 1.5em;"><b>Präsentation </b></p>
             <div style="border: 2px solid black; padding: 10px; border-radius: 8px;">
                 <table class="table table-bordered" style="text-align: center">
                     <thead>
@@ -56,17 +54,12 @@ Präferenz der Lotterie-Präsentationen
     </div>
 
     <!-- Präsentation 2 -->
-    <div class="presentation card mb-3" data-presentation-id="Sample">
+    <div class="presentation card mb-3" draggable="true" data-presentation-id="Sample">
         <div class="card-body">
-            <div class="form-check mb-3">
-                <input class="form-check-input presentation-radio" type="radio" name="presentation_choice" value="Sample" id="choice_Sample">
-                <label class="form-check-label" for="choice_Sample">
-                    <b>Diese Präsentation wählen</b>
-                </label>
-            </div>
-
+            <p align="center" style="font-size: 1.5em;"><b>Präsentation </b></p>
 
             <div style="border: 2px solid black; padding: 10px; border-radius: 8px;">
+
                 <table class="table table-bordered" style="text-align: center">
                     <thead>
                         <tr class="table-primary">
@@ -108,22 +101,18 @@ Präferenz der Lotterie-Präsentationen
                         </tr>
                     </tbody>
                 </table>
+
             </div>
         </div>
     </div>
 
     <!-- Präsentation 3 -->
-    <div class="presentation card mb-3" data-presentation-id="Censoring">
+    <div class="presentation card mb-3" draggable="true" data-presentation-id="Censoring">
         <div class="card-body">
-            <div class="form-check mb-3">
-                <input class="form-check-input presentation-radio" type="radio" name="presentation_choice" value="Censoring" id="choice_Censoring">
-                <label class="form-check-label" for="choice_Censoring">
-                    <b>Diese Präsentation wählen</b>
-                </label>
-            </div>
-
+            <p align="center" style="font-size: 1.5em;"><b>Präsentation </b></p>
 
             <div style="border: 2px solid black; padding: 10px; border-radius: 8px;">
+
                 <table class="table table-bordered" style="text-align: center">
                     <thead>
                         <tr class="table-primary">
@@ -143,22 +132,18 @@ Präferenz der Lotterie-Präsentationen
                         </tr>
                     </tbody>
                 </table>
+
             </div>
         </div>
     </div>
 
     <!-- Präsentation 4 -->
-    <div class="presentation card mb-3" data-presentation-id="Sample_Censoring">
+    <div class="presentation card mb-3" draggable="true" data-presentation-id="Sample_Censoring">
         <div class="card-body">
-            <div class="form-check mb-3">
-                <input class="form-check-input presentation-radio" type="radio" name="presentation_choice" value="Sample_Censoring" id="choice_Sample_Censoring">
-                <label class="form-check-label" for="choice_Sample_Censoring">
-                    <b>Diese Präsentation wählen</b>
-                </label>
-            </div>
-
+            <p align="center" style="font-size: 1.5em;"><b>Präsentation</b></p>
 
             <div style="border: 2px solid black; padding: 10px; border-radius: 8px;">
+
                 <table class="table table-bordered" style="text-align: center">
                     <thead>
                         <tr class="table-primary">
@@ -198,73 +183,158 @@ Präferenz der Lotterie-Präsentationen
                         </tr>
                     </tbody>
                 </table>
+
             </div>
         </div>
     </div>
 
 </div>
 
+
+<h4 style="margin-top:40px;">Ihre Reihenfolge</h4>
+
+<div id="ranking-presentations" class="drop-zone ranking-zone">
+    <div id="ranking-placeholder">
+        Ziehen Sie die Präsentationen hier hinein.
+    </div>
+</div>
+
+
 <div style="margin-top: 30px;">
     {{ formfield 'buyer_lottery_justification' }}
 </div>
 
+    <!-- Weiter Button separat platziert -->
 <div style="text-align: right; margin-top: 15px;">
     <button class="btn btn-primary" name="next">Weiter</button>
 </div>
 
+
 <style>
-.presentation {
-    cursor: pointer;
+
+.drop-zone {
+    min-height: 400px;
+    padding: 20px;
+    border: 2px dashed #bbb;
+    border-radius: 10px;
+    background: #fafafa;
 }
 
-.presentation.selected {
-    border: 2px solid #0d6efd;
-    background-color: #f5f9ff;
+.ranking-zone {
+    background: #f5f9ff;
 }
+
+.presentation {
+    cursor: move;
+}
+
+.presentation.dragging {
+    opacity: 0.5;
+}
+
+#ranking-placeholder {
+    color: #777;
+    font-style: italic;
+}
+
 </style>
 
-<script>
-const hiddenInput = document.getElementById('buyer_lottery_favorite');
-const container = document.getElementById('presentations-container');
 
-function shufflePresentations() {
-    const items = Array.from(container.querySelectorAll('.presentation'));
-    for (let i = items.length - 1; i > 0; i--) {
+<script>
+
+const availableZone = document.getElementById('available-presentations');
+const rankingZone = document.getElementById('ranking-presentations');
+const rankingInput = document.getElementById('buyer_lottery_ranking');
+const rankingPlaceholder = document.getElementById('ranking-placeholder');
+
+let draggedItem = null;
+
+function rankingPresentations(){
+    return Array.from(rankingZone.querySelectorAll('.presentation'));
+}
+
+function updateRankingField(){
+
+    const order = rankingPresentations().map(el => el.dataset.presentationId);
+    rankingInput.value = order.join(',');
+
+    rankingPlaceholder.style.display =
+        rankingPresentations().length === 0 ? 'block' : 'none';
+}
+
+
+function shuffleAvailable(){
+
+    const items = Array.from(availableZone.querySelectorAll('.presentation'));
+
+    for(let i = items.length - 1; i > 0; i--){
         const j = Math.floor(Math.random() * (i + 1));
         [items[i], items[j]] = [items[j], items[i]];
     }
-    items.forEach(el => container.appendChild(el));
+
+    items.forEach(el => availableZone.appendChild(el));
 }
 
-function updateSelection(value) {
-    hiddenInput.value = value;
 
-    document.querySelectorAll('.presentation').forEach(card => {
-        if (card.dataset.presentationId === value) {
-            card.classList.add('selected');
-        } else {
-            card.classList.remove('selected');
-        }
-    });
+function addListeners(card){
+
+card.addEventListener('dragstart', function(){
+draggedItem = this;
+this.classList.add('dragging');
+});
+
+card.addEventListener('dragend', function(){
+this.classList.remove('dragging');
+updateRankingField();
+});
+
 }
 
-document.querySelectorAll('.presentation-radio').forEach(radio => {
-    radio.addEventListener('change', function() {
-        updateSelection(this.value);
-    });
+document.querySelectorAll('.presentation').forEach(addListeners);
+
+
+[availableZone, rankingZone].forEach(zone => {
+
+zone.addEventListener('dragover', e => e.preventDefault());
+
+zone.addEventListener('drop', function(e){
+
+e.preventDefault();
+
+if(!draggedItem) return;
+
+if(this === rankingZone){
+
+const target = e.target.closest('.presentation');
+
+if(target && target.parentElement === rankingZone){
+
+target.after(draggedItem);
+
+}else{
+
+rankingZone.appendChild(draggedItem);
+
+}
+
+}
+
+if(this === availableZone){
+
+availableZone.appendChild(draggedItem);
+
+}
+
+updateRankingField();
+
 });
 
-document.querySelectorAll('.presentation').forEach(card => {
-    card.addEventListener('click', function(e) {
-        if (e.target.tagName.toLowerCase() !== 'input') {
-            const radio = this.querySelector('.presentation-radio');
-            radio.checked = true;
-            updateSelection(radio.value);
-        }
-    });
 });
 
-shufflePresentations();
+
+shuffleAvailable();
+updateRankingField();
+
 </script>
 
 {{ endblock }}
