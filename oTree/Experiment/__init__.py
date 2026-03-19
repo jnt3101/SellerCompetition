@@ -254,6 +254,9 @@ class Player(BasePlayer):
     # EN: Stores the sum of bonus payments across all rounds in euros.
     total_bonus_payment = models.FloatField(initial=0)
 
+    # Full payment including participation fee
+    payoff_plus_participation_fee = models.FloatField(initial=0)
+
     # --- helper methods ------------------------------------------------------
 
     def selling_price_lottery_max(self):
@@ -760,6 +763,10 @@ def set_trade_and_outcomes(group: Group):
         total = sum(r.bonus_payment for r in p.in_all_rounds())
         p.total_bonus_payment = total
 
+        # Store final payout incl. participation fee after round 10
+        if p.round_number == C.NUM_ROUNDS:
+            p.payoff_plus_participation_fee = C.BASE_PAY + p.total_bonus_payment
+            p.participant.vars['payoff_plus_participation_fee'] = p.payoff_plus_participation_fee
 
 # --- PAGES ------------------------------------------------------------------
 
