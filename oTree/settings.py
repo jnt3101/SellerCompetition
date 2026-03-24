@@ -5,11 +5,21 @@ SESSION_CONFIGS = [
         name='FULL',
         display_name="FULL",
         app_sequence=['Introduction', 'Experiment', 'Quiz', 'payment'],
-        num_demo_participants=3,
+        num_demo_participants=15,
         expShortName="TestExp", # Replace with your values
         expId=0000000000, # Replace with your values
         sessId=0000000000, # Replace with your values
         use_browser_bots=False,
+    ),
+dict(
+        name='FULL_BOTS',
+        display_name="FULL_BOTS",
+        app_sequence=['Introduction', 'Experiment', 'Quiz', 'payment'],
+        num_demo_participants=15,
+        expShortName="TestExp", # Replace with your values
+        expId=0000000000, # Replace with your values
+        sessId=0000000000, # Replace with your values
+        use_browser_bots=True,
     ),
 ]
 
