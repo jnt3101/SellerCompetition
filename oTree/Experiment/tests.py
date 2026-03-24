@@ -61,7 +61,7 @@ class PlayerBot(Bot):
             # initialize_round wird im Page-Code aufgerufen und setzt max_payoff
             # Wir nehmen einen zufälligen Preis im Intervall [1, max_payoff]
             # Zur Sicherheit greifen wir immer frisch auf self.player zu:
-            max_price = self.player.max_payoff if self.player.max_payoff else 100
+            max_price = 100
             price = random.randint(1, max_price)
 
             yield SellerDecision, {

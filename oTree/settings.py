@@ -4,8 +4,11 @@ SESSION_CONFIGS = [
     dict(
         name='FULL',
         display_name="FULL",
-        app_sequence=['Introduction', 'Experiment', 'Quiz'],
+        app_sequence=['Introduction', 'Experiment', 'Quiz', 'payment'],
         num_demo_participants=3,
+        expShortName="TestExp", # Replace with your values
+        expId=0000000000, # Replace with your values
+        sessId=0000000000, # Replace with your values
         use_browser_bots=False,
     ),
 ]
@@ -16,7 +19,7 @@ SESSION_CONFIGS = [
 # e.g. self.session.config['participation_fee']
 
 SESSION_CONFIG_DEFAULTS = dict(
-    real_world_currency_per_point=1/13, participation_fee=2, doc=""
+    real_world_currency_per_point=1/100, participation_fee=6, doc=""
 )
 
 ROOMS = [
@@ -36,7 +39,7 @@ SESSION_FIELDS = []
 LANGUAGE_CODE = 'en'
 
 # e.g. EUR, GBP, CNY, JPY
-REAL_WORLD_CURRENCY_CODE = 'GBP'
+REAL_WORLD_CURRENCY_CODE = 'EUR'
 USE_POINTS = True
 POINTS_CUSTOM_NAME = 'Münzen'
 

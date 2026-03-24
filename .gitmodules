@@ -1,0 +1,3 @@
+[submodule "oTree/payment"]
+	path = oTree/payment
+	url = https://github.com/LeonHeidelbach/oTreePayoutRefModule

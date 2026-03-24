@@ -1,122 +1,136 @@
 <table class="w3-table w3-white" style="border-spacing: 0; width: 100%" cellpadding="5">
-    <tr>
-      <td colspan="3">
-        Stellen Sie sich vor, ein Käufer würde die Lotterie <b>100-mal</b> spielen.
-        Wie oft glauben Sie, dass der Käufer Ihrer Lotterie erwarten würde,
-        <b>{{ payoff_high }} Münzen</b> zu gewinnen?
-      </td>
-    </tr>
-    <tr>
-      <td style="width: 10%; text-align: center;"> <strong>0-mal</strong></td>
-      <td style="width: 80%; text-align: center;">
-        <div class="form-group required">
-          <div class="controls field-belief">
-            <input type="range" name="belief" id="id_belief_slider" class="slider2" style="width: 100%;" min="0"
-              max="100" value="100" disabled/>
-          </div>
+  <tr>
+    <td colspan="3">
+      Stellen Sie sich vor, ein Käufer würde die Lotterie <b>100-mal</b> spielen.
+      Wie oft glauben Sie, dass der Käufer Ihrer Lotterie erwarten würde,
+      <b>{{ payoff_high }} Münzen</b> zu gewinnen?
+    </td>
+  </tr>
+
+  <tr>
+    <td style="width: 10%; text-align: center;"><strong>0-mal</strong></td>
+
+    <td style="width: 80%; text-align: center;">
+      <div class="form-group required">
+        <div class="controls field-belief">
+          <input
+            type="range"
+            name="belief"
+            id="id_belief_slider"
+            class="slider2"
+            style="width: 100%;"
+            min="0"
+            max="100"
+            value="50"
+            disabled
+          />
         </div>
-      </td>
-      <td style="width: 10%; text-align: center;"> <strong>100-mal</strong></td>
-    </tr>
+      </div>
+    </td>
 
-    <tr>
-      <td colspan="3">
+    <td style="width: 10%; text-align: center;"><strong>100-mal</strong></td>
+  </tr>
 
-        <span id="click_slider">
-          <h5 style="color: red">
-            Bitte klicken Sie auf den Slider, um Ihre Einschätzung anzugeben.
-            Sie können Ihre Entscheidung anschließend noch ändern.
-          </h5>
-        </span>
-        <span id="slider_clicked" style="display:none;">
-          <h5>
-            Ich glaube, dass der Käufer meiner Lotterie erwartet,
-            {{ payoff_high }} Münzen genau
-            <b style="color: red">
-              <span id="text_belief">XX Mal</span>
-            </b>
-            zu gewinnen, wenn er die Lotterie 100-mal spielt.
-          </h5>
-        </span>
+  <tr>
+    <td colspan="3">
+      <span id="click_slider">
+        <h5 style="color: red">
+          Der Slider wird in wenigen Sekunden aktiviert. Sobald er aktiv ist,
+          bewegen Sie ihn bitte, um Ihre Einschätzung anzugeben.
+        </h5>
+      </span>
 
-      </td>
-    </tr>
-  </table>
+      <span id="slider_clicked" style="display:none;">
+        <h5>
+          Ich glaube, dass der Käufer meiner Lotterie erwartet,
+          {{ payoff_high }} Münzen genau
+          <b style="color: red">
+            <span id="text_belief">XX Mal</span>
+          </b>
+          zu gewinnen, wenn er die Lotterie 100-mal spielt.
+        </h5>
+      </span>
+    </td>
+  </tr>
+</table>
 
+<style>
+  .slider {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 100%;
+    height: 10px;
+    background: #d3d3d3;
+    outline: none;
+  }
 
-  <style>
-    /* The slider itself */
-    .slider {
-      -webkit-appearance: none;
-      /* Override default CSS styles */
-      appearance: none;
-      width: 25%;
-      /* Full-width */
-      height: 10px;
-      /* Specified height */
-      background: #d3d3d3;
-      /* Grey background */
-      outline: none;
-      /* Remove outline */
-      -webkit-transition: .2s;
-      /* 0.2 seconds transition on hover */
+  .slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 20px;
+    height: 20px;
+    background: #000000;
+    visibility: visible;
+    cursor: pointer;
+  }
+
+  .slider::-moz-range-thumb {
+    width: 20px;
+    height: 20px;
+    background: #000000;
+    visibility: visible;
+    cursor: pointer;
+  }
+
+  .slider2 {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 100%;
+    height: 10px;
+    background: #d3d3d3;
+    outline: none;
+  }
+
+  .slider2::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 20px;
+    height: 20px;
+    background: #000000;
+    visibility: hidden;
+  }
+
+  .slider2::-moz-range-thumb {
+    width: 20px;
+    height: 20px;
+    background: #000000;
+    visibility: hidden;
+  }
+</style>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    var slider = document.getElementById('id_belief_slider');
+    var clickText = document.getElementById('click_slider');
+    var clickedText = document.getElementById('slider_clicked');
+    var textBelief = document.getElementById('text_belief');
+
+    if (!slider) {
+      return;
     }
 
-    /* The slider handle (use -webkit- (Chrome, Opera, Safari, Edge) and -moz- (Firefox) to override default look) */
-    .slider::-webkit-slider-thumb {
-      -webkit-appearance: none;
-      /* Override default look */
-      appearance: none;
-      width: 10px;
-      /* Set a specific slider handle width */
-      height: 25px;
-      /* Slider handle height */
-      background: #000000;
-    }
+    // Slider nach 5 Sekunden aktivieren
+    setTimeout(function () {
+      slider.disabled = false;
+    }, 5000);
 
-    .slider::-moz-range-thumb {
-      width: 10px;
-      /* Set a specific slider handle width */
-      height: 25px;
-      /* Slider handle height */
-      background: #000000;
-    }
+    // Erst bei echter Bewegung reagieren
+    slider.addEventListener('input', function () {
+      clickText.style.display = 'none';
+      clickedText.style.display = 'inline';
 
-    /* Another class to make the thumb of the slider invisible */
-    .slider2 {
-      -webkit-appearance: none;
-      /* Override default CSS styles */
-      appearance: none;
-      width: 25%;
-      /* Full-width */
-      height: 10px;
-      /* Specified height */
-      background: #d3d3d3;
-      /* Grey background */
-      outline: none;
-      /* Remove outline */
-    }
-
-    /* The slider handle (use -webkit- (Chrome, Opera, Safari, Edge) and -moz- (Firefox) to override default look) */
-    .slider2::-webkit-slider-thumb {
-      -webkit-appearance: none;
-      /* Override default look */
-      appearance: none;
-      width: 25px;
-      /* Set a specific slider handle width */
-      height: 25px;
-      /* Slider handle height */
-      background: #000000;
-      visibility: hidden;
-    }
-
-    .slider2::-moz-range-thumb {
-      width: 25px;
-      /* Set a specific slider handle width */
-      height: 25px;
-      /* Slider handle height */
-      background: #000000;
-      visibility: hidden;
-    }
-  </style>
-
+      slider.className = 'slider';
+      textBelief.textContent = slider.value + ' Mal';
+    });
+  });
+</script>
