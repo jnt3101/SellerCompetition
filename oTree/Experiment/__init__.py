@@ -776,9 +776,13 @@ class GroupingWaitPage(WaitPage):
     In every round, groups already exist because grouping is done in creating_session.
     We here simply set group_type to a stable string '2S1B'.
     """
+    wait_for_all_groups = True
+
     @staticmethod
-    def after_all_players_arrive(group: Group):
-        group.group_type = group.subsession.session.vars.get('group_type_value', "2S1B")
+    def after_all_players_arrive(subsession: Subsession):
+        group_type_value = subsession.session.vars.get('group_type_value', "2S1B")
+        for g in subsession.get_groups():
+            g.group_type = group_type_value
 
 
 class LotteryDecisionBase(Page):
