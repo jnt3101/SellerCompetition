@@ -139,4 +139,26 @@
     <button class="btn btn-primary" name="next">Weiter</button>
 </div>
 
+{% if auto_fill_answers %}
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const correctAnswers = {
+            'buyer_comp_1': '2',
+            'buyer_comp_2': '2',
+            'buyer_comp_3': '2',
+            'seller_comp_3': '3',
+            'seller_comp_4': '1'
+        };
+
+        for (const [fieldName, correctValue] of Object.entries(correctAnswers)) {
+            const selector = `input[type="radio"][name="${fieldName}"][value="${correctValue}"]`;
+            const radio = document.querySelector(selector);
+            if (radio) {
+                radio.checked = true;
+            }
+        }
+    });
+</script>
+{% endif %}
+
 {% endblock %}

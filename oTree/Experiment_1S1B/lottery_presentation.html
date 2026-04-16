@@ -14,7 +14,48 @@
     z-index: 2000;
     box-shadow: 0 2px 8px rgba(0,0,0,.15);
   }
+
+  /* Timer links oben */
+  .timer-badge{
+    position: fixed;
+    top: 12px;
+    left: 12px;
+    background: #fff;
+    border: 2px solid #000;
+    border-radius: 8px;
+    padding: 6px 12px;
+    font-weight: 600;
+    z-index: 2000;
+    box-shadow: 0 2px 8px rgba(0,0,0,.15);
+    min-width: 120px;
+    text-align: center;
+  }
+
+  .timer-warning{
+    position: fixed;
+    top: 60px;
+    left: 12px;
+    background: #fff3cd;
+    border: 2px solid #856404;
+    color: #856404;
+    border-radius: 8px;
+    padding: 8px 12px;
+    font-weight: 600;
+    z-index: 2000;
+    box-shadow: 0 2px 8px rgba(0,0,0,.15);
+    display: none;
+    max-width: 280px;
+  }
 </style>
+
+<!-- Timer -->
+<div class="timer-badge">
+  Verbleibende Zeit: <span id="countdown">--:--</span>
+</div>
+
+<div id="timer-message" class="timer-warning">
+  Bitte treffen Sie jetzt eine Entscheidung.
+</div>
 
 <!-- Rundenzähler -->
 <div class="round-badge">
@@ -30,7 +71,6 @@
       Denken Sie daran: Sie können ihre Bonuszahlung erhöhen, wenn Sie die Lotterie erfolgreich verkaufen.
       Ein Verkauf findet statt, wenn sich der Käufer entscheidet, ihre Lotterie zu kaufen. Die Instruktionen finden Sie
       bei Bedarf unten auf der Seite.
-
     </p>
 
     <p>
@@ -262,7 +302,37 @@
     }
   }
 
+  function startCountdown() {
+    const roundNumber = {{ player.round_number }};
+    let remainingSeconds = roundNumber === 1 ? 150 : 90;
+
+    const countdownElement = document.getElementById('countdown');
+    const messageElement = document.getElementById('timer-message');
+
+    function formatTime(seconds) {
+      const minutes = Math.floor(seconds / 60);
+      const secs = seconds % 60;
+      return `${minutes}:${secs.toString().padStart(2, '0')}`;
+    }
+
+    countdownElement.textContent = formatTime(remainingSeconds);
+
+    const timer = setInterval(function() {
+      remainingSeconds--;
+
+      if (remainingSeconds <= 0) {
+        countdownElement.textContent = "0:00";
+        messageElement.style.display = "block";
+        clearInterval(timer);
+        return;
+      }
+
+      countdownElement.textContent = formatTime(remainingSeconds);
+    }, 1000);
+  }
+
   window.onload = function() {
     shufflePresentations("presentations");
+    startCountdown();
   };
 </script>

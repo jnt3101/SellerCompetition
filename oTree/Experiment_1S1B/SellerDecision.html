@@ -21,16 +21,56 @@ Bitte wählen Sie den Preis für die Lotterie
     z-index: 2000;
     box-shadow: 0 2px 8px rgba(0,0,0,.15);
   }
+
+  /* Timer links oben */
+  .timer-badge{
+    position: fixed;
+    top: 12px;
+    left: 12px;
+    background: #fff;
+    border: 2px solid #000;
+    border-radius: 8px;
+    padding: 6px 12px;
+    font-weight: 600;
+    z-index: 2000;
+    box-shadow: 0 2px 8px rgba(0,0,0,.15);
+    min-width: 120px;
+    text-align: center;
+  }
+
+  .timer-warning{
+    position: fixed;
+    top: 60px;
+    left: 12px;
+    background: #fff3cd;
+    border: 2px solid #856404;
+    color: #856404;
+    border-radius: 8px;
+    padding: 8px 12px;
+    font-weight: 600;
+    z-index: 2000;
+    box-shadow: 0 2px 8px rgba(0,0,0,.15);
+    display: none;
+    max-width: 280px;
+  }
 </style>
+
+<!-- Timer -->
+<div class="timer-badge">
+  Verbleibende Zeit: <span id="countdown">--:--</span>
+</div>
+
+<div id="timer-message" class="timer-warning">
+  Bitte treffen Sie jetzt eine Entscheidung.
+</div>
 
 <!-- Rundenzähler -->
 <div class="round-badge">
   Runde {{ player.round_number }} von {{ C.NUM_ROUNDS }}
 </div>
 
-{% include "Experiment/lottery_presentation_price.html" %}
+{% include "Experiment_1S1B/lottery_presentation_price.html" %}
 <br>
-
 
 <div class="row" id="id_decision_area">
   <div class="col">
@@ -59,41 +99,40 @@ Bitte wählen Sie den Preis für die Lotterie
       </div>
     </div>
 
-      <br>
+    <br>
 
-   <button class="btn btn-secondary" type="button"
+    <button class="btn btn-secondary" type="button"
            data-toggle="collapse"
            data-target="#instructionsCollapse"
            aria-expanded="false"
            aria-controls="instructionsCollapse">
-    Instruktionen anzeigen
-</button>
+      Instruktionen anzeigen
+    </button>
 
-<div class="collapse" id="instructionsCollapse">
-    <div class="card card-body">
+    <div class="collapse" id="instructionsCollapse">
+      <div class="card card-body">
 
         {% if participant.vars.player_role == 'buyer' %}
-            {{ include "Introduction/InstructionsForBuyer.html" }}
+            {{ include "Introduction_1S1B/InstructionsForBuyer.html" }}
 
         {% elif participant.vars.player_role == 'seller' %}
-            {{ include "Introduction/InstructionsForSeller.html" }}
+            {{ include "Introduction_1S1B/InstructionsForSeller.html" }}
 
         {% else %}
             <p><i>Für Ihre Rolle wurden keine Instruktionen gefunden.</i></p>
         {% endif %}
 
+      </div>
     </div>
-</div>
 
-
-   <!-- Weiter Button separat platziert -->
-<div style="text-align: right; margin-top: 15px;">
-    <button class="btn btn-primary" name="next">Weiter</button>
-</div>
+    <!-- Weiter Button separat platziert -->
+    <div style="text-align: right; margin-top: 15px;">
+     <button class="btn btn-primary" name="next" id="confirm">Weiter</button>
+    </div>
 
     <div class="row">
       <div class="col">
-        {% include "Experiment/dropdown_instructions.html" %}
+        {% include "Experiment_1S1B/dropdown_instructions.html" %}
       </div>
     </div>
   </div>
@@ -112,13 +151,15 @@ Bitte wählen Sie den Preis für die Lotterie
 </style>
 
 <script>
-
   // Slider-Logik
   var range_input = document.getElementById('id_belief_slider');
   console.log(range_input.value)
   var all_numbers = "";
 
   // Timer sofort starten
+  startCountdown();
+
+  // Slider-Freischaltung sofort starten
   start_decision_timeout();
 
   range_input.addEventListener('input', function () { updateValues('range') });
@@ -175,7 +216,36 @@ Bitte wählen Sie den Preis für die Lotterie
 
     }, 5000);
   }
-</script>
 
+  // Countdown-Timer
+  function startCountdown() {
+    const roundNumber = {{ player.round_number }};
+    let remainingSeconds = roundNumber === 1 ? 90 : 60;
+
+    const countdownElement = document.getElementById('countdown');
+    const messageElement = document.getElementById('timer-message');
+
+    function formatTime(seconds) {
+      const minutes = Math.floor(seconds / 60);
+      const secs = seconds % 60;
+      return `${minutes}:${secs.toString().padStart(2, '0')}`;
+    }
+
+    countdownElement.textContent = formatTime(remainingSeconds);
+
+    const timer = setInterval(function() {
+      remainingSeconds--;
+
+      if (remainingSeconds <= 0) {
+        countdownElement.textContent = "0:00";
+        messageElement.style.display = "block";
+        clearInterval(timer);
+        return;
+      }
+
+      countdownElement.textContent = formatTime(remainingSeconds);
+    }, 1000);
+  }
+</script>
 
 {% endblock %}

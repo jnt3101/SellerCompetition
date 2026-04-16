@@ -267,19 +267,32 @@ class ComprehensionIntro(Page):
     ]
 
     @staticmethod
+    def vars_for_template(player: Player):
+        vars_dict = player.get_general_instruction_vars()
+        vars_dict['auto_fill_answers'] = player.comprehension_tries > 2
+        return vars_dict
+
+    @staticmethod
     def error_message(player: Player, values):
         correct = (
-            values['buyer_comp_1'] == 2 and
-            values['buyer_comp_2'] == 2 and
-            values['buyer_comp_3'] == 2 and
-            values['seller_comp_3'] == 3 and
-            values['seller_comp_4'] == 1
+                values['buyer_comp_1'] == 2 and
+                values['buyer_comp_2'] == 2 and
+                values['buyer_comp_3'] == 2 and
+                values['seller_comp_3'] == 3 and
+                values['seller_comp_4'] == 1
         )
 
-        player.comprehension_tries += 1
-
         if not correct:
-            return "Einige Antworten waren falsch. Bitte versuchen Sie es nochmal."
+            player.comprehension_tries += 1
+
+            if player.comprehension_tries >= 3:
+                return (
+                    "Sie haben die Verständnisfragen bereits dreimal nicht korrekt beantwortet. "
+                    "Die richtigen Antworten wurden daher für Sie vorausgewählt. "
+                    "Bitte sehen Sie sich diese noch einmal in Ruhe an und fahren Sie anschließend mit dem Experiment fort."
+                )
+
+            return "Einige Antworten waren falsch. Bitte versuchen Sie es erneut."
 
 
 class YourRole(Page):
@@ -320,7 +333,6 @@ class StartExperiment(Page):
 page_sequence = [
     GroupingWaitPage,
     Welcome,
-    AttentionCheck,
     InstructionsIntro,
     ComprehensionIntro,
     YourRole,
