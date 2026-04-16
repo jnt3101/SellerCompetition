@@ -21,6 +21,16 @@ dict(
         sessId=0000000000, # Replace with your values
         use_browser_bots=True,
     ),
+dict(
+        name='1S1BPILOT',
+        display_name="1S1BPILOT",
+        app_sequence=['Introduction_1S1B', 'Experiment_1S1B', 'Quiz'],
+        num_demo_participants=10,
+        expShortName="TestExp", # Replace with your values
+        expId=0000000000, # Replace with your values
+        sessId=0000000000, # Replace with your values
+        use_browser_bots=False,
+    ),
 ]
 
 # if you set a property in SESSION_CONFIG_DEFAULTS, it will be inherited by all configs

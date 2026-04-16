@@ -1,0 +1,22 @@
+{{ block content }}
+{% load otree static %}
+
+<div class="row">
+  <div class="col">
+    <br>
+    <p>
+      <button class="btn btn-secondary" type="button" data-toggle="collapse" data-target="#Instruct" aria-expanded="false" aria-controls="Instruct"> Details on the payment mechanism
+      </button><br>
+    </p>
+    <p>
+    <div class="collapse" id="Instruct">
+      <div class="card card-body">
+      {% include "Experiment/payment_details.html" %}
+      {% include  "Experiment/payment_examples.html" %}
+
+      </div>
+    </div>
+
+  </div>
+</div>
+{{ endblock }}

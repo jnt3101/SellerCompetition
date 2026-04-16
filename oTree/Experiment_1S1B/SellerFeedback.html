@@ -1,0 +1,85 @@
+{% extends "global/Page.html" %}
+{% load otree static %}
+
+{% block title %}
+    Rundenergebnis
+{% endblock %}
+
+{% block content %}
+<style>
+  /* kleines Kästchen oben rechts */
+  .round-badge{
+    position: fixed;
+    top: 12px;
+    right: 12px;
+    background: #fff;
+    border: 2px solid #000;
+    border-radius: 8px;
+    padding: 6px 10px;
+    font-weight: 600;
+    z-index: 2000;
+    box-shadow: 0 2px 8px rgba(0,0,0,.15);
+  }
+</style>
+
+<!-- Rundenzähler -->
+<div class="round-badge">
+  Runde {{ player.round_number }} von {{ C.NUM_ROUNDS }}
+</div>
+
+
+<br/><br/>
+
+<div style="display: flex; flex-direction: column; gap: 1rem; max-width: 800px; margin: auto;">
+
+
+    <div style="padding: 1rem; border: 1px solid #ccc; border-radius: 8px; background-color: #f2f2f2;">
+        <p>
+            Preis, den Sie für Ihre Lotterie verlangt haben: <strong>{{ price }}</strong>
+        </p>
+    </div>
+
+    {% if sold %}
+        <div style="padding: 1rem; border: 1px solid #ccc; border-radius: 8px; background-color: #e5ffe5;">
+            <p>
+                Der Käufer in Ihrer Gruppe hat sich entschieden, <strong>Ihre Lotterie</strong>
+                zu dem von Ihnen festgelegten Preis zu kaufen.
+            </p>
+            <p>
+                Für den Käufer, der Ihre Lotterie gekauft hat, ergab eine zufällige Ziehung aus Ihrer Lotterie
+                ein Ergebnis von <strong>{{ outcome }}</strong>.
+            </p>
+            <p>
+                Gemäß der Auszahlungsregel entspricht Ihr Bonus in dieser Runde dem <strong>Preis</strong> Ihrer Lotterie.
+                Ihr zusätzlicher Bonus in dieser Runde beträgt daher
+                <strong>{{ price }}</strong>.
+            </p>
+        </div>
+    {% else %}
+        <div style="padding: 1rem; border: 1px solid #ccc; border-radius: 8px; background-color: #ffe5e5;">
+            <p>
+                In dieser Runde hat sich <strong>der Käufer nicht</strong> dazu entschieden, Ihre Lotterie zu kaufen.
+            </p>
+            <p>
+                Deshalb beträgt Ihr zusätzlicher Bonus in dieser Runde
+                <strong>{{ C.SELLER_ENDOWMENT }} Münzen</strong>, ihre Anfangsausstattung.
+            </p>
+        </div>
+    {% endif %}
+
+        <div style="padding: 1rem; border: 1px solid #ccc; border-radius: 8px; background-color: #f2f2f2;">
+        <p>
+            Ihre Auszahlung in dieser Runde beträgt:
+            <strong>{{ player.payoff }}</strong>
+        </p>
+
+    </div>
+
+<!-- Weiter Button separat platziert -->
+<div style="text-align: right; margin-top: 15px;">
+    <button class="btn btn-primary" name="next">Weiter</button>
+</div>
+
+</div>
+
+{% endblock %}
