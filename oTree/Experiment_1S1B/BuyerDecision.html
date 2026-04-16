@@ -69,7 +69,6 @@
   Runde {{ player.round_number }} von {{ C.NUM_ROUNDS }}
 </div>
 
-
 <div class="container" id="id_decision_area">
 
   <div class="row">
@@ -323,11 +322,15 @@
 
   {# --------- Kaufentscheidung --------- #}
 
-  <div class="card mb-4 shadow-sm">
+  <div class="card mb-4 shadow-sm"
+       id="decision-card"
+       tabindex="0"
+       data-bs-trigger="hover focus"
+       data-bs-content="Bitte beantworten Sie zuerst die Frage oben.">
     <div class="card-header bg-primary text-white">
       Ihre Entscheidung
     </div>
-    <div class="card-body" style="background-color:#f8f9fa;">
+    <div class="card-body" style="background-color:#e0e0e0;" id="decision-card-body">
 
       <p class="text-muted">
         Sie sehen <b>eine Lotterie</b>, die von einem Verkäufer in Ihrer Gruppe angeboten wird.
@@ -347,7 +350,8 @@
                    name="chosen_lottery_from_seller"
                    id="choice_seller1"
                    value="seller1"
-                   required>
+                   required
+                   disabled>
           </td>
           <td>
             <label for="choice_seller1">
@@ -361,7 +365,8 @@
                    name="chosen_lottery_from_seller"
                    id="choice_none"
                    value="none"
-                   required>
+                   required
+                   disabled>
           </td>
           <td>
             <label for="choice_none">
@@ -562,9 +567,11 @@
 
     var card_belief = document.getElementById("card_belief_s1");
     var card_belief_body = document.getElementById("card_belief_body_s1");
+    var decisionCard = document.getElementById("decision-card");
 
     // Bootstrap Popover
     var popover_belief = new bootstrap.Popover(card_belief);
+    var popover_decision = new bootstrap.Popover(decisionCard);
 
     // Slider nach 5s aktivieren
     setTimeout(function () {
@@ -574,6 +581,21 @@
     }, 5000);
 
     slider.addEventListener('input', function () {
+      var choiceSeller = document.getElementById('choice_seller1');
+      var choiceNone = document.getElementById('choice_none');
+      var decisionCardBody = document.getElementById('decision-card-body');
+
+      if (choiceSeller.disabled) {
+        choiceSeller.disabled = false;
+        choiceNone.disabled = false;
+
+        if (decisionCardBody) {
+          decisionCardBody.style.backgroundColor = "#f8f9fa";
+        }
+      }
+
+      popover_decision.disable();
+
       // Hinweistext umschalten
       clickText.style.display = "none";
       clickedText.style.display = "block";
