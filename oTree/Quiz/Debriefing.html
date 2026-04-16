@@ -1,30 +1,42 @@
-{{ block title}}
-Debriefing
+{{ block title }}
+
 {{ endblock }}
 
 {{ block content }}
 
-<h5> Purpose of this study </h5>
-<p>
-    The purpose of this study was to examine how key features of loot boxes in lotteries offered by other participants
-    influence the willingness to pay for subjects. You were part of the buying subjects and stated your willingness to pay
-    for five lotteries. We want to link overspending on loot boxes to problematic gambling behavior.
-</p>
+<div class="card shadow-sm" style="max-width: 800px; margin: 30px auto; border-radius: 12px;">
+    <div class="card-body" style="padding: 30px;">
 
-<h5> Concerns and Discomfort </h5>
-<p>
-    During the study, we also asked you about your gambling behavior. If gambling is causing problems for you, you can seek
-    assistance in treatment and support groups. For more information, please visit
-     <a
-        href="https://www.nhs.uk/live-well/addiction-support/gambling-addiction/"
-        target="_blank"
-        rel="noopener noreferrer"
-    >
-        the NHS page</a>.
-</p>
-   <!-- Weiter Button separat platziert -->
-<div style="text-align: right; margin-top: 15px;">
-    <button class="btn btn-primary" name="next">Weiter</button>
+        <h3 style="margin-bottom: 20px; color: #2c3e50;">
+            Vielen Dank für Ihre Teilnahme!
+        </h3>
+
+        <p style="font-size: 1.1rem; line-height: 1.6;">
+            Vielen Dank, dass Sie an unserer Pilotsitzung teilgenommen haben.
+            Wir wünschen Ihnen viel Freude und Erfolg im Modul <b>MW76 Experimental Economics</b>!
+        </p>
+
+        <hr style="margin: 25px 0;">
+
+        <p style="font-size: 1.05rem; margin-bottom: 10px;">
+            Falls Sie für die Auszahlung in dieser Sitzung ausgewählt wurden, beträgt Ihre Auszahlung:
+        </p>
+
+        <div style="
+            background-color: #f8f9fa;
+            border: 2px solid #dee2e6;
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+            font-size: 1.4rem;
+            font-weight: 600;
+            color: #198754;
+            margin-top: 15px;
+        ">
+            {{ participant.payoff_plus_participation_fee }}
+        </div>
+
+    </div>
 </div>
 
 {{ endblock }}
