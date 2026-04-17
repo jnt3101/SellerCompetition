@@ -50,9 +50,9 @@
                 ein Ergebnis von <strong>{{ outcome }}</strong>.
             </p>
             <p>
-                Gemäß der Auszahlungsregel entspricht Ihr Bonus in dieser Runde dem <strong>Preis</strong> Ihrer Lotterie.
+                Gemäß der Auszahlungsregel erhalten Sie in dieser Runde zusätzlich zu Ihrer Anfangsausstattung den <strong>Preis</strong> der Lotterie.
                 Ihr zusätzlicher Bonus in dieser Runde beträgt daher
-                <strong>{{ price }}</strong>.
+                <strong>{{ price }}</strong> + <strong>50 Münzen</strong> = <strong>{{ player.payoff }}</strong>.
             </p>
         </div>
     {% else %}

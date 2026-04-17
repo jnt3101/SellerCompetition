@@ -191,13 +191,13 @@ class Player(BasePlayer):
     justified_lottery = models.LongStringField(label="")
 
     # feedback for sellers
-    sold = models.BooleanField(initial=False)
+    sold = models.BooleanField(blank=True)
     lottery_outcome = models.CurrencyField()
 
     # --- buyer-specific fields ----------------------------------------------
 
     # belief about the seller's lottery (0–100 out of 100 plays)
-    buyer_belief_seller1 = models.IntegerField(label="", initial=0)
+    buyer_belief_seller1 = models.IntegerField(label="", blank=True)
     buyer_belief_sequence_seller1 = models.LongStringField(blank=True)
 
     # choice: 'seller1' or 'none'
@@ -219,10 +219,10 @@ class Player(BasePlayer):
     # --- flags for automatic (timeout-based) decisions -----------------------
     # These flags remain in the dataset for compatibility, but are no longer
     # used to generate automatic decisions (no timeouts are enforced now).
-    auto_lottery_decision = models.BooleanField(initial=False)
-    auto_seller_decision = models.BooleanField(initial=False)
-    auto_buyer_beliefs = models.BooleanField(initial=False)
-    auto_buyer_choice = models.BooleanField(initial=False)
+    auto_lottery_decision = models.BooleanField(blank=True)
+    auto_seller_decision = models.BooleanField(blank=True)
+    auto_buyer_beliefs = models.BooleanField(blank=True)
+    auto_buyer_choice = models.BooleanField(blank=True)
 
     # --- bonus payment tracking ---------------------------------------------
 

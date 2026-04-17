@@ -165,8 +165,8 @@ class Player(BasePlayer):
     # 'seller' or 'buyer'; assigned in introduction and kept fixed over rounds
     player_role = models.StringField()
     # index within role in the *current group* (1 or 2 for sellers, 1 for buyers)
-    seller_index = models.IntegerField(initial=0)
-    buyer_index = models.IntegerField(initial=0)
+    seller_index = models.IntegerField(blank=True)
+    buyer_index = models.IntegerField(blank=True)
 
     # --- lottery parameters (per round, for everyone's "own" lottery) -------
     # EN: For buyers, only default values are set here, which are not used.
@@ -203,18 +203,18 @@ class Player(BasePlayer):
     justified_lottery = models.LongStringField(label="")
 
     # feedback for sellers
-    sold = models.BooleanField(initial=False)
+    sold = models.BooleanField(blank=True)
     lottery_outcome = models.CurrencyField()
 
     # --- buyer-specific fields ----------------------------------------------
 
     # beliefs about the lotteries (if available)
     # belief about lottery from seller 1 (0–100 out of 100 plays)
-    buyer_belief_seller1 = models.IntegerField(label="", initial=0)
+    buyer_belief_seller1 = models.IntegerField(label="", blank=True)
     buyer_belief_sequence_seller1 = models.LongStringField(blank=True)
 
     # belief about lottery from seller 2 (only used if there is a second seller)
-    buyer_belief_seller2 = models.IntegerField(label="", initial=0)
+    buyer_belief_seller2 = models.IntegerField(label="", blank=True)
     buyer_belief_sequence_seller2 = models.LongStringField(blank=True)
 
     # choice: 'seller1', 'seller2', or 'none'
@@ -228,19 +228,19 @@ class Player(BasePlayer):
     )
 
     # feedback for buyers
-    bought_lottery = models.BooleanField(initial=False)
-    chosen_seller_index = models.IntegerField(initial=0)
-    chosen_lottery_price = models.CurrencyField(initial=0)
+    bought_lottery = models.BooleanField(blank=True)
+    chosen_seller_index = models.IntegerField(blank=True)
+    chosen_lottery_price = models.CurrencyField(blank=True)
     buyer_lottery_outcome = models.CurrencyField()
     outside_option_value = models.CurrencyField()
 
     # --- flags for automatic (timeout-based) decisions -----------------------
     # These flags remain in the dataset for compatibility, but are no longer
     # used to generate automatic decisions (no timeouts are enforced now).
-    auto_lottery_decision = models.BooleanField(initial=False)
-    auto_seller_decision = models.BooleanField(initial=False)
-    auto_buyer_beliefs = models.BooleanField(initial=False)
-    auto_buyer_choice = models.BooleanField(initial=False)
+    auto_lottery_decision = models.BooleanField(blank=True)
+    auto_seller_decision = models.BooleanField(blank=True)
+    auto_buyer_beliefs = models.BooleanField(blank=True)
+    auto_buyer_choice = models.BooleanField(blank=True)
 
     # --- bonus payment tracking ---------------------------------------------
 
