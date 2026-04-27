@@ -31,6 +31,12 @@
 
 <div style="display: flex; flex-direction: column; gap: 1rem; max-width: 800px; margin: auto;">
 
+    <div style="padding: 1rem; border: 1px solid #ccc; border-radius: 8px; background-color: #f2f2f2;">
+        <p>
+            Ihr Guthaben vor der Runde betrug: <strong>{{ starting_balance }}</strong>
+        </p>
+    </div>
+
     {% if bought_lottery %}
         <div style="padding: 1rem; border: 1px solid #ccc; border-radius: 8px; background-color: #f9f9f9;">
             <h5>Lotterie Ergebnis</h5>
@@ -43,32 +49,35 @@
                 Eine zufällige Ziehung aus der von Ihnen gekauften Lotterie ergab ein Ergebnis von
                 <strong>{{ lottery_outcome }}</strong>.
             </p>
+
             <p>
-                Ihre Auszahlung wird bestimmt durch Anfangsausstattung - Preis der Lotterie + Ergebnis der Lotterie.
-                <br>
-                Also: <strong>{{ outside_option_value }} - {{ chosen_lottery_price }} + {{ lottery_outcome }} = {{ player.payoff }}</strong>
+                Von Ihrem Guthaben vor der Runde in Höhe von <strong>{{ starting_balance }}</strong>
+                wird der Preis der Lotterie in Höhe von <strong>{{ chosen_lottery_price }}</strong> abgezogen.
+                Anschließend wird das Ergebnis der Lotterie in Höhe von <strong>{{ lottery_outcome }}</strong> hinzugefügt.
             </p>
+
+
         </div>
     {% else %}
         <div style="padding: 1rem; border: 1px solid #ccc; border-radius: 8px; background-color: #f2f2f2;">
             <h5>Ihre Entscheidung</h5>
+
             <p>
                 In dieser Runde haben Sie sich entschieden, die Lotterie <strong>nicht zu kaufen</strong>.
             </p>
+
             <p>
-                In diesem Fall entspricht Ihre Auszahlung in dieser Runde Ihrer <strong>Anfangsausstattung</strong>.
+                Da Sie keine Lotterie gekauft haben, ändert sich Ihr Guthaben in dieser Runde nicht.
             </p>
-            <p>
-                Ihre Anfangsausstattung war:
-                <strong>{{ outside_option_value }}</strong>.
-            </p>
+
+
         </div>
     {% endif %}
 
     <div style="padding: 1rem; border: 1px solid #ccc; border-radius: 8px; background-color: #e5ffe5;">
         <p>
-            Ihre Auszahlung in dieser Runde beträgt:
-            <strong>{{ player.payoff }}</strong>
+            Ihr Guthaben nach dieser Runde beträgt:
+            <strong>{{ ending_balance }}</strong>
         </p>
     </div>
 

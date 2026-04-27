@@ -342,4 +342,4 @@ class BuyerLotteries(Page):
 class Debriefing(Page):
     pass
 
-page_sequence = [General, Video_1, Video_2, Control, Game, BuyerLotteries, Debriefing]
+page_sequence = [General, Video_1, Video_2, Control, Game, BuyerLotteries]

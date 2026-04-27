@@ -31,16 +31,22 @@ Main interaction app:
 
 - Each buyer can buy at most one lottery.
 
-- Seller payoff:
-    * seller endowment + price of the lottery if sold
-    * seller endowment if not sold
-- Buyer payoff:
-    * if they buy a lottery: endowment - price + outcome of that lottery
-    * if they do not buy: endowment
+NEW COIN LOGIC:
+- Buyers receive 1000 coins ONCE in round 1.
+- Sellers receive 750 coins ONCE in round 1.
+- These coins are carried over across rounds as a running balance.
 
-- All rounds count toward the total bonus.
-- bonus_payment stores the round-specific bonus in euros.
-- total_bonus_payment stores the sum of all round bonuses in euros.
+- Seller balance:
+    * previous balance + price of the lottery if sold
+    * previous balance if not sold
+
+- Buyer balance:
+    * previous balance - price + outcome if they buy a lottery
+    * previous balance if they do not buy
+
+PAYMENT LOGIC:
+- The relevant monetary bonus is based on the final coin balance.
+- Coins are converted into euros with EXCHANGE_RATE.
 """
 
 
@@ -59,9 +65,11 @@ class C(BaseConstants):
     BASE_PAY = 6  # in euro
     EXCHANGE_RATE = 100
 
-    # Buyer and seller endowments / outside option and fixed price cap
-    BUYER_ENDOWMENT = 100
-    SELLER_ENDOWMENT = 50
+    # Initial one-time endowments in round 1
+    BUYER_INITIAL_ENDOWMENT = 1000
+    SELLER_INITIAL_ENDOWMENT = 750
+
+    # Fixed price cap
     MAX_PRICE = 100
 
     # Lottery structure
@@ -156,6 +164,14 @@ class Player(BasePlayer):
     seller_index = models.IntegerField(initial=0)
     buyer_index = models.IntegerField(initial=0)
 
+    # --- running balance fields ---------------------------------------------
+
+    # balance at the start of the round
+    starting_balance = models.CurrencyField(initial=0)
+
+    # balance at the end of the round
+    ending_balance = models.CurrencyField(initial=0)
+
     # --- lottery parameters (per round, for everyone's "own" lottery) -------
     # For buyers, only default values are set here, which are not used.
     max_payoff = models.IntegerField()
@@ -226,14 +242,13 @@ class Player(BasePlayer):
 
     # --- bonus payment tracking ---------------------------------------------
 
-    # Kept for compatibility in the data export. Since all rounds are
-    # bonus-relevant again, this field is not used for payment logic.
+    # Kept for compatibility in the data export
     paid_lottery_round = models.IntegerField(initial=0)
 
-    # Stores the bonus payment of the current round in euros.
+    # Round-specific display variable in euros
     bonus_payment = models.FloatField(initial=0)
 
-    # Stores the sum of bonus payments across all rounds in euros.
+    # Total bonus in euros based on current total balance
     total_bonus_payment = models.FloatField(initial=0)
 
     # Full payment including participation fee
@@ -286,23 +301,16 @@ class Player(BasePlayer):
         """
         Ensure that in every round:
         - role is loaded from participant.vars (determined in introduction app)
+        - running balance is initialized correctly
         - lottery parameters are set ONLY for sellers
         - sellers draw their sample (once per round)
 
-        Buyers do not get their own lottery and no sample draws.
-        The fields max_payoff/mid_probability are only set to harmless
-        default values for buyers to keep the model consistent.
-
-        Lottery sequence logic:
-        - We have 5 different high payoffs and 5 different mid probabilities.
-        - There are 10 rounds.
-        - Rounds 1–5: generated "as before":
-            * Take a copy of MAX_PAYOFF_STATES, shuffle it.
-            * Take a copy of MID_PROBABILITIES, shuffle it independently.
-            * Zip the 2 shuffled lists to get 5 random (x, q) pairs.
-        - Rounds 6–10: RESET and do the same again for a new block of 5 rounds.
-        - Technically, we construct blocks of length 5 using this procedure
-          and concatenate the blocks to obtain a sequence of length 10.
+        BALANCE LOGIC:
+        - Round 1:
+            buyer starts with 1000
+            seller starts with 750
+        - Round 2+:
+            start balance = end balance from previous round
         """
         if self.round_initialized:
             return
@@ -312,8 +320,22 @@ class Player(BasePlayer):
         # Load role from participant.vars (role is fixed across all rounds)
         self.player_role = participant.vars.get('player_role')
 
-        # Kept for compatibility in data export; no paid-round logic is used.
+        # Kept for compatibility
         self.paid_lottery_round = 0
+
+        # --- initialize running balance -------------------------------------
+        if self.round_number == 1:
+            if self.player_role == 'buyer':
+                self.starting_balance = cu(C.BUYER_INITIAL_ENDOWMENT)
+            elif self.player_role == 'seller':
+                self.starting_balance = cu(C.SELLER_INITIAL_ENDOWMENT)
+            else:
+                self.starting_balance = cu(0)
+        else:
+            self.starting_balance = self.in_round(self.round_number - 1).ending_balance
+
+        # default until round result is computed
+        self.ending_balance = self.starting_balance
 
         # --- Build / ensure the per-round lottery parameter sequence --------
         combos = participant.vars.get('payoff_probability_combinations')
@@ -362,7 +384,6 @@ class Player(BasePlayer):
             self.draw_sample()
         else:
             # Buyers do not have their own lottery.
-            # We only set benign default values that are never used.
             self.max_payoff = 0
             self.mid_probability = 0.0
 
@@ -375,6 +396,8 @@ class Player(BasePlayer):
         context = {
             'exchange_rate': int(1 / self.session.config['real_world_currency_per_point']),
             'show_up': self.session.config['participation_fee'],
+            'starting_balance': self.starting_balance,
+            'ending_balance': self.ending_balance,
         }
         return context
 
@@ -564,17 +587,15 @@ def set_trade_and_outcomes(group: Group):
     - read seller and buyer
     - buyer chooses whether to buy from the seller or not
     - if buyer buys: draw lottery outcome for that buyer
-    - seller payoff:
-        * seller endowment + price if sold
-        * seller endowment if not sold
-    - buyer payoff:
-        * if they buy a lottery: endowment - price + outcome
-        * otherwise: endowment
 
-    Bonus logic:
-    - All rounds are bonus-relevant.
-    - bonus_payment is set in every round to payoff / exchange rate.
-    - total_bonus_payment is the sum across all rounds.
+    BALANCE LOGIC:
+    - buyer and seller start the round with starting_balance
+    - end of round balances are computed from that balance
+    - balances are carried over to the next round
+
+    PAYMENT LOGIC:
+    - total bonus corresponds to current total balance / exchange rate
+    - at the end of round 10, final payout = BASE_PAY + final balance in euros
     """
     # Ensure all players in the group are initialized for this round
     for p in group.get_players():
@@ -593,14 +614,14 @@ def set_trade_and_outcomes(group: Group):
     seller = sellers[0]
     buyer = buyers[0]
 
-    outside_option = cu(C.BUYER_ENDOWMENT)
-    seller_endowment = cu(C.SELLER_ENDOWMENT)
+    seller_start = seller.starting_balance
+    buyer_start = buyer.starting_balance
 
     # Reset fields
     seller.sold = False
     seller.lottery_outcome = cu(0)
 
-    buyer.outside_option_value = outside_option
+    buyer.outside_option_value = buyer_start
     buyer.bought_lottery = False
     buyer.chosen_seller_index = 0
     buyer.chosen_lottery_price = cu(0)
@@ -618,23 +639,33 @@ def set_trade_and_outcomes(group: Group):
         buyer.chosen_seller_index = seller.seller_index
         buyer.chosen_lottery_price = seller.selling_price_lottery
         buyer.buyer_lottery_outcome = cu(outcome)
-        buyer.payoff = outside_option - seller.selling_price_lottery + cu(outcome)
+
+        # running balances
+        buyer.ending_balance = buyer_start - seller.selling_price_lottery + cu(outcome)
+        seller.ending_balance = seller_start + seller.selling_price_lottery
 
         seller.sold = True
         seller.lottery_outcome = cu(outcome)
-        seller.payoff = seller_endowment + seller.selling_price_lottery
     else:
-        buyer.payoff = outside_option
-        seller.payoff = seller_endowment
+        buyer.ending_balance = buyer_start
+        seller.ending_balance = seller_start
 
-    # All rounds count toward bonus; store round bonus in euros.
-    for p in players:
-        p.bonus_payment = float(p.payoff) / C.EXCHANGE_RATE
+    # keep payoff field populated (for compatibility / exports)
+    buyer.payoff = buyer.ending_balance
+    seller.payoff = seller.ending_balance
 
-    # total bonus equals the cumulative sum across all rounds.
+    # Round-specific euro display:
+    # In round 1 include the initial endowment in the displayed round bonus.
+    # In later rounds only show the net change of this round.
     for p in players:
-        total = sum(r.bonus_payment for r in p.in_all_rounds())
-        p.total_bonus_payment = total
+        if p.round_number == 1:
+            p.bonus_payment = float(p.ending_balance) / C.EXCHANGE_RATE
+        else:
+            round_change = float(p.ending_balance - p.starting_balance)
+            p.bonus_payment = round_change / C.EXCHANGE_RATE
+
+        # total bonus equals current total balance converted to euros
+        p.total_bonus_payment = float(p.ending_balance) / C.EXCHANGE_RATE
 
         # Store final payout incl. participation fee after round 10
         if p.round_number == C.NUM_ROUNDS:
@@ -817,7 +848,7 @@ class SellerFeedback(Page):
     - whether their lottery was bought
     - own price
     - outcome drawn if purchased
-    No time limit.
+    - starting and ending balance
     """
 
     @staticmethod
@@ -831,10 +862,13 @@ class SellerFeedback(Page):
             sold=player.sold,
             price=player.selling_price_lottery,
             outcome=player.lottery_outcome,
+            starting_balance=player.starting_balance,
+            ending_balance=player.ending_balance,
             paid_round='alle Runden',
             is_paid_round=True,
             round_payoff=player.payoff,
             round_bonus_euro=player.bonus_payment,
+            total_bonus_euro=player.total_bonus_payment,
         )
 
 
@@ -843,8 +877,8 @@ class BuyerFeedback(Page):
     Feedback for buyers:
     - whether they bought a lottery
     - if yes: seller index, price, and outcome
-    - if no: outside option
-    No time limit.
+    - if no: keep current balance
+    - starting and ending balance
     """
 
     @staticmethod
@@ -860,10 +894,13 @@ class BuyerFeedback(Page):
             chosen_lottery_price=player.chosen_lottery_price,
             lottery_outcome=player.buyer_lottery_outcome,
             outside_option_value=player.outside_option_value,
+            starting_balance=player.starting_balance,
+            ending_balance=player.ending_balance,
             paid_round='alle Runden',
             is_paid_round=True,
             round_payoff=player.payoff,
             round_bonus_euro=player.bonus_payment,
+            total_bonus_euro=player.total_bonus_payment,
         )
 
 
