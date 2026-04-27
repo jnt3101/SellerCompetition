@@ -21,13 +21,53 @@
     z-index: 2000;
     box-shadow: 0 2px 8px rgba(0,0,0,.15);
   }
+
+  /* Timer links oben */
+  .timer-badge{
+    position: fixed;
+    top: 12px;
+    left: 12px;
+    background: #fff;
+    border: 2px solid #000;
+    border-radius: 8px;
+    padding: 6px 12px;
+    font-weight: 600;
+    z-index: 2000;
+    box-shadow: 0 2px 8px rgba(0,0,0,.15);
+    min-width: 120px;
+    text-align: center;
+  }
+
+  .timer-warning{
+    position: fixed;
+    top: 60px;
+    left: 12px;
+    background: #fff3cd;
+    border: 2px solid #856404;
+    color: #856404;
+    border-radius: 8px;
+    padding: 8px 12px;
+    font-weight: 600;
+    z-index: 2000;
+    box-shadow: 0 2px 8px rgba(0,0,0,.15);
+    display: none;
+    max-width: 280px;
+  }
 </style>
+
+<!-- Timer -->
+<div class="timer-badge">
+  Verbleibende Zeit: <span id="countdown">--:--</span>
+</div>
+
+<div id="timer-message" class="timer-warning">
+  Bitte treffen Sie jetzt eine Entscheidung.
+</div>
 
 <!-- Rundenzähler -->
 <div class="round-badge">
   Runde {{ player.round_number }} von {{ C.NUM_ROUNDS }}
 </div>
-
 
 <div class="container" id="id_decision_area">
 
@@ -42,13 +82,12 @@
         <p>
           Unten sehen Sie Informationen über die <b>zwei Lotterien</b>, die Sie in dieser Runde kaufen können.
           Jede Lotterie wird von <b>einer anderen Person</b> in der Studie angeboten.
-
         </p>
       {% endif %}
     </div>
   </div>
 
-    <br>
+  <br>
 
   {# --------- Lotterien + Einschätzungen --------- #}
 
@@ -73,7 +112,7 @@
 
       <div class="card-body">
 
-        {# ---------- LOTTERIE-BOX: wieder wie im Original, abhängig von presentation_id ---------- #}
+        {# ---------- LOTTERIE-BOX ---------- #}
         <div class="mb-3">
           {% if lot.presentation_id == 'Transparent' %}
             <div class="lottery-info-box">
@@ -217,7 +256,7 @@
           {% endif %}
         </div>
 
-        {# ---------- GLAUBENS-SLIDER FÜR DIESE LOTTERIE ---------- #}
+        {# ---------- GLAUBENS-SLIDER ---------- #}
         {% if forloop.counter == 1 %}
           <div class="card mb-0 shadow-sm belief-card"
                tabindex="0"
@@ -260,7 +299,7 @@
                     <span id="click_slider_s1">
                       <h5 style="color: black">
                         Der Slider wird in wenigen Sekunden aktiviert. Sobald er aktiv ist (nicht mehr ausgegraut),
-          klicken Sie bitte, um Ihre Einschätzung anzugeben.
+                        klicken Sie bitte, um Ihre Einschätzung anzugeben.
                       </h5>
                     </span>
                     <span id="slider_clicked_s1" style="display:none;">
@@ -289,7 +328,7 @@
                tabindex="0"
                data-bs-trigger="hover focus"
                id="card_belief_s2"
-               data-bs-content="Bitte denken Sie sorgfältig über Lotterie 2 nach. Sie können die Frage nach 5 Sekunden beantworten.">
+               data-bs-content="Bitte denken Sie sorgfältig über Lotterie 2 nach. Sie können die Frage erst beantworten, nachdem Sie Lotterie 1 eingeschätzt haben.">
             <div class="card-header bg-secondary text-white">
               Ihre Einschätzung zu Lotterie 2
             </div>
@@ -350,18 +389,22 @@
           </div>
         {% endif %}
 
-      </div>  {# end card-body #}
-    </div>    {# end lottery-card #}
+      </div>
+    </div>
 
   {% endfor %}
 
   {# --------- Kaufentscheidung --------- #}
 
-  <div class="card mb-4 shadow-sm">
+  <div class="card mb-4 shadow-sm"
+       id="decision-card"
+       tabindex="0"
+       data-bs-trigger="hover focus"
+       data-bs-content="Bitte beantworten Sie zuerst beide Fragen oben.">
     <div class="card-header bg-primary text-white">
       Ihre Entscheidung
     </div>
-    <div class="card-body" style="background-color:#f8f9fa;">
+    <div class="card-body" style="background-color:#e0e0e0;" id="decision-card-body">
 
       {% if n_sellers == 1 %}
         <p class="text-muted">
@@ -391,7 +434,8 @@
                      name="chosen_lottery_from_seller"
                      id="choice_seller1"
                      value="seller1"
-                     required>
+                     required
+                     disabled>
             </td>
             <td>
               <label for="choice_seller1">
@@ -405,7 +449,8 @@
                      name="chosen_lottery_from_seller"
                      id="choice_none"
                      value="none"
-                     required>
+                     required
+                     disabled>
             </td>
             <td>
               <label for="choice_none">
@@ -421,7 +466,8 @@
                      name="chosen_lottery_from_seller"
                      id="choice_seller1"
                      value="seller1"
-                     required>
+                     required
+                     disabled>
             </td>
             <td>
               <label for="choice_seller1">
@@ -435,7 +481,8 @@
                      name="chosen_lottery_from_seller"
                      id="choice_seller2"
                      value="seller2"
-                     required>
+                     required
+                     disabled>
             </td>
             <td>
               <label for="choice_seller2">
@@ -449,7 +496,8 @@
                      name="chosen_lottery_from_seller"
                      id="choice_none"
                      value="none"
-                     required>
+                     required
+                     disabled>
             </td>
             <td>
               <label for="choice_none">
@@ -553,7 +601,6 @@
     background-color: #e0e0e0;
   }
 
-  /* Initial slider style (like seller before moving) */
   .slider2 {
     -webkit-appearance: none;
     appearance: none;
@@ -579,7 +626,6 @@
     visibility: hidden;
   }
 
-  /* After interaction: visible thumb */
   .slider {
     -webkit-appearance: none;
     appearance: none;
@@ -606,16 +652,66 @@
   }
 </style>
 
-{# Bootstrap bundle for Popovers #}
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"
         integrity="sha384-ka7Sk0Gln4gmtz2MlQnikT1wXgYsOg+OMhuP+IlRH9sENBO0LRn5q+8nbTov4+1p"
         crossorigin="anonymous"></script>
 
 <script>
-  // Flag, damit der Timer für Slider 2 nur einmal gestartet wird
+  function startCountdown() {
+    const roundNumber = {{ player.round_number }};
+    let remainingSeconds = roundNumber === 1 ? 120 : 90;
+
+    const countdownElement = document.getElementById('countdown');
+    const messageElement = document.getElementById('timer-message');
+
+    function formatTime(seconds) {
+      const minutes = Math.floor(seconds / 60);
+      const secs = seconds % 60;
+      return `${minutes}:${secs.toString().padStart(2, '0')}`;
+    }
+
+    countdownElement.textContent = formatTime(remainingSeconds);
+
+    const timer = setInterval(function() {
+      remainingSeconds--;
+
+      if (remainingSeconds <= 0) {
+        countdownElement.textContent = "0:00";
+        messageElement.style.display = "block";
+        clearInterval(timer);
+        return;
+      }
+
+      countdownElement.textContent = formatTime(remainingSeconds);
+    }, 1000);
+  }
+
+  var slider1Answered = false;
+  var slider2Answered = false;
   var slider2EnableTimerStarted = false;
 
-  // Slider für Lotterie 1
+  function maybeEnableDecision() {
+    if (slider1Answered && slider2Answered) {
+      var decisionCardBody = document.getElementById('decision-card-body');
+      var choiceSeller1 = document.getElementById('choice_seller1');
+      var choiceSeller2 = document.getElementById('choice_seller2');
+      var choiceNone = document.getElementById('choice_none');
+      var decisionCard = document.getElementById('decision-card');
+
+      if (choiceSeller1) choiceSeller1.disabled = false;
+      if (choiceSeller2) choiceSeller2.disabled = false;
+      if (choiceNone) choiceNone.disabled = false;
+
+      if (decisionCardBody) {
+        decisionCardBody.style.backgroundColor = "#f8f9fa";
+      }
+
+      if (decisionCard && decisionCard._popover) {
+        decisionCard._popover.disable();
+      }
+    }
+  }
+
   (function () {
     var slider = document.getElementById('id_belief_slider_s1');
     if (!slider) { return; }
@@ -629,53 +725,52 @@
     var card_belief = document.getElementById("card_belief_s1");
     var card_belief_body = document.getElementById("card_belief_body_s1");
 
-    // Bootstrap Popover
     var popover_belief = new bootstrap.Popover(card_belief);
 
-    // Slider 1 nach 5s aktivieren
     setTimeout(function () {
       slider.disabled = false;
       card_belief_body.style.backgroundColor = "#FFFFFF";
-      $('#card_belief_s1').popover('disable');
+      popover_belief.disable();
     }, 5000);
 
     slider.addEventListener('input', function () {
-      // Hinweistext umschalten
       clickText.style.display = "none";
       clickedText.style.display = "block";
 
-      // Verlauf der Werte speichern
       all_numbers = all_numbers + ";" + slider.value.toString();
       if (seqInput) {
         seqInput.value = all_numbers;
       }
 
-      // Slider-Stil anpassen
       slider.className = "slider";
       textBelief.textContent = slider.value.toString() + " Mal";
 
-      // ---- Steuerung für Slider 2 ----
+      if (!slider1Answered) {
+        slider1Answered = true;
+      }
+
+      maybeEnableDecision();
+
       if (!slider2EnableTimerStarted) {
         slider2EnableTimerStarted = true;
 
         var slider2 = document.getElementById('id_belief_slider_s2');
         var card_belief_body_2 = document.getElementById("card_belief_body_s2");
+        var card_belief_2 = document.getElementById("card_belief_s2");
 
         if (slider2) {
-          // Slider 2 erst 5 Sekunden NACH Bewegung von Slider 1 freigeben
-          setTimeout(function () {
-            slider2.disabled = false;
-            if (card_belief_body_2) {
-              card_belief_body_2.style.backgroundColor = "#FFFFFF";
-            }
-            $('#card_belief_s2').popover('disable');
-          }, 5000);
+          slider2.disabled = false;
+          if (card_belief_body_2) {
+            card_belief_body_2.style.backgroundColor = "#FFFFFF";
+          }
+          if (card_belief_2 && card_belief_2._popover) {
+            card_belief_2._popover.disable();
+          }
         }
       }
     });
   })();
 
-  // Slider für Lotterie 2
   (function () {
     var slider = document.getElementById('id_belief_slider_s2');
     if (!slider) { return; }
@@ -687,12 +782,7 @@
     var seqInput = document.getElementById('belief_sequence_s2');
 
     var card_belief = document.getElementById("card_belief_s2");
-
-    // Popover für Karte 2 (wird durch Slider 1 später deaktiviert)
     var popover_belief = new bootstrap.Popover(card_belief);
-
-    // KEINE eigene setTimeout-Aktivierung mehr hier!
-    // Aktivierung von Slider 2 erfolgt gesteuert durch Slider 1 (siehe oben).
 
     slider.addEventListener('input', function () {
       clickText.style.display = "none";
@@ -705,10 +795,23 @@
 
       slider.className = "slider";
       textBelief.textContent = slider.value.toString() + " Mal";
+
+      if (!slider2Answered) {
+        slider2Answered = true;
+      }
+
+      maybeEnableDecision();
     });
   })();
+
+  (function () {
+    var decisionCard = document.getElementById('decision-card');
+    if (decisionCard) {
+      new bootstrap.Popover(decisionCard);
+    }
+  })();
+
+  startCountdown();
 </script>
 
 {% endblock %}
-
-
