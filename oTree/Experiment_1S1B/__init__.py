@@ -9,20 +9,20 @@ Main interaction app:
 - Participants are pre-assigned roles ('seller' or 'buyer') in the
   introduction app and this role stays fixed for all 10 rounds.
 
-- In EACH round, players are newly matched across the complete session
-  into groups of size 2:
-    * 1 seller
-    * 1 buyer
+- In EACH round, players are newly matched within fixed matching groups
+  of size 10. Each matching group contains:
+    * 5 sellers
+    * 5 buyers
 
-- There are no fixed matching groups anymore.
-  Every round uses the full pool of sellers and buyers in the session.
+- Participants are no longer rematched across the complete session.
+  Rematching only happens within their fixed 10-person matching group.
 
 - There is no group_by_arrival_time anymore. Grouping is done in
   creating_session for each round.
 
 - At the end of each round, all players wait for each other before
   proceeding to the next round, so that regrouping in the next round
-  uses the entire session.
+  uses all participants within each fixed matching group.
 
 - Sellers always have SAMPLE_CENSORING-style options (4 presentations).
 - Buyers see the seller's lottery including the price and choose:
@@ -141,7 +141,8 @@ class Subsession(BaseSubsession):
     in the module-level creating_session function.
 
     Design:
-    - In each round, the entire session is rematched into 1S1B groups.
+    - In each round, participants are rematched into 1S1B groups
+      within fixed matching groups of 10.
     - Roles remain fixed over rounds and come from the introduction app.
     """
     pass
@@ -159,6 +160,9 @@ class Player(BasePlayer):
 
     # 'seller' or 'buyer'; assigned in introduction and kept fixed over rounds
     player_role = models.StringField()
+
+    # Fixed matching group of 10 participants: 5 sellers + 5 buyers
+    matching_group_id = models.IntegerField(initial=0)
 
     # index within role in the current group (always 1 in 1S1B)
     seller_index = models.IntegerField(initial=0)
@@ -301,6 +305,7 @@ class Player(BasePlayer):
         """
         Ensure that in every round:
         - role is loaded from participant.vars (determined in introduction app)
+        - matching group id is loaded from participant.vars
         - running balance is initialized correctly
         - lottery parameters are set ONLY for sellers
         - sellers draw their sample (once per round)
@@ -319,6 +324,9 @@ class Player(BasePlayer):
 
         # Load role from participant.vars (role is fixed across all rounds)
         self.player_role = participant.vars.get('player_role')
+
+        # Load fixed matching group id
+        self.matching_group_id = participant.vars.get('matching_group_id', 0)
 
         # Kept for compatibility
         self.paid_lottery_round = 0
@@ -398,6 +406,7 @@ class Player(BasePlayer):
             'show_up': self.session.config['participation_fee'],
             'starting_balance': self.starting_balance,
             'ending_balance': self.ending_balance,
+            'matching_group_id': self.matching_group_id,
         }
         return context
 
@@ -405,18 +414,16 @@ class Player(BasePlayer):
 # --- session creation & grouping --------------------------------------------
 
 
-def _create_groups_for_full_session(subsession: Subsession):
+def _assign_matching_groups_in_round_1(subsession: Subsession):
     """
-    Create 1S1B groups using the full session pool.
+    Assign participants to fixed matching groups of 10 in round 1.
 
-    In every round:
-    - collect all sellers in the session
-    - collect all buyers in the session
-    - shuffle sellers and buyers separately
-    - pair seller[i] with buyer[i]
+    Each matching group must contain:
+    - 5 sellers
+    - 5 buyers
 
-    Requirement:
-    - the session must contain exactly as many sellers as buyers
+    These matching groups are stored in participant.vars and stay fixed
+    for all rounds.
     """
     players = subsession.get_players()
 
@@ -429,25 +436,104 @@ def _create_groups_for_full_session(subsession: Subsession):
             f"for 1S1B matching. Found {len(sellers)} sellers and {len(buyers)} buyers."
         )
 
+    if len(players) % 10 != 0:
+        raise Exception(
+            "The total number of participants must be divisible by 10 "
+            f"to form matching groups of 10. Found {len(players)} participants."
+        )
+
+    if len(sellers) % 5 != 0 or len(buyers) % 5 != 0:
+        raise Exception(
+            "The number of sellers and buyers must each be divisible by 5 "
+            "to form matching groups of 10 with 5 sellers and 5 buyers."
+        )
+
     random.shuffle(sellers)
     random.shuffle(buyers)
 
+    n_matching_groups = len(players) // 10
+
+    for mg_id in range(1, n_matching_groups + 1):
+        group_sellers = sellers[(mg_id - 1) * 5: mg_id * 5]
+        group_buyers = buyers[(mg_id - 1) * 5: mg_id * 5]
+
+        for p in group_sellers + group_buyers:
+            p.participant.vars['matching_group_id'] = mg_id
+            p.matching_group_id = mg_id
+
+
+def _create_groups_within_matching_groups(subsession: Subsession):
+    """
+    Create 1S1B groups within fixed matching groups of 10.
+
+    In every round:
+    - participants stay inside their fixed matching_group_id
+    - within each matching group:
+        * collect 5 sellers
+        * collect 5 buyers
+        * shuffle sellers and buyers separately
+        * pair seller[i] with buyer[i]
+
+    Thus, rematching happens only within the 10er Matching Gruppe,
+    not across the full session.
+    """
+    players = subsession.get_players()
+
+    matching_group_ids = sorted({
+        p.participant.vars.get('matching_group_id')
+        for p in players
+    })
+
+    if None in matching_group_ids:
+        raise Exception(
+            "Some participants do not have a matching_group_id. "
+            "Matching groups must be assigned in round 1."
+        )
+
     group_matrix = []
-    for seller, buyer in zip(sellers, buyers):
-        group_matrix.append([seller, buyer])
+
+    for mg_id in matching_group_ids:
+        mg_players = [
+            p for p in players
+            if p.participant.vars.get('matching_group_id') == mg_id
+        ]
+
+        sellers = [p for p in mg_players if p.participant.vars.get('player_role') == 'seller']
+        buyers = [p for p in mg_players if p.participant.vars.get('player_role') == 'buyer']
+
+        if len(mg_players) != 10:
+            raise Exception(
+                f"Matching group {mg_id} must contain exactly 10 participants. "
+                f"Found {len(mg_players)}."
+            )
+
+        if len(sellers) != 5 or len(buyers) != 5:
+            raise Exception(
+                f"Matching group {mg_id} must contain exactly 5 sellers and 5 buyers. "
+                f"Found {len(sellers)} sellers and {len(buyers)} buyers."
+            )
+
+        random.shuffle(sellers)
+        random.shuffle(buyers)
+
+        for seller, buyer in zip(sellers, buyers):
+            group_matrix.append([seller, buyer])
 
     subsession.set_group_matrix(group_matrix)
 
-    # Set model-level role information and indices for this round
+    # Set model-level role information, matching group id and indices for this round
     for group in subsession.get_groups():
         for p in group.get_players():
             p.player_role = p.participant.vars.get('player_role')
+            p.matching_group_id = p.participant.vars.get('matching_group_id', 0)
+
             if p.player_role == 'seller':
                 p.seller_index = 1
                 p.buyer_index = 0
             elif p.player_role == 'buyer':
                 p.buyer_index = 1
                 p.seller_index = 0
+
         group.group_type = "1S1B"
 
 
@@ -455,27 +541,20 @@ def creating_session(subsession: Subsession):
     """
     Grouping logic for the entire app.
 
-    In every round:
-        - Reuse the fixed role from participant.vars['player_role'].
-        - Form new 1S1B groups using the complete session pool.
-        - There are no fixed matching groups anymore.
+    Round 1:
+        - Assign participants to fixed matching groups of 10.
+        - Each matching group contains 5 sellers and 5 buyers.
 
-    Requirement:
-        - The total number of sellers must equal the total number of buyers.
+    Every round:
+        - Form new 1S1B groups only within each fixed matching group of 10.
+        - Participants are NOT rematched across the full session anymore.
     """
-    players = subsession.get_players()
-    sellers = [p for p in players if p.participant.vars.get('player_role') == 'seller']
-    buyers = [p for p in players if p.participant.vars.get('player_role') == 'buyer']
-
-    if len(sellers) != len(buyers):
-        raise Exception(
-            "The session must contain exactly as many sellers as buyers "
-            f"for 1S1B matching. Found {len(sellers)} sellers and {len(buyers)} buyers."
-        )
+    if subsession.round_number == 1:
+        _assign_matching_groups_in_round_1(subsession)
 
     subsession.session.vars['group_type_value'] = "1S1B"
 
-    _create_groups_for_full_session(subsession)
+    _create_groups_within_matching_groups(subsession)
 
 
 # --- context helpers for templates -----------------------------------------
@@ -869,6 +948,7 @@ class SellerFeedback(Page):
             round_payoff=player.payoff,
             round_bonus_euro=player.bonus_payment,
             total_bonus_euro=player.total_bonus_payment,
+            matching_group_id=player.matching_group_id,
         )
 
 
@@ -901,6 +981,7 @@ class BuyerFeedback(Page):
             round_payoff=player.payoff,
             round_bonus_euro=player.bonus_payment,
             total_bonus_euro=player.total_bonus_payment,
+            matching_group_id=player.matching_group_id,
         )
 
 
@@ -908,8 +989,8 @@ class RoundTransitionWaitPage(WaitPage):
     """
     At the end of each round, wait for ALL players in the session
     before proceeding to the next round. This ensures that the dynamic
-    regrouping in the next round uses the full pool of participants
-    from the whole session.
+    regrouping in the next round uses all participants within each fixed
+    matching group.
     """
     wait_for_all_groups = True
 
@@ -934,6 +1015,6 @@ page_sequence = [
     # feedback for seller and buyer
     SellerFeedback,
     BuyerFeedback,
-    # end-of-round global wait, so next round's grouping uses full pool
+    # end-of-round global wait, so next round's grouping stays synchronized
     RoundTransitionWaitPage,
 ]

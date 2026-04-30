@@ -64,10 +64,10 @@
 
 <ul>
     <li>
-        <b>Verkäufer</b> erhalten in jeder Runde <b>50 Münzen</b> und zusätzlich die <b>Lotterie</b>, die sie anbieten.
+        <b>Verkäufer</b> erhalten in Runde 1 <b>750 Münzen</b> als Guthaben und zusätzlich in jeder Runde eine <b>Lotterie</b>, die sie anbieten.
     </li>
     <li>
-        <b>Käufer</b> erhalten in jeder Runde <b>100 Münzen</b>.
+        <b>Käufer</b> erhalten in Runde 1 <b>1000 Münzen</b> als Guthaben.
     </li>
 </ul>
 
@@ -140,6 +140,7 @@
 <p>
     Insgesamt wird es in der Studie <b>{{ C.N_LOTTERIES }} Runden</b> geben.
     Sie können in jeder Runde zusätzliche Münzen verdienen.
+    Das <b>Guthaben nach Runde 10</b> bestimmt die Bonuszahlung.
     Wenn Sie sich für die Details interessieren, finden Sie unten auf der Seite eine ausführliche
     Beschreibung des Bonusmechanismus.
 </p>
@@ -151,18 +152,19 @@
 <ul>
     <li>
         <b>Wenn ein Käufer eine Lotterie kauft</b>, wird per Computer eine zufällige Auszahlung dieser Lotterie gezogen.
-        Der Bonus ist dann Anfangsausstattung - Preis + Auszahlung.
+        Das Guthaben nach der Runde ist dann Guthaben vor der Runde - Preis + Auszahlung.
     </li>
     <li>
-        <b>Wenn ein Käufer keine Lotterie kauft</b>, behält er stattdessem seine Anfangsausstattung als Bonus.
+        <b>Wenn ein Käufer keine Lotterie kauft</b>, behält er stattdessem sein Guthaben als Bonus.
     </li>
     <li>
-        <b>Wenn die Lotterie eines Verkäufers gekauft wird</b>, ist der Bonus des Verkäufers gleich seiner Anfangsausstattung + dem von ihm gesetzten Preis.
+        <b>Wenn die Lotterie eines Verkäufers gekauft wird</b>, ist das Guthaben des Verkäufers nach der Runde gleich sein Guthaben vor der Runde + dem von ihm gesetzten Preis.
     </li>
     <li>
-        <b>Wenn die Lotterie eines Verkäufers nicht gekauft wird</b>, behält der Verkäufer seine Anfangsausstattung als Bonus.
+        <b>Wenn die Lotterie eines Verkäufers nicht gekauft wird</b>, behält der Verkäufer sein Guthaben vor der Runde als Bonus.
     </li>
 </ul>
+
 
 <p>
     Während des Experiments verwenden wir eine fiktive Währung, die wir „Münzen“ nennen.

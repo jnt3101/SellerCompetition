@@ -2,12 +2,12 @@ from os import environ
 
 SESSION_CONFIGS = [
     dict(
-        name='FULL',
-        display_name="FULL",
+        name='FULL_2S1B',
+        display_name="FULL_2S1B",
         app_sequence=['Introduction', 'Experiment', 'Quiz', 'payment'],
         num_demo_participants=15,
-        expShortName="TestExp", # Replace with your values
-        expId=0000000000, # Replace with your values
+        expShortName="SCL", # Replace with your values
+        expId=30, # Replace with your values
         sessId=0000000000, # Replace with your values
         use_browser_bots=False,
     ),
@@ -22,14 +22,24 @@ dict(
         use_browser_bots=True,
     ),
 dict(
-        name='1S1BPILOT',
-        display_name="1S1BPILOT",
+        name='FULL_1S1B',
+        display_name="FULL_1S1B",
         app_sequence=['Introduction_1S1B', 'Experiment_1S1B', 'Quiz', 'payment'],
+        num_demo_participants=2,
+        expShortName="SCL", # Replace with your values
+        expId=30, # Replace with your values
+        sessId=0000000000, # Replace with your values
+        use_browser_bots=False,
+    ),
+dict(
+        name='1S1BBots',
+        display_name="1S1BBOTS",
+        app_sequence=['Introduction_1S1B', 'Experiment_1S1B'],
         num_demo_participants=2,
         expShortName="TestExp", # Replace with your values
         expId=0000000000, # Replace with your values
         sessId=0000000000, # Replace with your values
-        use_browser_bots=False,
+        use_browser_bots=True,
     ),
 ]
 
