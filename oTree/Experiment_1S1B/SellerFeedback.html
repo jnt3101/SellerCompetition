@@ -6,6 +6,7 @@
 {% endblock %}
 
 {% block content %}
+
 <style>
   .round-badge{
     position: fixed;
@@ -19,6 +20,64 @@
     z-index: 2000;
     box-shadow: 0 2px 8px rgba(0,0,0,.15);
   }
+
+  .lottery-card {
+    border-radius: 0.5rem;
+    border: 1px solid #dee2e6;
+    border-left: 5px solid #0d6efd;
+  }
+
+  .lottery-info-box {
+    border: 2px solid #000000;
+    padding: 10px;
+    border-radius: 8px;
+    background-color: #fafafa;
+  }
+
+  .price-highlight {
+    min-width: 150px;
+  }
+
+  .price-label {
+    text-transform: uppercase;
+    font-size: 0.75rem;
+    letter-spacing: 0.08em;
+    color: #6c757d;
+  }
+
+  .price-value {
+    font-size: 1.75rem;
+    font-weight: 700;
+    line-height: 1.1;
+  }
+
+  .own-lottery-label {
+    display: inline-block;
+    padding: 4px 8px;
+    border-radius: 6px;
+    background-color: #d1e7dd;
+    color: #0f5132;
+    font-weight: 600;
+    margin-top: 6px;
+  }
+
+  .result-box {
+    padding: 1rem;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+  }
+
+  .result-neutral {
+    background-color: #f2f2f2;
+  }
+
+  .result-positive {
+    background-color: #e5ffe5;
+  }
+
+  .result-negative {
+    background-color: #ffe5e5;
+  }
 </style>
 
 <div class="round-badge">
@@ -27,58 +86,265 @@
 
 <br><br>
 
-<div style="display: flex; flex-direction: column; gap: 1rem; max-width: 800px; margin: auto;">
+<div class="container" style="max-width: 950px; margin: auto;">
 
-    <div style="padding: 1rem; border: 1px solid #ccc; border-radius: 8px; background-color: #f2f2f2;">
-        <p>
-            Ihr Guthaben vor der Runde beträgt: <strong>{{ starting_balance }}</strong>
-        </p>
-        <p>
-            Der von Ihnen festgelegte Preis für die Lotterie beträgt: <strong>{{ price }}</strong>
-        </p>
-    </div>
+  <div class="result-box result-neutral mb-4">
+    <p>
+      Ihr Guthaben vor der Runde beträgt: <strong>{{ starting_balance }}</strong>
+    </p>
+    <p>
+      In dieser Runde wurde dem Käufer die von Ihnen angebotene Lotterie angezeigt.
+    </p>
+  </div>
 
-    {% if sold %}
-        <div style="padding: 1rem; border: 1px solid #ccc; border-radius: 8px; background-color: #e5ffe5;">
-            <p>
-                Der Käufer in Ihrer Gruppe hat sich entschieden, <strong>Ihre Lotterie</strong>
-                zu dem von Ihnen festgelegten Preis zu kaufen.
-            </p>
-            <p>
-                Für den Käufer, der Ihre Lotterie gekauft hat, ergab eine zufällige Ziehung aus Ihrer Lotterie
-                ein Ergebnis von <strong>{{ outcome }}</strong>.
-            </p>
-            <p>
-                Ihr Guthaben vor der Runde beträgt <strong>{{ starting_balance }}</strong>.
-                Da Ihre Lotterie verkauft wurde, kommt der Preis von <strong>{{ price }}</strong> hinzu.
-            </p>
-            
+
+  {# =============================================================== #}
+  {# Eigene Lotterie anzeigen                                        #}
+  {# =============================================================== #}
+
+  <div class="card mb-4 shadow-sm lottery-card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+      <div>
+        <h4 class="mb-0" style="color: red;">Lotterie</h4>
+
+        <div class="own-lottery-label">
+          Diese Lotterie haben Sie angeboten.
         </div>
-    {% else %}
-        <div style="padding: 1rem; border: 1px solid #ccc; border-radius: 8px; background-color: #ffe5e5;">
-            <p>
-                In dieser Runde hat sich der Käufer <strong>nicht</strong> dazu entschieden, Ihre Lotterie zu kaufen.
-            </p>
-            <p>
-                Ihr Guthaben vor der Runde beträgt <strong>{{ starting_balance }}</strong>.
-            </p>
-            <p>
-                Da Ihre Lotterie nicht verkauft wurde, ändert sich Ihr Guthaben nicht.
-            </p>
 
+        {% if own_lottery.presentation_id == 'Sample' or own_lottery.presentation_id == 'Sample_Censoring' %}
+          <br>
+          <small class="text-muted">
+            Angezeigt wurden die
+            <b>{{ C.DRAWS }} höchsten Werte</b> aus insgesamt {{ C.SAMPLE_SIZE }} zufälligen Lotteriezügen.
+          </small>
+        {% endif %}
+      </div>
+
+      <div class="text-end price-highlight">
+        <div class="price-label">Preis</div>
+        <div class="price-value">{{ own_lottery.price }}</div>
+      </div>
+    </div>
+
+    <div class="card-body">
+
+      <div class="mb-3">
+
+        {% if own_lottery.presentation_id == 'Transparent' %}
+
+          <div class="lottery-info-box">
+            <table class="table table-bordered" style="text-align:center">
+              <thead>
+                <tr class="table-primary">
+                  <th colspan="4">Lotterie</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <th>Wahrscheinlichkeit</th>
+                  <td>{{ own_lottery.prob_low }} %</td>
+                  <td>{{ own_lottery.prob_mid }} %</td>
+                  <td>{{ own_lottery.prob_high }} %</td>
+                </tr>
+                <tr>
+                  <th>Auszahlung</th>
+                  <td>{{ own_lottery.payoff_low }} Münzen</td>
+                  <td>{{ own_lottery.payoff_mid }} Münzen</td>
+                  <td>{{ own_lottery.payoff_high }} Münzen</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+        {% elif own_lottery.presentation_id == 'Sample' %}
+
+          <div class="lottery-info-box">
+            <table class="table table-bordered" style="text-align:center">
+              <thead>
+                <tr class="table-primary">
+                  <th colspan="4">Lotterie</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <th>Wahrscheinlichkeit</th>
+                  <td>{{ own_lottery.prob_low }} %</td>
+                  <td>{{ own_lottery.prob_mid }} %</td>
+                  <td>{{ own_lottery.prob_high }} %</td>
+                </tr>
+                <tr>
+                  <th>Auszahlung</th>
+                  <td>{{ own_lottery.payoff_low }} Münzen</td>
+                  <td>{{ own_lottery.payoff_mid }} Münzen</td>
+                  <td>{{ own_lottery.payoff_high }} Münzen</td>
+                </tr>
+              </tbody>
+            </table>
+
+            {% if own_lottery.subsample %}
+              <table class="table table-bordered" style="text-align:center; width:100%;">
+                <thead>
+                  <tr class="table-primary" style="border-color:black">
+                    <th colspan="{{ own_lottery.subsample|length }}">Ziehungen der Lotterie</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    {% for draw in own_lottery.subsample %}
+                      <td>Ziehung {{ forloop.counter }}</td>
+                    {% endfor %}
+                  </tr>
+                  <tr>
+                    {% for draw in own_lottery.subsample %}
+                      <td>{{ draw }} Münzen</td>
+                    {% endfor %}
+                  </tr>
+                </tbody>
+              </table>
+            {% endif %}
+          </div>
+
+        {% elif own_lottery.presentation_id == 'Censoring' %}
+
+          <div class="lottery-info-box">
+            <table class="table table-bordered" style="text-align:center">
+              <thead>
+                <tr class="table-primary">
+                  <th colspan="3">Lotterie</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <th>Wahrscheinlichkeit</th>
+                  <td>{{ own_lottery.prob_low }} %</td>
+                  <td>{{ own_lottery.prob_upper_joint }} %</td>
+                </tr>
+                <tr>
+                  <th>Auszahlung</th>
+                  <td>{{ own_lottery.payoff_low }} Münzen</td>
+                  <td>entweder {{ own_lottery.payoff_mid }} Münzen oder {{ own_lottery.payoff_high }} Münzen</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+        {% elif own_lottery.presentation_id == 'Sample_Censoring' %}
+
+          <div class="lottery-info-box">
+            <table class="table table-bordered" style="text-align:center">
+              <thead>
+                <tr class="table-primary">
+                  <th colspan="3">Lotterie</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <th>Wahrscheinlichkeit</th>
+                  <td>{{ own_lottery.prob_low }} %</td>
+                  <td>{{ own_lottery.prob_upper_joint }} %</td>
+                </tr>
+                <tr>
+                  <th>Auszahlung</th>
+                  <td>{{ own_lottery.payoff_low }} Münzen</td>
+                  <td>entweder {{ own_lottery.payoff_mid }} Münzen oder {{ own_lottery.payoff_high }} Münzen</td>
+                </tr>
+              </tbody>
+            </table>
+
+            {% if own_lottery.subsample %}
+              <table class="table table-bordered" style="text-align:center; width:100%;">
+                <thead>
+                  <tr class="table-primary" style="border-color:black">
+                    <th colspan="{{ own_lottery.subsample|length }}">Ziehungen der Lotterie</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    {% for draw in own_lottery.subsample %}
+                      <td>Ziehung {{ forloop.counter }}</td>
+                    {% endfor %}
+                  </tr>
+                  <tr>
+                    {% for draw in own_lottery.subsample %}
+                      <td>{{ draw }} Münzen</td>
+                    {% endfor %}
+                  </tr>
+                </tbody>
+              </table>
+            {% endif %}
+          </div>
+
+        {% endif %}
+
+      </div>
+
+      {% if own_lottery.was_bought %}
+        <div class="alert alert-success mb-0">
+          Der Käufer hat diese Lotterie gekauft.
+          Bei der zufälligen Ziehung ergab sich ein Ergebnis von
+          <strong>{{ own_lottery.outcome }}</strong>.
         </div>
-    {% endif %}
+      {% else %}
+        <div class="alert alert-secondary mb-0">
+          Der Käufer hat diese Lotterie nicht gekauft.
+        </div>
+      {% endif %}
 
-    <div style="padding: 1rem; border: 1px solid #ccc; border-radius: 8px; background-color: #f2f2f2;">
-        <p>
-            Ihr Guthaben nach dieser Runde beträgt:
-            <strong>{{ ending_balance }}</strong>
-        </p>
+    </div>
+  </div>
+
+
+  {# =============================================================== #}
+  {# Auswirkungen auf eigenes Guthaben                               #}
+  {# =============================================================== #}
+
+  {% if sold %}
+
+    <div class="result-box result-positive mb-4">
+      <p>
+        Der Käufer in Ihrer Gruppe hat sich entschieden,
+        <strong>Ihre Lotterie</strong> zu dem von Ihnen festgelegten Preis zu kaufen.
+      </p>
+
+      <p>
+        Ihr Guthaben vor der Runde betrug <strong>{{ starting_balance }}</strong>.
+        Da Ihre Lotterie verkauft wurde, kommt der von Ihnen festgelegte Preis von
+        <strong>{{ price }}</strong> hinzu.
+      </p>
+
+      <p>
+        Das Ergebnis der Lotterie für den Käufer betrug <strong>{{ outcome }}</strong>.
+        Dieses Ergebnis beeinflusst Ihr Guthaben nicht direkt; Sie erhalten den Verkaufspreis.
+      </p>
     </div>
 
-    <div style="text-align: right; margin-top: 15px;">
-        <button class="btn btn-primary" name="next">Weiter</button>
+  {% else %}
+
+    <div class="result-box result-negative mb-4">
+      <p>
+        Der Käufer in Ihrer Gruppe hat sich <strong>nicht</strong> entschieden,
+        Ihre Lotterie zu kaufen.
+      </p>
+
+      <p>
+        Ihr Guthaben vor der Runde betrug <strong>{{ starting_balance }}</strong>.
+        Da Ihre Lotterie nicht verkauft wurde, ändert sich Ihr Guthaben in dieser Runde nicht.
+      </p>
     </div>
+
+  {% endif %}
+
+
+  <div class="result-box result-neutral mb-4">
+    <p>
+      Ihr Guthaben nach dieser Runde beträgt:
+      <strong>{{ ending_balance }}</strong>
+    </p>
+  </div>
+
+  <div style="text-align: right; margin-top: 15px;">
+    <button class="btn btn-primary" name="next">Weiter</button>
+  </div>
 
 </div>
 

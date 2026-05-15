@@ -924,7 +924,8 @@ class WaitForBuyerAndSetResults(WaitPage):
 class SellerFeedback(Page):
     """
     Feedback for sellers:
-    - whether their lottery was bought
+    - shows own lottery
+    - whether the lottery was bought
     - own price
     - outcome drawn if purchased
     - starting and ending balance
@@ -937,12 +938,48 @@ class SellerFeedback(Page):
 
     @staticmethod
     def vars_for_template(player: Player):
+        player.initialize_round()
+
+        lottery_sorted = sort_lottery(
+            create_lottery(
+                q=player.mid_probability,
+                x=player.max_payoff,
+            )
+        )
+
+        payoffs, probs = zip(*lottery_sorted)
+
+        prob_low, prob_mid, prob_high = probs
+        prob_upper_joint = prob_mid + prob_high
+
+        own_lottery = dict(
+            payoff_low=payoffs[0],
+            payoff_mid=payoffs[1],
+            payoff_high=payoffs[2],
+
+            prob_low=int(round(prob_low * 100)),
+            prob_mid=int(round(prob_mid * 100)),
+            prob_high=int(round(prob_high * 100)),
+            prob_upper_joint=int(round(prob_upper_joint * 100)),
+
+            presentation_id=player.chosen_presentation_id,
+            subsample=player.get_subsample(),
+            price=player.selling_price_lottery,
+
+            was_bought=player.sold,
+            outcome=player.lottery_outcome,
+        )
+
         return dict(
+            own_lottery=own_lottery,
+
             sold=player.sold,
             price=player.selling_price_lottery,
             outcome=player.lottery_outcome,
+
             starting_balance=player.starting_balance,
             ending_balance=player.ending_balance,
+
             paid_round='alle Runden',
             is_paid_round=True,
             round_payoff=player.payoff,
