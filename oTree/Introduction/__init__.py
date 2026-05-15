@@ -20,7 +20,7 @@ class C(BaseConstants):
 
     # General intro parameters (not used in grouping logic)
     N_LOTTERIES = 10
-    TIME_TO_FINISH = 45  # minutes
+    TIME_TO_FINISH = 60  # minutes
     BASE_PAY = 6  # in euro
     EXCHANGE_RATE = 100
 
@@ -100,7 +100,7 @@ class Player(BasePlayer):
         choices=[
             [1, "Die maximale Auszahlung der Lotterie, die angeboten wird."],
             [2, "Eine zufällig generierte Zahl."],
-            [3, "Der Preis, zu dem die Lotterie verkauft wurde + ihre Anfangsausstattung."],
+            [3, "Den Preis, zu dem die Lotterie verkauft wurde."],
         ],
         widget=widgets.RadioSelect,
         blank=True,
@@ -108,9 +108,9 @@ class Player(BasePlayer):
     seller_comp_4 = models.IntegerField(
         label="",
         choices=[
-            [1, "Verkäufer erhalten 50 Münzen und die Lotterie; Käufer erhalten 100 Münzen"],
+            [1, "Verkäufer erhalten 750 Münzen und die Lotterien; Käufer erhalten 1000 Münzen"],
             [2, "Es gibt keine Anfangsausstattungen."],
-            [3, "Beide Rollen erhalten 75 Münzen."],
+            [3, "Beide Rollen erhalten 500 Münzen."],
         ],
         widget=widgets.RadioSelect,
         blank=True,
@@ -278,19 +278,32 @@ class ComprehensionIntro(Page):
     ]
 
     @staticmethod
+    def vars_for_template(player: Player):
+        vars_dict = player.get_general_instruction_vars()
+        vars_dict['auto_fill_answers'] = player.comprehension_tries > 2
+        return vars_dict
+
+    @staticmethod
     def error_message(player: Player, values):
         correct = (
-            values['buyer_comp_1'] == 2 and
-            values['buyer_comp_2'] == 2 and
-            values['buyer_comp_3'] == 2 and
-            values['seller_comp_3'] == 3 and
-            values['seller_comp_4'] == 1
+                values['buyer_comp_1'] == 2 and
+                values['buyer_comp_2'] == 2 and
+                values['buyer_comp_3'] == 2 and
+                values['seller_comp_3'] == 3 and
+                values['seller_comp_4'] == 1
         )
 
-        player.comprehension_tries += 1
-
         if not correct:
-            return "Einige Antworten waren falsch. Bitte versuchen Sie es nochmal."
+            player.comprehension_tries += 1
+
+            if player.comprehension_tries >= 3:
+                return (
+                    "Sie haben die Verständnisfragen bereits dreimal nicht korrekt beantwortet. "
+                    "Die richtigen Antworten wurden daher für Sie vorausgewählt. "
+                    "Bitte sehen Sie sich diese noch einmal in Ruhe an und fahren Sie anschließend mit dem Experiment fort."
+                )
+
+            return "Einige Antworten waren falsch. Bitte versuchen Sie es erneut."
 
 
 class YourRole(Page):

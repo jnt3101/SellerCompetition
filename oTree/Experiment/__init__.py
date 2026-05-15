@@ -1009,9 +1009,10 @@ class WaitForBuyerAndSetResults(WaitPage):
 class SellerFeedback(Page):
     """
     Feedback for sellers:
-    - whether their lottery was bought by at least one buyer
-    - own price
-    - (last) outcome drawn among buyers who purchased
+    - shows both lotteries in the group
+    - marks own lottery and other seller's lottery
+    - shows what the buyer did
+    - explains the effect on own balance
     No time limit.
     """
 
@@ -1022,12 +1023,85 @@ class SellerFeedback(Page):
 
     @staticmethod
     def vars_for_template(player: Player):
+        # Ensure all players in the group are initialized
+        for p in player.group.get_players():
+            p.initialize_round()
+
+        group = player.group
+
+        sellers = [p for p in group.get_players() if p.player_role == 'seller']
+        sellers.sort(key=lambda p: p.seller_index)
+
+        buyers = [p for p in group.get_players() if p.player_role == 'buyer']
+        buyers.sort(key=lambda p: p.buyer_index)
+
+        if len(sellers) != 2:
+            raise Exception("Each group must contain exactly 2 sellers in this design.")
+
+        if len(buyers) != 1:
+            raise Exception("Each group must contain exactly 1 buyer in this design.")
+
+        buyer = buyers[0]
+
+        sellers_context = []
+
+        for s in sellers:
+            lottery_sorted = sort_lottery(
+                create_lottery(q=s.mid_probability, x=s.max_payoff)
+            )
+            payoffs, probs = zip(*lottery_sorted)
+
+            prob_low, prob_mid, prob_high = probs
+            prob_upper_joint = prob_mid + prob_high
+
+            sellers_context.append(
+                dict(
+                    seller_index=s.seller_index,
+                    is_own_lottery=(s.id_in_group == player.id_in_group),
+                    was_bought=s.sold,
+
+                    payoff_low=payoffs[0],
+                    payoff_mid=payoffs[1],
+                    payoff_high=payoffs[2],
+
+                    prob_low=int(round(prob_low * 100)),
+                    prob_mid=int(round(prob_mid * 100)),
+                    prob_high=int(round(prob_high * 100)),
+                    prob_upper_joint=int(round(prob_upper_joint * 100)),
+
+                    presentation_id=s.chosen_presentation_id,
+                    subsample=s.get_subsample(),
+                    price=s.selling_price_lottery,
+
+                    outcome=s.lottery_outcome,
+                )
+            )
+
+        if buyer.chosen_lottery_from_seller == 'seller1':
+            buyer_choice_text = "Der Käufer hat Lotterie 1 gekauft."
+            bought_lottery_number = 1
+        elif buyer.chosen_lottery_from_seller == 'seller2':
+            buyer_choice_text = "Der Käufer hat Lotterie 2 gekauft."
+            bought_lottery_number = 2
+        else:
+            buyer_choice_text = "Der Käufer hat keine Lotterie gekauft."
+            bought_lottery_number = 0
+
         return dict(
+            sellers=sellers_context,
+            own_seller_index=player.seller_index,
+
             sold=player.sold,
             price=player.selling_price_lottery,
             outcome=player.lottery_outcome,
+
+            buyer_choice=buyer.chosen_lottery_from_seller,
+            buyer_choice_text=buyer_choice_text,
+            bought_lottery_number=bought_lottery_number,
+
             starting_balance=player.starting_balance,
             ending_balance=player.ending_balance,
+
             paid_round='alle Runden',
             is_paid_round=True,
             round_payoff=player.payoff,

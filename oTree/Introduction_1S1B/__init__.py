@@ -100,7 +100,7 @@ class Player(BasePlayer):
         choices=[
             [1, "Die maximale Auszahlung der Lotterie, die angeboten wird."],
             [2, "Eine zufällig generierte Zahl."],
-            [3, "Der Preis, zu dem die Lotterie verkauft wurde + ihre Anfangsausstattung."],
+            [3, "Den Preis, zu dem die Lotterie verkauft wurde."],
         ],
         widget=widgets.RadioSelect,
         blank=True,
@@ -108,9 +108,9 @@ class Player(BasePlayer):
     seller_comp_4 = models.IntegerField(
         label="",
         choices=[
-            [1, "Verkäufer erhalten 50 Münzen und die Lotterie; Käufer erhalten 100 Münzen"],
+            [1, "Verkäufer erhalten 750 Münzen und die Lotterien; Käufer erhalten 1000 Münzen"],
             [2, "Es gibt keine Anfangsausstattungen."],
-            [3, "Beide Rollen erhalten 75 Münzen."],
+            [3, "Beide Rollen erhalten 500 Münzen."],
         ],
         widget=widgets.RadioSelect,
         blank=True,
