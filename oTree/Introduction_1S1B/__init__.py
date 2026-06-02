@@ -88,9 +88,9 @@ class Player(BasePlayer):
     buyer_comp_3 = models.IntegerField(
         label="",
         choices=[
-            [1, "Ein von KI unterstützter Algorithmus"],
-            [2, "Teilnehmende des Experiments"],
-            [3, "Eine Firma mit Gewinnabsicht"],
+            [1, "Ein von KI unterstützter Algorithmus."],
+            [2, "Teilnehmende des Experiments."],
+            [3, "Eine Firma mit Gewinnabsicht."],
         ],
         widget=widgets.RadioSelect,
         blank=True,
@@ -100,7 +100,7 @@ class Player(BasePlayer):
         choices=[
             [1, "Die maximale Auszahlung der Lotterie, die angeboten wird."],
             [2, "Eine zufällig generierte Zahl."],
-            [3, "Den Preis, zu dem die Lotterie verkauft wurde."],
+            [3, "Um den Preis, zu dem die Lotterie verkauft wurde."],
         ],
         widget=widgets.RadioSelect,
         blank=True,
@@ -108,7 +108,7 @@ class Player(BasePlayer):
     seller_comp_4 = models.IntegerField(
         label="",
         choices=[
-            [1, "Verkäufer erhalten 750 Münzen und die Lotterien; Käufer erhalten 1000 Münzen"],
+            [1, "Verkäufer erhalten 750 Münzen und die Lotterien; Käufer erhalten 1000 Münzen."],
             [2, "Es gibt keine Anfangsausstattungen."],
             [3, "Beide Rollen erhalten 500 Münzen."],
         ],
