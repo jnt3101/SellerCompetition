@@ -729,9 +729,19 @@ def set_trade_and_outcomes(group: Group):
         buyer.ending_balance = buyer_start
         seller.ending_balance = seller_start
 
-    # keep payoff field populated (for compatibility / exports)
-    buyer.payoff = buyer.ending_balance
-    seller.payoff = seller.ending_balance
+    # IMPORTANT:
+    # oTree sums player.payoff automatically across rounds.
+    # Therefore, do NOT set payoff to the full running balance in every round.
+    # Otherwise the balances of all rounds are added up.
+    #
+    # The actual payout should be:
+    # final coin balance after the last round, converted by real_world_currency_per_point.
+    if buyer.round_number == C.NUM_ROUNDS:
+        buyer.payoff = buyer.ending_balance
+        seller.payoff = seller.ending_balance
+    else:
+        buyer.payoff = cu(0)
+        seller.payoff = cu(0)
 
     # Round-specific euro display:
     # In round 1 include the initial endowment in the displayed round bonus.

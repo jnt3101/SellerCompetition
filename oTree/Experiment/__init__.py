@@ -54,8 +54,8 @@ NEW COIN LOGIC:
     * if they buy a lottery: previous balance - price + outcome of that lottery
     * if they do not buy: previous balance
 
-- All rounds count toward the total bonus.
-- bonus_payment stores the round-specific bonus in euros.
+- Only the final balance at the end of round 10 is paid via oTree payoff.
+- bonus_payment stores the round-specific balance change in euros for display/export.
 - total_bonus_payment stores the current total balance converted into euros.
 """
 
@@ -141,6 +141,86 @@ def draw_lottery_outcome(mid_probability, max_payoff):
     return outcome
 
 
+def map_shared_random_draws_to_lottery(shared_random_draws, mid_probability, max_payoff):
+    """
+    Convert one group-level sequence of random numbers into lottery outcomes
+    for a specific seller's lottery.
+
+    The same random numbers are used for both sellers in a 2S1B group.
+    This means jackpot positions are identical for both sellers, because the
+    jackpot probability is always 0.01. The jackpot value itself can still
+    differ across sellers because it is seller.max_payoff.
+
+    Mapping rule for each random number u in [0, 1):
+    - u < 0.01                  -> jackpot payoff x
+    - 0.01 <= u < 0.01 + q      -> middle payoff 10
+    - otherwise                 -> payoff 0
+    """
+    outcomes = []
+    jackpot_cutoff = 0.01
+    middle_cutoff = 0.01 + mid_probability
+
+    for u in shared_random_draws:
+        if u < jackpot_cutoff:
+            outcomes.append(max_payoff)
+        elif u < middle_cutoff:
+            outcomes.append(10)
+        else:
+            outcomes.append(0)
+
+    return outcomes
+
+
+def initialize_group_draws(group):
+    """
+    Generate the sample only once per 2S1B group and round.
+
+    Instead of drawing a separate random sample for every seller, this function
+    draws one shared group-level sequence of C.SAMPLE_SIZE random numbers.
+    Each seller then maps that same sequence to her own lottery parameters.
+
+    Consequence:
+    - both sellers have jackpot outcomes at exactly the same draw positions;
+    - therefore the SAMPLE_CENSORING subsample sorted by highest outcomes
+      contains the same number of displayed jackpots for both sellers;
+    - no seller has to be reduced to the smaller jackpot count afterwards.
+    """
+    # Do nothing if this group already received its shared sample in this round.
+    if group.shared_draws_initialized:
+        return
+
+    # Initialize roles, balances and lottery parameters first. Important:
+    # Player.initialize_round() no longer draws individual seller samples.
+    for p in group.get_players():
+        p.initialize_round()
+
+    sellers = [p for p in group.get_players() if p.player_role == 'seller']
+    sellers.sort(key=lambda p: p.seller_index)
+
+    if len(sellers) != 2:
+        raise Exception("Each group must contain exactly 2 sellers in this design.")
+
+    # The only actual sample draw for the group in this round.
+    shared_random_draws = [random.random() for _ in range(C.SAMPLE_SIZE)]
+    group.set_shared_random_draws(shared_random_draws)
+
+    for s in sellers:
+        total_sample = map_shared_random_draws_to_lottery(
+            shared_random_draws=shared_random_draws,
+            mid_probability=s.mid_probability,
+            max_payoff=s.max_payoff,
+        )
+        subsample = sorted(total_sample, reverse=True)[:C.DRAWS]
+
+        # Keep seller-level fields populated for templates and data export.
+        # These are not independently drawn samples; they are deterministic
+        # mappings of the one group-level shared_random_draws sequence.
+        s.set_all_draws(total_sample)
+        s.set_subsample(subsample)
+
+    group.shared_draws_initialized = True
+
+
 # --- models -----------------------------------------------------------------
 
 
@@ -162,6 +242,19 @@ class Group(BaseGroup):
     Group-level fields mainly for storing meta information.
     """
     group_type = models.StringField(initial="2S1B")  # e.g. '2S1B'
+
+    # NEW:
+    # One shared random-number sequence per 2S1B group and round.
+    # Sellers do not draw independent all_draws anymore; instead their
+    # seller-level all_draws are deterministic mappings of this shared sequence.
+    shared_random_draws = models.LongStringField(blank=True)
+    shared_draws_initialized = models.BooleanField(initial=False)
+
+    def set_shared_random_draws(self, x):
+        self.shared_random_draws = json.dumps(x)
+
+    def get_shared_random_draws(self):
+        return json.loads(self.shared_random_draws)
 
 
 class Player(BasePlayer):
@@ -290,24 +383,19 @@ class Player(BasePlayer):
     def get_subsample(self):
         return json.loads(self.subsample)
 
-    def draw_sample(self):
+    def draw_sample_from_shared_random_draws(self, shared_random_draws):
         """
-        Draw a random sample from the lottery of which a subsample
-        will be displayed to the participant (seller).
-        SAMPLE_CENSORING-style: always draw a sample and show the top DRAWS outcomes.
+        Build this seller's all_draws and displayed subsample from the
+        group-level shared random-number sequence.
 
-        EN: This is only called for sellers.
+        This method does NOT draw random numbers itself. The actual draw happens
+        once per group in initialize_group_draws(group).
         """
-        current_lottery_dist = create_lottery(
-            q=self.mid_probability,
-            x=self.max_payoff,
+        total_sample = map_shared_random_draws_to_lottery(
+            shared_random_draws=shared_random_draws,
+            mid_probability=self.mid_probability,
+            max_payoff=self.max_payoff,
         )
-        total_sample = random.choices(
-            population=list(current_lottery_dist.keys()),
-            weights=list(current_lottery_dist.values()),
-            k=C.SAMPLE_SIZE,
-        )
-
         subsample = sorted(total_sample, reverse=True)[:C.DRAWS]
 
         self.set_all_draws(total_sample)
@@ -319,7 +407,7 @@ class Player(BasePlayer):
         - role is loaded from participant.vars (determined in introduction app)
         - starting / ending balance is initialized
         - lottery parameters are set ONLY for sellers
-        - sellers draw their sample (once per round)
+        - sellers do not draw individual samples; samples are created once per group
 
         Buyers do not get their own lottery and no sample draws.
         The fields max_payoff/mid_probability are only set to harmless
@@ -413,10 +501,10 @@ class Player(BasePlayer):
         max_payoff, mid_prob = combos[self.round_number - 1]
 
         if self.player_role == 'seller':
-            # EN: Sellers get their own lottery and sample draw.
+            # EN: Sellers get their own lottery parameters.
+            # The sample itself is generated once per group in initialize_group_draws(group).
             self.max_payoff = max_payoff
             self.mid_probability = mid_prob
-            self.draw_sample()
         else:
             # EN: Buyers do not have their own lottery.
             # We only set benign default values that are never used.
@@ -605,8 +693,9 @@ def generate_context_for_seller(player: Player):
     - subsample (list of observed outcomes)
     - general instruction variables
     """
-    # Ensure this round is initialized (role, lottery parameters, sample)
+    # Ensure this round is initialized and that the group-level shared sample exists.
     player.initialize_round()
+    initialize_group_draws(player.group)
 
     context = dict()
 
@@ -646,9 +735,10 @@ def generate_context_for_buyer(player: Player):
     Works for:
     - 2 sellers + 1 buyer (only group type used here).
     """
-    # Ensure all players in the group are initialized for this round
+    # Ensure all players in the group are initialized and that the group-level shared sample exists.
     for p in player.group.get_players():
         p.initialize_round()
+    initialize_group_draws(player.group)
 
     group = player.group
     sellers = [p for p in group.get_players() if p.player_role == 'seller']
@@ -791,11 +881,25 @@ def set_trade_and_outcomes(group: Group):
         else:
             s.ending_balance = s.starting_balance
 
-    # Keep payoff fields populated for compatibility / exports
+    # IMPORTANT PAYOFF LOGIC:
+    # oTree automatically sums player.payoff over all rounds.
+    # Therefore, do NOT set p.payoff = p.ending_balance in every round,
+    # otherwise the accumulated balances of all rounds are added together.
+    #
+    # Desired behavior:
+    # - rounds 1 to 9: payoff is 0
+    # - round 10: payoff is the final coin balance
+    #
+    # With real_world_currency_per_point = 0.01, this means:
+    # 100 coins = 1 euro.
     for p in players:
-        p.payoff = p.ending_balance
+        if p.round_number == C.NUM_ROUNDS:
+            p.payoff = p.ending_balance
+        else:
+            p.payoff = cu(0)
 
-    # EN: All rounds count toward bonus; store round bonus in euros.
+    # EN: Store round-specific bonus/change in euros for display/export only.
+    # This is NOT used by oTree for payment.
     for p in players:
         if p.round_number == 1:
             # In round 1, this includes the initial endowment
@@ -805,10 +909,11 @@ def set_trade_and_outcomes(group: Group):
             p.bonus_payment = float(p.ending_balance - p.starting_balance) / C.EXCHANGE_RATE
 
     # EN: total bonus equals the current total balance converted to euros.
+    # This is for display/export. The actual oTree payment is p.payoff above.
     for p in players:
         p.total_bonus_payment = float(p.ending_balance) / C.EXCHANGE_RATE
 
-        # Store final payout incl. participation fee after round 10
+        # Store final payout incl. participation fee after round 10 for display/export
         if p.round_number == C.NUM_ROUNDS:
             p.payoff_plus_participation_fee = C.BASE_PAY + p.total_bonus_payment
             p.participant.vars['payoff_plus_participation_fee'] = p.payoff_plus_participation_fee
@@ -829,6 +934,11 @@ class GroupingWaitPage(WaitPage):
         group_type_value = subsession.session.vars.get('group_type_value', "2S1B")
         for g in subsession.get_groups():
             g.group_type = group_type_value
+
+            # NEW:
+            # Before sellers and buyers see the lotteries in this round,
+            # generate exactly one shared sample for this 2S1B group.
+            initialize_group_draws(g)
 
 
 class LotteryDecisionBase(Page):
