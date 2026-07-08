@@ -40,6 +40,14 @@ dict(
         iban_timeout_seconds=10000
     ),
 dict(
+        name='FULL_2S1B_BONN',
+        display_name="FULL_2S1B_BONN",
+        app_sequence=['iban_checker_online','Introduction', 'Experiment', 'Quiz'],
+        num_demo_participants=15,
+        iban_timeout_seconds=10000,
+        use_browser_bots=False,
+    ),
+dict(
         name='1S1BBots',
         display_name="1S1BBOTS",
         app_sequence=['Introduction_1S1B', 'Experiment_1S1B'],
@@ -61,6 +69,11 @@ SESSION_CONFIG_DEFAULTS = dict(
 )
 
 ROOMS = [
+    dict(
+        name='lab',
+        display_name='Lab Experiment',
+        participant_label_file='_rooms/lab.txt',
+    ),
     dict(
         name='DICELAB',
         display_name='DICELAB',

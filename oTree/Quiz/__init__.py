@@ -1,4 +1,5 @@
 from otree.api import *
+import pandas as pd
 
 
 doc = """
@@ -339,7 +340,39 @@ class BuyerLotteries(Page):
         if not justification:
             return 'Bitte geben Sie eine kurze Begründung an.'
 
+
+class ResultsWaitPage(WaitPage):
+    @staticmethod
+    def after_all_players_arrive(group):
+        for p in group.get_players():
+            final_payoff = float(
+                p.participant.payoff_plus_participation_fee()
+            )
+
+            session_code = p.session.code
+            file_name = f"{session_code}_payout_data.csv"
+
+            df = pd.read_csv(file_name)
+
+            # Dezimalwerte in der payoff-Spalte ermöglichen
+            df["payoff"] = df["payoff"].astype(float)
+
+            df.loc[
+                df["id"] == p.participant.id,
+                "payoff"
+            ] = final_payoff
+
+            df.to_csv(file_name, index=False)
+
+
+class FinalPayoff(Page):
+    @staticmethod
+    def vars_for_template(player):
+        return dict(
+            final_payoff=player.participant.payoff_plus_participation_fee()
+        )
+
 class Debriefing(Page):
     pass
 
-page_sequence = [General, Video_1, Video_2, Control, Game, BuyerLotteries]
+page_sequence = [General, Video_1, Video_2, Control, Game, BuyerLotteries, ResultsWaitPage, FinalPayoff]

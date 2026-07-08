@@ -1,0 +1,60 @@
+
+{{ block title }}
+{{ endblock }}
+
+{{ block content }}
+
+<div class="container" style="max-width: 700px; margin-top: 40px;">
+
+    <div class="card shadow-sm border-0">
+        <div class="card-body text-center p-5">
+
+            <div style="font-size: 3.5rem; margin-bottom: 15px;">
+                ✓
+            </div>
+
+            <h2 class="mb-3">
+                Vielen Dank für Ihre Teilnahme!
+            </h2>
+
+            <p class="text-muted mb-4" style="font-size: 1.1rem;">
+                Sie haben das Experiment erfolgreich abgeschlossen.
+                Wir bedanken uns herzlich für Ihre Zeit und Ihre Unterstützung.
+            </p>
+
+            <div class="p-4 mb-4"
+                 style="
+                    background-color: #f4f7f9;
+                    border-radius: 12px;
+                    border: 1px solid #e1e5e8;
+                 ">
+
+                <p class="mb-2 text-muted">
+                    Ihre Gesamtauszahlung beträgt:
+                </p>
+
+                <div style="
+                    font-size: 2.5rem;
+                    font-weight: 700;
+                    color: #198754;
+                ">
+                    {{ final_payoff }}
+                </div>
+
+            </div>
+
+            <p class="mb-1">
+                Die Auszahlung setzt sich aus Ihrem Verdienst im Experiment
+                und der Teilnahmevergütung zusammen. Wir werden die Überweisung innerhalb der
+                nächsten 10 Tage veranlassen.
+            </p>
+
+
+
+        </div>
+    </div>
+
+</div>
+
+{{ endblock }}
+

@@ -4,7 +4,7 @@ import re
 import pandas as pd
 from pathlib import Path
 import datetime
-import time
+
 
 
 def chain(*iterables):
@@ -36,31 +36,16 @@ class Player(BasePlayer):
     name = models.StringField(label='Vorname')
     surname = models.StringField(label='Nachname')
     iban = models.StringField(label='IBAN')
-    timed_out = models.BooleanField(initial=False)
 
-def creating_session(subsession):
-    for p in subsession.get_players():
-        p.participant.dropout_maker = False
 
 # PAGES
 class IBAN(Page):
     form_model = 'player'
     form_fields = ['name', 'surname', 'iban',]
 
-    def get_timeout_seconds(player):
-        session = player.session
-        return session.config['iban_timeout_seconds']
-
     @staticmethod
     def before_next_page(player, timeout_happened):
-        player.participant.arrival_time = time.time()
-        if timeout_happened:
-            player.name = "None"
-            player.surname = "None"
-            player.iban = "None"
-            player.participant.payoff = 0
-            player.timed_out = True
-            player.participant.dropout_maker = True
+
 
         print(player.session.code)
 
@@ -86,7 +71,7 @@ class IBAN(Page):
         # Gather all info anonymously
         df = pd.DataFrame({'id': participant_id,
                            'session': player.session.code,
-                           'time_stamp': datetime.datetime.fromtimestamp(time.time()).strftime('%x %X'),
+                           'time_stamp': datetime.datetime.fromtimestamp(datetime.datetime.now().timestamp()).strftime('%x %X'),
                            'name': player.name,
                            'surname': player.surname,
                            'iban': player.iban,
@@ -106,13 +91,6 @@ class IBAN(Page):
         player.surname = '[DELETED]'
         player.iban = '[DELETED]'
 
-class TimeOut(Page):
-    def is_displayed(player):
-        return player.timed_out
-
-    def vars_for_template(player):
-        time = player.session.config['iban_timeout_seconds'] / 60
-        return dict(time = time)
 
 
 class IBANWaitPage(WaitPage):
@@ -146,4 +124,4 @@ def iban_error_message(player, my_iban):
         return 'Geben sie bitte eine gültige IBAN ein.'
 
 
-page_sequence = [IBAN, TimeOut]
+page_sequence = [IBAN]
