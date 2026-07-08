@@ -32,6 +32,14 @@ dict(
         use_browser_bots=False,
     ),
 dict(
+        name='FULL_1S1B_BONN',
+        display_name="FULL_1S1B_BONN",
+        app_sequence=['iban_checker_online','Introduction_1S1B', 'Experiment_1S1B', 'Quiz'],
+        num_demo_participants=2,
+        use_browser_bots=False,
+        iban_timeout_seconds=10000
+    ),
+dict(
         name='1S1BBots',
         display_name="1S1BBOTS",
         app_sequence=['Introduction_1S1B', 'Experiment_1S1B'],
