@@ -1,0 +1,35 @@
+{% extends "global/Page.html" %}
+{% load otree static %}
+
+{% block title %}
+Ihre Rolle im Experiment
+{% endblock %}
+
+{% block content %}
+
+{% if player.player_role == 'buyer' %}
+    <p>
+        Sie wurden der Rolle eines <b>Käufers</b> zugeordnet.
+    </p>
+
+    <p>
+        Als Käufer sehen Sie Lotterieangebote anderer Teilnehmender und entscheiden,
+        ob Sie eine Lotterie kaufen möchten.
+    </p>
+
+{% elif player.player_role == 'seller' %}
+    <p>
+        Sie wurden der Rolle eines <b>Verkäufers</b> zugeordnet.
+    </p>
+
+    <p>
+        Als Verkäufer bieten Sie Lotterien an, legen deren Präsentation und Preis fest
+        und treffen weitere Entscheidungen zu Ihren Angeboten.
+    </p>
+{% endif %}
+
+<div style="text-align: right; margin-top: 15px;">
+    <button class="btn btn-primary" name="next">Weiter</button>
+</div>
+
+{% endblock %}

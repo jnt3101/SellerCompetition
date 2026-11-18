@@ -57,6 +57,22 @@ dict(
         sessId=0000000000, # Replace with your values
         use_browser_bots=True,
     ),
+dict(
+        name='FULL_2S1B_BONN_BOTS',
+        display_name="FULL_2S1B_BONN_BOTS",
+        app_sequence=['iban_checker_online','Introduction', 'Experiment', 'Quiz'],
+        num_demo_participants=15,
+        iban_timeout_seconds=10000,
+        use_browser_bots=True,
+    ),
+dict(
+        name='TEST_COMP_TRANS',
+        display_name="TEST_COMP_TRANS",
+        app_sequence=['Introduction_Comp_Trans', 'Experiment_Comp_Trans', 'Quiz'],
+        num_demo_participants=3,
+        iban_timeout_seconds=10000,
+        use_browser_bots=False,
+),
 ]
 
 # if you set a property in SESSION_CONFIG_DEFAULTS, it will be inherited by all configs
@@ -65,7 +81,7 @@ dict(
 # e.g. self.session.config['participation_fee']
 
 SESSION_CONFIG_DEFAULTS = dict(
-    real_world_currency_per_point=1/100, participation_fee=6, doc=""
+    real_world_currency_per_point=1/100, participation_fee=7.5, doc=""
 )
 
 ROOMS = [

@@ -1,0 +1,480 @@
+{% load otree static %}
+
+<h5>Die Lotterien</h5>
+<p>
+    In dieser Studie können Teilnehmende Lotterien kaufen, die von anderen Teilnehmenden in der Studie angeboten werden.
+    Sowohl Käufer als auch Verkäufer können einen zusätzlichen Bonus verdienen.
+    Die mögliche Bonushöhe hängt von den Entscheidungen in der Studie ab, zum Beispiel von den
+    gewählten Preisen für Lotterien, ob die Lotterie gekauft wird und gegebenenfalls vom Ergebnis
+    einer zufälligen Ziehung. Der Bonus jedes Teilnehmenden wird daher sowohl von eigenen Entscheidungen,
+    als auch von Entscheidungen anderer Teilnehmender beeinflusst.
+</p>
+
+<p>
+    Unten sehen Sie ein Beispiel für eine Lotterie:
+</p>
+
+<p>
+<table class="table table-bordered" style="text-align: center">
+    <thead>
+        <tr class="table-primary" style="border-color: black">
+            <th colspan="4">Lotterie</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <th>Wahrscheinlichkeit</th>
+            <td>40 %</td>
+            <td>30 %</td>
+            <td>30 %</td>
+        </tr>
+        <tr>
+            <th>Auszahlung</th>
+            <td>20 Münzen</td>
+            <td>40 Münzen</td>
+            <td>60 Münzen</td>
+        </tr>
+    </tbody>
+</table>
+</p>
+
+<p>
+    In diesem Beispiel zahlt die Lotterie entweder 20 Münzen mit 40&nbsp;% Wahrscheinlichkeit,
+    oder 40 Münzen mit 30&nbsp;% Wahrscheinlichkeit, oder 60 Münzen mit 30&nbsp;% Wahrscheinlichkeit.
+    Wichtig ist: Eine Lotterie zahlt immer nur <b>einen</b> der Beträge aus; sie zahlt also
+    <b>entweder</b> 20 Münzen <b>oder</b> 40 Münzen <b>oder</b> 60 Münzen.
+</p>
+
+<br>
+
+<h5>Die Rollen in dieser Studie</h5>
+<p>
+    In dieser Studie gibt es zwei Rollen: <b>Verkäufer</b> und <b>Käufer</b>.
+    Welche Rolle Sie selbst in dieser Studie haben, erfahren Sie nach den Verständnisfragen.
+</p>
+
+<p>
+    Verkäufer bieten Lotterien an. Käufer sehen diese Lotterien und entscheiden,
+    ob sie eine Lotterie kaufen möchten.
+</p>
+
+<p>
+    Außerdem erhalten alle Teilnehmenden eine Anfangsausstattung:
+</p>
+
+<ul>
+    <li>
+        <b>Verkäufer</b> starten mit <b>750 Münzen</b> als Guthaben und erhalten zusätzlich in jeder Runde eine <b>Lotterie</b>, die sie anbieten.
+    </li>
+    <li>
+        <b>Käufer</b> starten mit <b>1000 Münzen</b> als Guthaben.
+    </li>
+</ul>
+
+<br>
+
+
+<h5>Die Entscheidungen der Verkäufer</h5>
+
+<p>
+    Verkäufer treffen für jede Lotterie, die sie anbieten,
+    mehrere Entscheidungen:
+</p>
+
+<ul>
+    <li>
+        Zunächst wählen die Verkäufer,
+        <b>wie die Lotterie präsentiert wird</b>.
+        Sie können zwischen vier verschiedenen
+        Präsentationsoptionen wählen.
+        Die Optionen A, B, C und D zeigen dieselbe
+        Lotterie in unterschiedlichen Formaten.
+        Die vier Optionen werden weiter unten anhand
+        eines Beispiels dargestellt.
+    </li>
+
+    <li>
+        Danach geben die Verkäufer an,
+        <b>wie oft sie glauben, dass der Käufer denkt,
+        den höchsten Gewinn der Lotterie zu erhalten</b>,
+        wenn diese Lotterie <b>100 Mal</b> gespielt würde.
+    </li>
+
+    <li>
+        Schließlich legen die Verkäufer einen
+        <b>Preis</b> für ihre Lotterie fest.
+        Dieser Preis gibt an, wie viele Münzen
+        ein Käufer zahlen müsste, um die Lotterie
+        zu erwerben.
+        Der Preis kann zwischen
+        <b>1 und 100 Münzen</b> liegen.
+    </li>
+</ul>
+
+<h5>Die Präsentationsoptionen</h5>
+
+<p>
+    Verkäufer können zwischen den folgenden vier
+    Optionen wählen, um ihre Lotterie zu präsentieren.
+    Alle vier Optionen beziehen sich auf dieselbe Lotterie.
+    Sie unterscheiden sich ausschließlich darin,
+    wie die Informationen dargestellt werden.
+</p>
+
+<p>
+    <b>Die folgenden Darstellungen sind Beispiele.</b>
+    Die tatsächlichen Wahrscheinlichkeiten, Auszahlungen
+    und angezeigten Ziehungen können je nach Lotterie
+    unterschiedlich sein.
+</p>
+
+<div id="presentations">
+
+    <!-- OPTION A -->
+    <div class="presentation">
+
+        <p style="text-align:center; font-size:1.3em;">
+            <b>Option A</b>
+        </p>
+
+        <div style="border:2px solid black;
+                    padding:10px;
+                    margin-bottom:20px;
+                    border-radius:8px;">
+
+            <table class="table table-bordered"
+                   style="text-align:center; width:100%;">
+
+                <thead>
+                    <tr class="table-primary"
+                        style="border-color:black;">
+                        <th colspan="4">Lotterie</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    <tr>
+                        <th>Wahrscheinlichkeit</th>
+                        <td>70 %</td>
+                        <td>20 %</td>
+                        <td>10 %</td>
+                    </tr>
+
+                    <tr>
+                        <th>Auszahlung</th>
+                        <td>20 Münzen</td>
+                        <td>50 Münzen</td>
+                        <td>120 Münzen</td>
+                    </tr>
+                </tbody>
+            </table>
+
+        </div>
+    </div>
+
+
+    <!-- OPTION B -->
+    <div class="presentation">
+
+        <p style="text-align:center; font-size:1.3em;">
+            <b>Option B</b>
+        </p>
+
+        <div style="border:2px solid black;
+                    padding:10px;
+                    margin-bottom:20px;
+                    border-radius:8px;">
+
+            <table class="table table-bordered"
+                   style="text-align:center; width:100%;">
+
+                <thead>
+                    <tr class="table-primary"
+                        style="border-color:black;">
+                        <th colspan="4">Lotterie</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    <tr>
+                        <th>Wahrscheinlichkeit</th>
+                        <td>70 %</td>
+                        <td>20 %</td>
+                        <td>10 %</td>
+                    </tr>
+
+                    <tr>
+                        <th>Auszahlung</th>
+                        <td>20 Münzen</td>
+                        <td>50 Münzen</td>
+                        <td>120 Münzen</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <table class="table table-bordered"
+                   style="text-align:center; width:100%;">
+
+                <thead>
+                    <tr class="table-primary"
+                        style="border-color:black;">
+                        <th colspan="5">
+                            Ziehungen der Lotterie
+                        </th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    <tr>
+                        <td>Ziehung 1</td>
+                        <td>Ziehung 2</td>
+                        <td>Ziehung 3</td>
+                        <td>Ziehung 4</td>
+                        <td>Ziehung 5</td>
+                    </tr>
+
+                    <tr>
+                        <td>120 Münzen</td>
+                        <td>120 Münzen</td>
+                        <td>120 Münzen</td>
+                        <td>120 Münzen</td>
+                        <td>120 Münzen</td>
+                    </tr>
+                </tbody>
+            </table>
+
+        </div>
+    </div>
+
+
+    <!-- OPTION C -->
+    <div class="presentation">
+
+        <p style="text-align:center; font-size:1.3em;">
+            <b>Option C</b>
+        </p>
+
+        <div style="border:2px solid black;
+                    padding:10px;
+                    margin-bottom:20px;
+                    border-radius:8px;">
+
+            <table class="table table-bordered"
+                   style="text-align:center; width:100%;">
+
+                <thead>
+                    <tr class="table-primary"
+                        style="border-color:black;">
+                        <th colspan="3">Lotterie</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    <tr>
+                        <th>Wahrscheinlichkeit</th>
+                        <td>70 %</td>
+                        <td>30 %</td>
+                    </tr>
+
+                    <tr>
+                        <th>Auszahlung</th>
+                        <td>20 Münzen</td>
+                        <td>
+                            entweder 50 Münzen
+                            oder 120 Münzen
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+
+        </div>
+    </div>
+
+
+    <!-- OPTION D -->
+    <div class="presentation">
+
+        <p style="text-align:center; font-size:1.3em;">
+            <b>Option D</b>
+        </p>
+
+        <div style="border:2px solid black;
+                    padding:10px;
+                    margin-bottom:20px;
+                    border-radius:8px;">
+
+            <table class="table table-bordered"
+                   style="text-align:center; width:100%;">
+
+                <thead>
+                    <tr class="table-primary"
+                        style="border-color:black;">
+                        <th colspan="3">Lotterie</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    <tr>
+                        <th>Wahrscheinlichkeit</th>
+                        <td>70 %</td>
+                        <td>30 %</td>
+                    </tr>
+
+                    <tr>
+                        <th>Auszahlung</th>
+                        <td>20 Münzen</td>
+                        <td>
+                            entweder 50 Münzen
+                            oder 120 Münzen
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <table class="table table-bordered"
+                   style="text-align:center; width:100%;">
+
+                <thead>
+                    <tr class="table-primary"
+                        style="border-color:black;">
+                        <th colspan="5">
+                            Ziehungen der Lotterie
+                        </th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    <tr>
+                        <td>Ziehung 1</td>
+                        <td>Ziehung 2</td>
+                        <td>Ziehung 3</td>
+                        <td>Ziehung 4</td>
+                        <td>Ziehung 5</td>
+                    </tr>
+
+                    <tr>
+                        <td>120 Münzen</td>
+                        <td>120 Münzen</td>
+                        <td>120 Münzen</td>
+                        <td>120 Münzen</td>
+                        <td>120 Münzen</td>
+                    </tr>
+                </tbody>
+            </table>
+
+        </div>
+    </div>
+
+</div>
+
+
+
+<br>
+
+<h5>Die Entscheidungen der Käufer</h5>
+<p>
+    Käufer treffen für jede Lotterie ebenfalls mehrere Entscheidungen:
+</p>
+<ul>
+    <li>
+       Die Käufer sehen die Lotterieangebote anderer Teilnehmender.
+    Für jede angezeigte Lotterie geben sie zunächst an, <b>wie oft sie glauben, den höchsten Gewinn
+    dieser Lotterie zu erhalten</b>, wenn sie die Lotterie <b>100&nbsp;Mal</b> spielen würden.
+    </li>
+    <li>
+        Danach entscheiden Käufer, ob sie eine Lotterie kaufen möchten. Käufer sehen zwei Lotterien, die von <b>unterschiedlichen Verkäufern</b>
+    angeboten werden. Käufer können maximal <b>eine</b> Lotterie kaufen
+    oder sich dafür entscheiden, <b>keine</b> Lotterie zu kaufen.
+    </li>
+</ul>
+
+
+<br>
+
+<h5>Gruppenzusammensetzung</h5>
+
+<p>
+    In jeder Runde werden Sie einer kleinen Gruppe zugeordnet, die aus zwei Verkäufern und einem Käufer besteht.
+    Alle Teilnehmenden treffen ihre Entscheidungen <b>individuell</b>.
+    Die beiden Verkäufer bieten jeweils eine Lotterie an, zwischen denen der Käufer wählt.
+    Die Angebote der Verkäufer einer Gruppe stehen somit im Wettbewerb miteinander.
+</p>
+
+<p>
+    Nach jeder Runde werden die Gruppen <b>neu gebildet</b>. Das bedeutet, dass Sie in verschiedenen Runden
+    auf <b>unterschiedliche</b> andere Teilnehmende treffen können.
+</p>
+
+
+
+<br>
+
+<h5>Die Bonuszahlung</h5>
+<p>
+    Insgesamt wird es in der Studie <b>{{ C.N_LOTTERIES }} Runden</b> geben.
+    Sie können in jeder Runde zusätzliche Münzen verdienen.
+    Das <b>Guthaben nach Runde 10</b> bestimmt die Bonuszahlung.
+    Wenn Sie sich für die Details interessieren, finden Sie unten auf der Seite eine ausführliche
+    Beschreibung des Bonusmechanismus.
+</p>
+
+<p>
+    Das konkrete Guthaben nach einer Runde hängt von der Rolle und den getroffenen Entscheidungen ab:
+</p>
+
+<ul>
+    <li>
+        <b>Wenn ein Käufer eine Lotterie kauft</b>, wird per Computer eine zufällige Auszahlung dieser Lotterie gezogen.
+        Das Guthaben nach der Runde entspricht dann dem Guthaben vor der Runde abzüglich des Preises zuzüglich der Auszahlung.
+    </li>
+    <li>
+        <b>Wenn ein Käufer keine Lotterie kauft</b>, bleibt sein Guthaben unverändert.
+    </li>
+    <li>
+        <b>Wenn die Lotterie eines Verkäufers gekauft wird</b>, entspricht das Guthaben des Verkäufers nach der Runde seinem Guthaben vor der Runde zuzüglich des von ihm gesetzten Preises.
+    </li>
+    <li>
+        <b>Wenn die Lotterie eines Verkäufers nicht gekauft wird</b>, bleibt sein Guthaben unverändert.
+    </li>
+</ul>
+
+
+<p>
+    Während des Experiments verwenden wir eine fiktive Währung, die wir „Münzen“ nennen.
+    Für die Bonuszahlung werden alle Münzen in Euro umgerechnet zum Kurs von
+    <b>{{ C.EXCHANGE_RATE }} Münzen = 1 Euro</b>.
+</p>
+
+
+
+<!-- Button for payment details -->
+<p>
+    <button class="btn btn-secondary" type="button" data-toggle="collapse" data-target="#paymentMechanism" aria-expanded="false" aria-controls="paymentMechanism">
+        Details zum Bonusmechanismus
+    </button>
+</p>
+
+<!-- Collapsible payment details -->
+<div class="collapse-content collapse" id="paymentMechanism">
+    <div class="card card-body">
+        {% include "Experiment/PaymentDetailsGeneral.html" %}
+        {% include "Experiment/PaymentExampleGeneral.html" %}
+    </div>
+</div>
+
+<style>
+    .card {
+        margin: 0 auto;
+        float: none;
+        margin-bottom: 10px;
+    }
+</style>
+
+<script>
+    $(document).ready(function() {
+        $('[data-toggle="collapse"]').on('click', function() {
+            var target = $(this).data('target');
+            $(target).slideToggle();
+        });
+    });
+</script>

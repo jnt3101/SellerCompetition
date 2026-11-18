@@ -1,0 +1,345 @@
+{% load otree static %}
+
+<style>
+  /* kleines Kästchen oben rechts */
+  .round-badge{
+    position: fixed;
+    top: 12px;
+    right: 12px;
+    background: #fff;
+    border: 2px solid #000;
+    border-radius: 8px;
+    padding: 6px 10px;
+    font-weight: 600;
+    z-index: 2000;
+    box-shadow: 0 2px 8px rgba(0,0,0,.15);
+  }
+
+  /* Timer links oben */
+  .timer-badge{
+    position: fixed;
+    top: 12px;
+    left: 12px;
+    background: #fff;
+    border: 2px solid #000;
+    border-radius: 8px;
+    padding: 6px 12px;
+    font-weight: 600;
+    z-index: 2000;
+    box-shadow: 0 2px 8px rgba(0,0,0,.15);
+    min-width: 120px;
+    text-align: center;
+  }
+
+  .timer-warning{
+    position: fixed;
+    top: 60px;
+    left: 12px;
+    background: #fff3cd;
+    border: 2px solid #856404;
+    color: #856404;
+    border-radius: 8px;
+    padding: 8px 12px;
+    font-weight: 600;
+    z-index: 2000;
+    box-shadow: 0 2px 8px rgba(0,0,0,.15);
+    display: none;
+    max-width: 280px;
+  }
+</style>
+
+<!-- Timer -->
+<div class="timer-badge">
+  Verbleibende Zeit: <span id="countdown">--:--</span>
+</div>
+
+<div id="timer-message" class="timer-warning">
+  Bitte treffen Sie jetzt eine Entscheidung.
+</div>
+
+<!-- Rundenzähler -->
+<div class="round-badge">
+  Runde {{ player.round_number }} von {{ C.NUM_ROUNDS }}
+</div>
+
+<div class="row">
+  <div class="col">
+    <p>
+      Wir haben eine Lotterie für Sie generiert, die Sie verkaufen können.
+      <b>Sie können selbst entscheiden, wie Sie diese Lotterie den Käuferinnen und Käufern präsentieren möchten.</b>
+      Der andere Verkäufer in ihrer Gruppe hat die gleichen Formate zur Verfügung, um seine Lotterie zu präsentieren.
+      Die Lotterie wird dem Käufer in ihrer Gruppe angeboten.
+      Denken Sie daran, dass Sie ihre Bonuszahlung erhöhen können, wenn Sie die Lotterie erfolgreich verkaufen.
+      Ein Verkauf findet statt, wenn sich der Käufer entscheidet, ihre Lotterie zu kaufen. Die Instruktionen finden Sie
+      bei Bedarf unten auf der Seite.
+
+    </p>
+
+    <p>
+      Bei der Präsentation der Lotterie können Sie außerdem <b>die {{ C.DRAWS }} höchsten Werte</b>
+      aus insgesamt {{ C.SAMPLE_SIZE }} zufälligen Ziehungen dieser Lotterie anzeigen.
+    </p>
+  </div>
+</div>
+
+<b>Sie können aus den folgenden Formaten wählen, um die Lotterie zu präsentieren:</b>
+<br/><br/>
+
+<div id="presentations">
+
+  <!-- Transparente Präsentation -->
+  <div class="presentation" data-presentation-id="Transparent">
+    <p align="center" style="font-size: 1.5em;"><b>Präsentation 1</b></p>
+    <div class="row">
+      <div class="col">
+        <div style="border: 2px solid black; padding: 10px; margin-bottom: 20px; border-radius: 8px;">
+
+          <table class="table table-bordered" style="text-align: center">
+            <thead>
+              <tr class="table-primary" style="border-color: black">
+                <th colspan="4">Lotterie</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <th>Wahrscheinlichkeit</th>
+                <td>{{ prob_low }} %</td>
+                <td>{{ prob_mid }} %</td>
+                <td>{{ prob_high }} %</td>
+              </tr>
+              <tr>
+                <th>Auszahlung</th>
+                <td>{{ payoff_low }} Münzen</td>
+                <td>{{ payoff_mid }} Münzen</td>
+                <td>{{ payoff_high }} Münzen</td>
+              </tr>
+            </tbody>
+          </table>
+
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Präsentation mit Stichprobe -->
+  <div class="presentation" data-presentation-id="Sample">
+    <p align="center" style="font-size: 1.5em;"><b>Präsentation 2</b></p>
+    <div class="row">
+      <div class="col">
+        <div style="border: 2px solid black; padding: 10px; margin-bottom: 20px; border-radius: 8px;">
+
+          <table class="table table-bordered" style="text-align: center">
+            <thead>
+              <tr class="table-primary" style="border-color: black">
+                <th colspan="4">Lotterie</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <th>Wahrscheinlichkeit</th>
+                <td>{{ prob_low }} %</td>
+                <td>{{ prob_mid }} %</td>
+                <td>{{ prob_high }} %</td>
+              </tr>
+              <tr>
+                <th>Auszahlung</th>
+                <td>{{ payoff_low }} Münzen</td>
+                <td>{{ payoff_mid }} Münzen</td>
+                <td>{{ payoff_high }} Münzen</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <!-- Ziehungsergebnisse -->
+          <table class="table table-bordered" style="text-align: center; width: 100%;">
+            <thead>
+              <tr class="table-primary" style="border-color: black">
+                <th colspan="5">Ziehungen der Lotterie</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                {% for draw in subsample %}
+                  <td style="width: 20%">Ziehung {{ forloop.counter }}</td>
+                {% endfor %}
+              </tr>
+              <tr>
+                {% for draw in subsample %}
+                  <td style="width: 20%">{{ draw }} Münzen</td>
+                {% endfor %}
+              </tr>
+            </tbody>
+          </table>
+
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Präsentation mit Zensierung -->
+  <div class="presentation" data-presentation-id="Censoring">
+    <p align="center" style="font-size: 1.5em;"><b>Präsentation 3</b></p>
+    <div class="row">
+      <div class="col">
+        <div style="border: 2px solid black; padding: 10px; margin-bottom: 20px; border-radius: 8px;">
+
+          <table class="table table-bordered" style="text-align: center">
+            <thead>
+              <tr class="table-primary" style="border-color: black">
+                <th colspan="4">Lotterie</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <th>Wahrscheinlichkeit</th>
+                <td>{{ prob_low }} %</td>
+                <td>{{ prob_upper_joint }} %</td>
+              </tr>
+              <tr>
+                <th>Auszahlung</th>
+                <td>{{ payoff_low }} Münzen</td>
+                <td>entweder {{ payoff_mid }} Münzen oder {{ payoff_high }} Münzen</td>
+              </tr>
+            </tbody>
+          </table>
+
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Präsentation mit Stichprobe & Zensierung -->
+  <div class="presentation" data-presentation-id="Sample_Censoring">
+    <p align="center" style="font-size: 1.5em;"><b>Präsentation 4</b></p>
+    <div class="row">
+      <div class="col">
+        <div style="border: 2px solid black; padding: 10px; margin-bottom: 20px; border-radius: 8px;">
+
+          <table class="table table-bordered" style="text-align: center">
+            <thead>
+              <tr class="table-primary" style="border-color: black">
+                <th colspan="4">Lotterie</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <th>Wahrscheinlichkeit</th>
+                <td>{{ prob_low }} %</td>
+                <td>{{ prob_upper_joint }} %</td>
+              </tr>
+              <tr>
+                <th>Auszahlung</th>
+                <td>{{ payoff_low }} Münzen</td>
+                <td>entweder {{ payoff_mid }} Münzen oder {{ payoff_high }} Münzen</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <!-- Ziehungsergebnisse -->
+          <table class="table table-bordered" style="text-align: center; width: 100%;">
+            <thead>
+              <tr class="table-primary" style="border-color: black">
+                <th colspan="5">Ziehungen der Lotterie</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                {% for draw in subsample %}
+                  <td style="width: 20%">Ziehung {{ forloop.counter }}</td>
+                {% endfor %}
+              </tr>
+              <tr>
+                {% for draw in subsample %}
+                  <td style="width: 20%">{{ draw }} Münzen</td>
+                {% endfor %}
+              </tr>
+            </tbody>
+          </table>
+
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- Hidden input field to store the order of presentations after shuffling -->
+<input type="hidden" name="presentation_order" id="presentation_order">
+
+<script>
+  // Function to shuffle presentations based on the provided container ID
+  function shufflePresentations(containerId) {
+    const container = document.getElementById(containerId);
+    if (container) {
+      const presentations = Array.from(container.children).filter(child =>
+        child.classList.contains('presentation')
+      );
+
+      presentations.sort(() => Math.random() - 0.5);
+
+      container.innerHTML = '';
+
+      presentations.forEach((presentation, index) => {
+        const labelElement = presentation.querySelector('p[align="center"] b');
+        if (labelElement) {
+          labelElement.innerText = `Präsentation ${index + 1}`;
+        }
+
+        container.appendChild(presentation);
+
+        if (index < presentations.length - 1) {
+          const orParagraph = document.createElement('p');
+          orParagraph.align = "center";
+          orParagraph.innerText = "oder";
+          container.appendChild(orParagraph);
+        }
+      });
+
+      let presentationOrder = presentations.map(presentation =>
+        presentation.getAttribute('data-presentation-id')
+      );
+
+      document.getElementById('presentation_order').value =
+        presentationOrder.join(',');
+    }
+  }
+
+  window.onload = function() {
+    shufflePresentations("presentations");
+  };
+
+
+  function startCountdown() {
+    const roundNumber = {{ player.round_number }};
+    let remainingSeconds = roundNumber === 1 ? 150 : 90;
+
+    const countdownElement = document.getElementById('countdown');
+    const messageElement = document.getElementById('timer-message');
+
+    function formatTime(seconds) {
+      const minutes = Math.floor(seconds / 60);
+      const secs = seconds % 60;
+      return `${minutes}:${secs.toString().padStart(2, '0')}`;
+    }
+
+    countdownElement.textContent = formatTime(remainingSeconds);
+
+    const timer = setInterval(function() {
+      remainingSeconds--;
+
+      if (remainingSeconds <= 0) {
+        countdownElement.textContent = "0:00";
+        messageElement.style.display = "block";
+        clearInterval(timer);
+        return;
+      }
+
+      countdownElement.textContent = formatTime(remainingSeconds);
+    }, 1000);
+  }
+
+  window.onload = function() {
+    shufflePresentations("presentations");
+    startCountdown();
+  };
+</script>

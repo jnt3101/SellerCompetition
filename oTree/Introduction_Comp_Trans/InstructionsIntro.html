@@ -1,0 +1,25 @@
+{% extends "global/Page.html" %}
+{% load otree static %}
+
+{% block title %}
+Instruktionen
+{% endblock %}
+
+{% block content %}
+<hr>
+
+<p>
+    Bitte lesen Sie diese Anweisungen sorgfältig durch. Es folgen anschließend Verständnisfragen.
+    Alle Teilnehmden erhalten die gleichen Anweisungen.
+</p>
+
+{% include "Introduction_comp_trans/InstructionsGeneral.html" %}
+
+<!-- Weiter Button separat platziert -->
+<div style="text-align: right; margin-top: 15px;">
+    <button class="btn btn-primary" name="next">Weiter</button>
+</div>
+
+{% endblock %}
+
+
