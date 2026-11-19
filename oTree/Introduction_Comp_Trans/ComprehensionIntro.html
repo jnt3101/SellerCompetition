@@ -136,6 +136,18 @@
 
 <br>
 
+<div class="card">
+    <div class="card-header">
+        <b>7. Aus wie vielen Präsentationen können die Verkäufer auswählen?</b>
+    </div>
+
+    <div class="card-body">
+        {% formfield player.transparent_comp_2 label="Bitte wählen Sie eine der folgenden Aussagen aus:" %}
+    </div>
+</div>
+
+<br>
+
 <button class="btn btn-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#instructionsCollapse">
     Instruktionen anzeigen
 </button>
@@ -160,7 +172,8 @@
             'buyer_comp_3': '2',
             'seller_comp_3': '3',
             'seller_comp_4': '1',
-            'transparent_comp_1': '1'
+            'transparent_comp_1': '1',
+            'transparent_comp_2': '2'
         };
 
         for (const [fieldName, correctValue] of Object.entries(correctAnswers)) {

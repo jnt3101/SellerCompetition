@@ -1220,13 +1220,15 @@ class SellerFeedback(Page):
         )
 
 
+
 class BuyerFeedback(Page):
     """
     Feedback for buyers:
-    - whether they bought a lottery
-    - if yes: index of seller, price, and outcome
-    - if no: current balance remains unchanged
-    No time limit.
+    - Shows both lotteries with their selected presentations.
+    - Uses neutral presentation labels A, B, C, D.
+    - Indicates which lottery was purchased.
+    - Shows lottery outcome and balance changes.
+    - Also displays both lotteries if no lottery was purchased.
     """
 
     @staticmethod
@@ -1236,7 +1238,57 @@ class BuyerFeedback(Page):
 
     @staticmethod
     def vars_for_template(player: Player):
-        return dict(
+
+        # Get both sellers' lotteries, including presentation,
+        # probabilities, payoffs, subsamples, and prices.
+        context = generate_context_for_buyer(player)
+
+        # Support both numerical and descriptive presentation IDs.
+        presentation_id_mapping = {
+            '1': 'Transparent',
+            '2': 'Sample',
+            '3': 'Censoring',
+            '4': 'Sample_Censoring',
+        }
+
+        # Neutral labels for the presentation types.
+        presentation_labels = {
+            'Transparent': 'Präsentation A',
+            'Sample': 'Präsentation B',
+            'Censoring': 'Präsentation C',
+            'Sample_Censoring': 'Präsentation D',
+        }
+
+        for lot in context['sellers']:
+
+            # Normalize presentation ID.
+            original_id = str(lot['presentation_id']).strip()
+
+            presentation_id = presentation_id_mapping.get(
+                original_id,
+                original_id
+            )
+
+            if presentation_id not in presentation_labels:
+                raise ValueError(
+                    f"Unknown presentation ID: {original_id}"
+                )
+
+            lot['presentation_id'] = presentation_id
+
+            # Assign neutral presentation label.
+            lot['presentation_label'] = (
+                presentation_labels[presentation_id]
+            )
+
+            # Determine whether this lottery was purchased.
+            lot['was_bought'] = (
+                player.bought_lottery
+                and lot['seller_index'] == player.chosen_seller_index
+            )
+
+        # Preserve all existing feedback variables.
+        context.update(
             bought_lottery=player.bought_lottery,
             chosen_seller_index=player.chosen_seller_index,
             chosen_lottery_price=player.chosen_lottery_price,
@@ -1250,6 +1302,9 @@ class BuyerFeedback(Page):
             round_bonus_euro=player.bonus_payment,
             total_bonus_euro=player.total_bonus_payment,
         )
+
+        return context
+
 
 
 class RoundTransitionWaitPage(WaitPage):

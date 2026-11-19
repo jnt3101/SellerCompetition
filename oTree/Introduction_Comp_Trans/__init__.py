@@ -125,6 +125,16 @@ class Player(BasePlayer):
         widget=widgets.RadioSelect,
         blank=True,
     )
+    transparent_comp_2 = models.IntegerField(
+        label="",
+        choices=[
+            [1, "3."],
+            [2, "4."],
+            [3, "5."],
+        ],
+        widget=widgets.RadioSelect,
+        blank=True,
+    )
 
     comprehension_tries = models.IntegerField(initial=0)
 
@@ -286,6 +296,7 @@ class ComprehensionIntro(Page):
         'seller_comp_3',
         'seller_comp_4',
         'transparent_comp_1',
+        'transparent_comp_2'
     ]
 
     @staticmethod
@@ -302,7 +313,8 @@ class ComprehensionIntro(Page):
                 values['buyer_comp_3'] == 2 and
                 values['seller_comp_3'] == 3 and
                 values['seller_comp_4'] == 1 and
-                values['transparent_comp_1'] == 1
+                values['transparent_comp_1'] == 1 and
+                values['transparent_comp_2'] == 2
         )
 
         if not correct:

@@ -1,3 +1,4 @@
+
 {% extends "global/Page.html" %}
 {% load otree static %}
 
@@ -6,9 +7,10 @@
 {% endblock %}
 
 {% block content %}
+
 <style>
-  /* kleines Kästchen oben rechts */
-  .round-badge{
+  /* Rundenzähler */
+  .round-badge {
     position: fixed;
     top: 12px;
     right: 12px;
@@ -20,76 +22,465 @@
     z-index: 2000;
     box-shadow: 0 2px 8px rgba(0,0,0,.15);
   }
+
+  /* Lotteriekarten */
+  .lottery-card {
+    border-radius: 0.5rem;
+    border: 1px solid #dee2e6;
+    overflow: hidden;
+  }
+
+  .bought-lottery-card {
+    border-left: 5px solid #198754;
+  }
+
+  .not-bought-lottery-card {
+    border-left: 5px solid #adb5bd;
+  }
+
+  /* Darstellung der Lotterien */
+  .lottery-info-box {
+    border: 2px solid #000000;
+    padding: 10px;
+    border-radius: 8px;
+    background-color: #fafafa;
+  }
+
+  .lottery-info-box .table {
+    margin-bottom: 0;
+  }
+
+  .lottery-info-box .draws-table {
+    margin-top: 15px;
+  }
+
+  /* Preis */
+  .price-highlight {
+    min-width: 120px;
+    text-align: right;
+  }
+
+  .price-label {
+    text-transform: uppercase;
+    font-size: 0.75rem;
+    letter-spacing: 0.08em;
+    color: #6c757d;
+  }
+
+  .price-value {
+    font-size: 1.75rem;
+    font-weight: 700;
+    line-height: 1.1;
+  }
+
+  /* Präsentationsbezeichnung */
+  .presentation-label {
+    display: inline-block;
+    padding: 4px 10px;
+    border-radius: 6px;
+    background-color: #e2e3e5;
+    color: #41464b;
+    font-weight: 600;
+    margin-top: 8px;
+  }
+
+  /* Guthaben und Ergebnis */
+  .result-box {
+    padding: 1rem;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+  }
+
+  .result-neutral {
+    background-color: #f2f2f2;
+  }
+
+  .result-positive {
+    background-color: #e5ffe5;
+  }
+
 </style>
+
 
 <!-- Rundenzähler -->
 <div class="round-badge">
   Runde {{ player.round_number }} von {{ C.NUM_ROUNDS }}
 </div>
 
-<br/><br/>
+<br><br>
 
-<div style="display: flex; flex-direction: column; gap: 1rem; max-width: 800px; margin: auto;">
 
-    <div style="padding: 1rem; border: 1px solid #ccc; border-radius: 8px; background-color: #f2f2f2;">
-        <p>
-            Ihr Guthaben vor der Runde betrug: <strong>{{ starting_balance }}</strong>
-        </p>
-    </div>
+<div class="container" style="max-width: 950px; margin: auto;">
 
-    {% if bought_lottery %}
-        <div style="padding: 1rem; border: 1px solid #ccc; border-radius: 8px; background-color: #f9f9f9;">
-            <h5>Lotterie Ergebnis</h5>
+  <!-- ====================================================== -->
+  <!-- Guthaben vor der Runde                                 -->
+  <!-- ====================================================== -->
 
-            {% if chosen_seller_index == 1 %}
-                <p>
-                    In dieser Runde haben Sie sich entschieden, <strong>Lotterie 1</strong> zu kaufen.
-                </p>
-            {% elif chosen_seller_index == 2 %}
-                <p>
-                    In dieser Runde haben Sie sich entschieden, <strong>Lotterie 2</strong> zu kaufen.
-                </p>
-            {% else %}
-                <p>
-                    In dieser Runde haben Sie sich entschieden, <strong>eine Lotterie zu kaufen</strong>.
-                </p>
+  <div class="result-box result-neutral mb-4">
+    <p class="mb-0">
+      Ihr Guthaben vor der Runde betrug:
+      <strong>{{ starting_balance }}</strong>
+    </p>
+  </div>
+
+
+  <!-- ====================================================== -->
+  <!-- Beide angebotenen Lotterien                            -->
+  <!-- ====================================================== -->
+
+  <h5 class="mb-3">
+    Die angebotenen Lotterien
+  </h5>
+
+  <p>
+    In dieser Runde wurden Ihnen die folgenden zwei
+    Lotterien angeboten:
+  </p>
+
+
+  {% for lot in sellers %}
+
+    <div class="card mb-4 shadow-sm lottery-card
+      {% if lot.was_bought %}
+        bought-lottery-card
+      {% else %}
+        not-bought-lottery-card
+      {% endif %}
+    ">
+
+      <!-- Kartenkopf -->
+      <div class="card-header d-flex justify-content-between
+                  align-items-start">
+
+        <div>
+
+          <h4 class="mb-0" style="color: red;">
+            Lotterie {{ lot.seller_index }}
+          </h4>
+
+          <div class="presentation-label">
+            {{ lot.presentation_label }}
+          </div>
+
+          {% if lot.presentation_id == 'Sample' or lot.presentation_id == 'Sample_Censoring' %}
+            <br>
+            <small class="text-muted">
+              Angezeigt wurden die
+              <b>{{ C.DRAWS }} höchsten Werte</b>
+              aus insgesamt {{ C.SAMPLE_SIZE }}
+              zufälligen Lotteriezügen.
+            </small>
+          {% endif %}
+
+        </div>
+
+        <div class="price-highlight">
+          <div class="price-label">
+            Preis
+          </div>
+          <div class="price-value">
+            {{ lot.price }}
+          </div>
+        </div>
+
+      </div>
+
+
+      <!-- Lotteriedarstellung -->
+      <div class="card-body">
+
+        <div class="mb-3">
+
+          <div class="lottery-info-box">
+
+            <!-- =========================================== -->
+            <!-- Präsentation A: Transparent                 -->
+            <!-- Präsentation B: Sample                      -->
+            <!-- =========================================== -->
+
+            {% if lot.presentation_id == 'Transparent' or lot.presentation_id == 'Sample' %}
+
+              <table class="table table-bordered"
+                     style="text-align: center;">
+
+                <thead>
+                  <tr class="table-primary">
+                    <th colspan="4">
+                      Lotterie
+                    </th>
+                  </tr>
+                </thead>
+
+                <tbody>
+
+                  <tr>
+                    <th>
+                      Wahrscheinlichkeit
+                    </th>
+                    <td>
+                      {{ lot.prob_low }} %
+                    </td>
+                    <td>
+                      {{ lot.prob_mid }} %
+                    </td>
+                    <td>
+                      {{ lot.prob_high }} %
+                    </td>
+                  </tr>
+
+                  <tr>
+                    <th>
+                      Auszahlung
+                    </th>
+                    <td>
+                      {{ lot.payoff_low }} Münzen
+                    </td>
+                    <td>
+                      {{ lot.payoff_mid }} Münzen
+                    </td>
+                    <td>
+                      {{ lot.payoff_high }} Münzen
+                    </td>
+                  </tr>
+
+                </tbody>
+
+              </table>
+
+
+            <!-- =========================================== -->
+            <!-- Präsentation C: Censoring                   -->
+            <!-- Präsentation D: Sample_Censoring            -->
+            <!-- =========================================== -->
+
+            {% elif lot.presentation_id == 'Censoring' or lot.presentation_id == 'Sample_Censoring' %}
+
+              <table class="table table-bordered"
+                     style="text-align: center;">
+
+                <thead>
+                  <tr class="table-primary">
+                    <th colspan="3">
+                      Lotterie
+                    </th>
+                  </tr>
+                </thead>
+
+                <tbody>
+
+                  <tr>
+                    <th>
+                      Wahrscheinlichkeit
+                    </th>
+                    <td>
+                      {{ lot.prob_low }} %
+                    </td>
+                    <td>
+                      {{ lot.prob_upper_joint }} %
+                    </td>
+                  </tr>
+
+                  <tr>
+                    <th>
+                      Auszahlung
+                    </th>
+                    <td>
+                      {{ lot.payoff_low }} Münzen
+                    </td>
+                    <td>
+                      entweder {{ lot.payoff_mid }} Münzen
+                      oder {{ lot.payoff_high }} Münzen
+                    </td>
+                  </tr>
+
+                </tbody>
+
+              </table>
+
             {% endif %}
 
-            <p>
-                Eine zufällige Ziehung aus der von Ihnen gekauften Lotterie ergab ein Ergebnis von
-                <strong>{{ lottery_outcome }}</strong>.
-            </p>
 
-            <p>
-                Von Ihrem Guthaben vor der Runde in Höhe von <strong>{{ starting_balance }}</strong>
-                wird der Preis der Lotterie in Höhe von <strong>{{ chosen_lottery_price }}</strong> abgezogen.
-                Anschließend wird das Ergebnis der Lotterie in Höhe von <strong>{{ lottery_outcome }}</strong> hinzugefügt.
-            </p>
+            <!-- =========================================== -->
+            <!-- Zusätzliche Ziehungen für Sample            -->
+            <!-- und Sample_Censoring                        -->
+            <!-- =========================================== -->
+
+            {% if lot.presentation_id == 'Sample' or lot.presentation_id == 'Sample_Censoring' %}
+
+              {% if lot.subsample %}
+
+                <table class="table table-bordered draws-table"
+                       style="text-align: center; width: 100%;">
+
+                  <thead>
+                    <tr class="table-primary"
+                        style="border-color: black;">
+
+                      <th colspan="{{ lot.subsample|length }}">
+                        Ziehungen der Lotterie
+                      </th>
+
+                    </tr>
+                  </thead>
+
+                  <tbody>
+
+                    <tr>
+                      {% for draw in lot.subsample %}
+                        <td>
+                          Ziehung {{ forloop.counter }}
+                        </td>
+                      {% endfor %}
+                    </tr>
+
+                    <tr>
+                      {% for draw in lot.subsample %}
+                        <td>
+                          {{ draw }} Münzen
+                        </td>
+                      {% endfor %}
+                    </tr>
+
+                  </tbody>
+
+                </table>
+
+              {% endif %}
+
+            {% endif %}
+
+          </div>
+
         </div>
-    {% else %}
-        <div style="padding: 1rem; border: 1px solid #ccc; border-radius: 8px; background-color: #f2f2f2;">
-            <h5>Ihre Entscheidung</h5>
 
-            <p>
-                In dieser Runde haben Sie sich entschieden, <strong>keine Lotterie zu kaufen</strong>.
-            </p>
 
-            <p>
-                Da Sie keine Lotterie gekauft haben, ändert sich Ihr Guthaben in dieser Runde nicht.
-            </p>
-        </div>
-    {% endif %}
+        <!-- =============================================== -->
+        <!-- Kennzeichnung der Kaufentscheidung             -->
+        <!-- =============================================== -->
 
-    <div style="padding: 1rem; border: 1px solid #ccc; border-radius: 8px; background-color: #e5ffe5;">
+        {% if lot.was_bought %}
+
+          <div class="alert alert-success mb-0">
+            <strong>
+              Diese Lotterie haben Sie gekauft.
+            </strong>
+          </div>
+
+        {% else %}
+
+          <div class="alert alert-secondary mb-0">
+            Diese Lotterie haben Sie nicht gekauft.
+          </div>
+
+        {% endif %}
+
+      </div>
+
+    </div>
+
+  {% endfor %}
+
+
+  <!-- ====================================================== -->
+  <!-- Bisherige Ergebnisanzeige                              -->
+  <!-- ====================================================== -->
+
+  {% if bought_lottery %}
+
+    <div class="result-box result-neutral mb-4">
+
+      <h5>Lotterie Ergebnis</h5>
+
+      {% if chosen_seller_index == 1 %}
+
         <p>
-            Ihr Guthaben nach dieser Runde beträgt:
-            <strong>{{ ending_balance }}</strong>
+          In dieser Runde haben Sie sich entschieden,
+          <strong>Lotterie 1</strong> zu kaufen.
         </p>
+
+      {% elif chosen_seller_index == 2 %}
+
+        <p>
+          In dieser Runde haben Sie sich entschieden,
+          <strong>Lotterie 2</strong> zu kaufen.
+        </p>
+
+      {% else %}
+
+        <p>
+          In dieser Runde haben Sie sich entschieden,
+          <strong>eine Lotterie zu kaufen</strong>.
+        </p>
+
+      {% endif %}
+
+
+      <p>
+        Eine zufällige Ziehung aus der von Ihnen gekauften
+        Lotterie ergab ein Ergebnis von
+        <strong>{{ lottery_outcome }}</strong>.
+      </p>
+
+      <p>
+        Von Ihrem Guthaben vor der Runde in Höhe von
+        <strong>{{ starting_balance }}</strong>
+        wird der Preis der Lotterie in Höhe von
+        <strong>{{ chosen_lottery_price }}</strong>
+        abgezogen.
+
+        Anschließend wird das Ergebnis der Lotterie in Höhe von
+        <strong>{{ lottery_outcome }}</strong>
+        hinzugefügt.
+      </p>
+
     </div>
 
-    <div style="text-align: right; margin-top: 15px;">
-        <button class="btn btn-primary" name="next">Weiter</button>
+  {% else %}
+
+    <div class="result-box result-neutral mb-4">
+
+      <h5>Ihre Entscheidung</h5>
+
+      <p>
+        In dieser Runde haben Sie sich entschieden,
+        <strong>keine Lotterie zu kaufen</strong>.
+      </p>
+
+      <p>
+        Da Sie keine Lotterie gekauft haben,
+        ändert sich Ihr Guthaben in dieser Runde nicht.
+      </p>
+
     </div>
+
+  {% endif %}
+
+
+  <!-- ====================================================== -->
+  <!-- Guthaben nach der Runde                                -->
+  <!-- ====================================================== -->
+
+  <div class="result-box result-positive mb-4">
+
+    <p class="mb-0">
+      Ihr Guthaben nach dieser Runde beträgt:
+      <strong>{{ ending_balance }}</strong>
+    </p>
+
+  </div>
+
+
+  <!-- ====================================================== -->
+  <!-- Weiter-Button                                          -->
+  <!-- ====================================================== -->
+
+  <div style="text-align: right; margin-top: 15px;">
+
+    <button class="btn btn-primary" name="next">
+      Weiter
+    </button>
+
+  </div>
 
 </div>
 
